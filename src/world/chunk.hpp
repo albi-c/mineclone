@@ -2,6 +2,7 @@
 
 #define CHUNK_HEIGHT 256
 #define CHUNK_SIZE 16
+#define CHUNK_LENGTH (CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT)
 
 #include <utility>
 #include <array>
@@ -28,6 +29,9 @@ public:
 private:
     int cx, cy;
 
-    // XYZ order
-    Block blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
+    // // XYZ order
+    // Block blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
+
+    // XZY order
+    Block blocks[CHUNK_LENGTH];
 };

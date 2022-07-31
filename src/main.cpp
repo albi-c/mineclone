@@ -50,14 +50,15 @@ int main() {
 
     Chunk chunk(0, 0);
 
+    int count = 100;
     double total = 0.0;
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < count; i++) {
         double time1 = glfwGetTime();
         chunk.mesh(&tex3d);
         double time2 = glfwGetTime();
         total += time2 - time1;
     }
-    std::cout << total << " | " << total / 100.0 * 1000.0 << "\n";
+    std::cout << total << " | " << total / count * 1000.0 << "\n";
 
     Mesh mesh(chunk.mesh(&tex3d), &shader, {}, textures);
     w.renderer.add_mesh(0, &mesh);
