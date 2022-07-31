@@ -20,15 +20,20 @@ public:
     Camera(float fov);
 
     glm::mat4 view_matrix();
+    glm::mat4 proj_matrix();
 
     void move(char directions, float dt);
     void rotate(float x, float y);
+
+    void resize(int width, int height);
 
 private:
     glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::vec3 right;
     glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    int width, height;
 
     void update_vectors();
 };

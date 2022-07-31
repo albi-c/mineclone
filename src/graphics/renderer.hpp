@@ -2,6 +2,7 @@
 
 #include <map>
 #include <memory>
+#include <utility>
 
 #include "opengl.hpp"
 #include "mesh.hpp"
@@ -17,10 +18,10 @@ public:
 
     void set_sky_color(const glm::vec4& color);
 
-    void add_mesh(int id, Mesh* mesh);
+    void add_mesh(int id, Mesh* mesh, const glm::vec3& translate = glm::vec3());
     void remove_mesh(int id);
     Mesh* get_mesh(int id);
-    std::map<int, Mesh*>& get_meshes();
+    std::map<int, std::pair<Mesh*, glm::vec3>>& get_meshes();
 
 private:
     int width, height;
@@ -28,5 +29,5 @@ private:
 
     Camera* camera;
 
-    std::map<int, Mesh*> meshes;
+    std::map<int, std::pair<Mesh*, glm::vec3>> meshes;
 };

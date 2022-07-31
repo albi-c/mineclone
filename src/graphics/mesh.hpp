@@ -20,9 +20,11 @@ class Mesh {
 public:
     Shader* shader;
 
+    Mesh();
     Mesh(const MeshData& data, Shader* shader, const std::map<std::string, Texture*>& textures, const std::map<std::string, Texture3D*>& texture3d);
 
     void render();
+    void render_depth();
 
     void rebuild(const MeshData& data);
 

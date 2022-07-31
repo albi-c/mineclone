@@ -9,6 +9,9 @@ Camera::Camera(float fov)
 glm::mat4 Camera::view_matrix() {
     return glm::lookAt(pos, pos + front, up);
 }
+glm::mat4 Camera::proj_matrix() {
+    return glm::perspective(fov, (float)width / (float)height, 0.1f, 1000.0f);
+}
 
 void Camera::move(char directions, float dt) {
     glm::vec3 offset = glm::vec3(0);
@@ -42,6 +45,11 @@ void Camera::rotate(float x, float y) {
         rot.y = -89.0f;
     
     update_vectors();
+}
+
+void Camera::resize(int width, int height) {
+    this->width = width;
+    this->height = height;
 }
 
 void Camera::update_vectors() {

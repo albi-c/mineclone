@@ -6,14 +6,18 @@
 
 #include <utility>
 #include <array>
+#include <map>
 
 #include "block.hpp"
 #include "../graphics/mesh.hpp"
+#include "../graphics/opengl.hpp"
 #include "../graphics/texture.hpp"
 
 class Chunk {
 public:
-    Chunk(int cx, int cy);
+    Chunk();
+    Chunk(int seed, int cx, int cz);
+    ~Chunk();
 
     Block& block(int x, int y, int z);
     Block& block(const BlockPosition& pos);
@@ -27,11 +31,9 @@ public:
     MeshData mesh(Texture3D* tex);
 
 private:
-    int cx, cy;
-
-    // // XYZ order
-    // Block blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
+    int cx, cz;
+    int seed;
 
     // XZY order
-    Block blocks[CHUNK_LENGTH];
+    Block* blocks;
 };

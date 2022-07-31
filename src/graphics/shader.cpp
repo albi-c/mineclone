@@ -5,26 +5,48 @@ static const std::map<BuiltinShader, std::pair<std::string, std::string>> BUILTI
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aTex;
+layout (location = 2) in vec3 aNormal;
 
 out vec3 TexCoord;
+out vec3 Normal;
+out vec3 FragPos;
 
 uniform mat4 transform;
+uniform mat4 model;
 
 void main() {
     gl_Position = transform * vec4(aPos, 1.0);
 
     TexCoord = aTex;
+    Normal = aNormal;
+    FragPos = vec3(model * vec4(aPos, 1.0));
 }
 )", R"(
 #version 330 core
 in vec3 TexCoord;
+in vec3 Normal;
+in vec3 FragPos;
 
 out vec4 FragColor;
 
-uniform sampler2DArray texture1;
+uniform sampler2DArray textureArray;
+
+struct light_t {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 diffuse_pos;
+};
+uniform light_t light;
 
 void main() {
-    FragColor = texture(texture1, TexCoord);
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(light.diffuse_pos - FragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = light.diffuse * diff;
+    vec3 ambient = light.ambient;
+    vec3 light = diffuse + ambient;
+
+    FragColor = texture(textureArray, TexCoord) * vec4(light, 1.0);
 }
 )"}}
 };

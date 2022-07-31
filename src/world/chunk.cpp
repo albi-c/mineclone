@@ -31,7 +31,25 @@ const static int block_neighbors[6][3] = {
     {-1, 0, 0},
     {1, 0, 0},
     {0, -1, 0},
-    {0, 1, 0},
+    {0, 1, 0}
+};
+
+const static float block_light[6] = {
+    0.95f,
+    0.95f,
+    0.6f,
+    1.0f,
+    0.9f,
+    0.9f
+};
+
+const static float block_normals[6][3] = {
+    {0, 0, -1},
+    {0, 0, 1},
+    {-1, 0, 0},
+    {1, 0, 0},
+    {0, -1, 0},
+    {0, 1, 0}
 };
 
 const static std::array<std::array<float, 30>, 6> block_faces = {{
@@ -80,10 +98,19 @@ const static std::array<std::array<float, 30>, 6> block_faces = {{
     }
 }};
 
-Chunk::Chunk(int cx, int cy)
-    : cx(cx), cy(cy) {
+static std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> blocks_to_set;
+
+Chunk::Chunk()
+    : blocks(new Block[CHUNK_LENGTH]()) {}
+
+Chunk::Chunk(int seed, int cx, int cz)
+    : seed(seed), cx(cx), cz(cz), blocks(new Block[CHUNK_LENGTH]()) {
     
     generate();
+}
+
+Chunk::~Chunk() {
+    delete[] blocks;
 }
 
 Block& Chunk::block(int x, int y, int z) {
@@ -118,15 +145,45 @@ std::vector<std::pair<BlockPosition, Block&>> Chunk::list_blocks() {
 }
 
 void Chunk::generate() {
-    for (auto& [pos, block] : list_blocks()) {
-        if (pos.y < 61) {
-            block = Block(Material::STONE);
-        } else if (pos.y > 60 && pos.y < 63) {
-            block = Block(Material::DIRT);
-        } else if (pos.y == 63) {
-            block = Block(Material::GRASS_BLOCK);
+    auto heightmap = new float[CHUNK_SIZE][CHUNK_SIZE];
+
+    for (int x = 0; x < CHUNK_SIZE; x++) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            heightmap[x][z] = glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 128.0f, (cz * CHUNK_SIZE + z) / 128.0f, seed)) \
+                + glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 32.0f, (cz * CHUNK_SIZE + z) / 32.0f, seed)) / 4.0f \
+                + glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 16.0f, (cz * CHUNK_SIZE + z) / 16.0f, seed)) / 16.0f;
         }
     }
+
+    #define CHUNK_FILL(x, z, from_y, to_y, block) \
+        for (int y = (from_y); y <= (to_y); y++) { \
+            blocks[BP((x), (y), (z))] = (block); \
+        }
+
+    for (int x = 0; x < CHUNK_SIZE; x++) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            int stone_h = 40 + heightmap[x][z] * 10;
+            CHUNK_FILL(x, z, 0, stone_h, Material::STONE)
+            CHUNK_FILL(x, z, stone_h + 1, stone_h + 5, Material::DIRT)
+            blocks[BP(x, stone_h + 6, z)] = Material::GRASS_BLOCK;
+
+            if (glm::linearRand(0.0f, 1.0f) > 0.98f) {
+                int treeh = stone_h + 7 + glm::linearRand<int>(3, 6);
+                blocks[BP(x, treeh+1, z)] = Material::LEAVES;
+                CHUNK_FILL(x, z, stone_h + 7, treeh, Material::LOG)
+                if (x > 0)
+                    CHUNK_FILL(x-1, z, stone_h + 9, treeh, Material::LEAVES)
+                if (z > 0)
+                    CHUNK_FILL(x, z-1, stone_h + 9, treeh, Material::LEAVES)
+                if (x + 1 < CHUNK_SIZE)
+                    CHUNK_FILL(x+1, z, stone_h + 9, treeh, Material::LEAVES)
+                if (z + 1 < CHUNK_SIZE)
+                    CHUNK_FILL(x, z+1, stone_h + 9, treeh, Material::LEAVES)
+            }
+        }
+    }
+
+    delete[] heightmap;
 }
 
 MeshData Chunk::mesh(Texture3D* tex) {
@@ -141,14 +198,19 @@ MeshData Chunk::mesh(Texture3D* tex) {
 
                 if (block == Material::AIR)
                     continue;
+                
+                #define FACE_PART_SIZE 9
 
                 #define ADD_FACE_PART(texture, block, data, face, part, x, y, z) \
-                    data[6 * part + 0] = block_faces[face][5 * part + 0] + x; \
-                    data[6 * part + 1] = block_faces[face][5 * part + 1] + y; \
-                    data[6 * part + 2] = block_faces[face][5 * part + 2] + z; \
-                    data[6 * part + 3] = block_faces[face][5 * part + 3]; \
-                    data[6 * part + 4] = block_faces[face][5 * part + 4]; \
-                    data[6 * part + 5] = tex->position(block.face_texture(face))
+                    data[FACE_PART_SIZE * part + 0] = block_faces[face][5 * part + 0] + x; \
+                    data[FACE_PART_SIZE * part + 1] = block_faces[face][5 * part + 1] + y; \
+                    data[FACE_PART_SIZE * part + 2] = block_faces[face][5 * part + 2] + z; \
+                    data[FACE_PART_SIZE * part + 3] = block_faces[face][5 * part + 3]; \
+                    data[FACE_PART_SIZE * part + 4] = block_faces[face][5 * part + 4]; \
+                    data[FACE_PART_SIZE * part + 5] = tex->position(block.face_texture(face)); \
+                    data[FACE_PART_SIZE * part + 6] = block_normals[face][0]; \
+                    data[FACE_PART_SIZE * part + 7] = block_normals[face][1]; \
+                    data[FACE_PART_SIZE * part + 8] = block_normals[face][2]
 
                 #define ADD_FACE(vertices, texture, block, data, face, x, y, z) \
                     ADD_FACE_PART(texture, block, face_data, face, 0, x, y, z); \
@@ -157,9 +219,9 @@ MeshData Chunk::mesh(Texture3D* tex) {
                     ADD_FACE_PART(texture, block, face_data, face, 3, x, y, z); \
                     ADD_FACE_PART(texture, block, face_data, face, 4, x, y, z); \
                     ADD_FACE_PART(texture, block, face_data, face, 5, x, y, z); \
-                    vertices.insert(vertices.end(), &data[0], &data[36])
+                    vertices.insert(vertices.end(), &data[0], &data[FACE_PART_SIZE * 6])
 
-                float face_data[36];
+                float face_data[FACE_PART_SIZE * 6];
 
                 if (x - 1 < 0 || blocks[i - 1].transparent()) {
                     ADD_FACE(vertices, tex, block, face_data, 2, x, y, z);
@@ -185,5 +247,5 @@ MeshData Chunk::mesh(Texture3D* tex) {
         }
     }
 
-    return MeshData({3, 3}, vertices);
+    return MeshData({3, 3, 3}, vertices);
 }

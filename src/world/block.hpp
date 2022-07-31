@@ -17,8 +17,8 @@ struct BlockPosition {
 };
 
 struct Block {
-    Material material;
-    int state;
+    Material material = Material::AIR;
+    int state = 0;
 
     Block()
         : material(Material::AIR), state(0) {}
@@ -29,6 +29,17 @@ struct Block {
     
     operator Material() const {
         return material;
+    }
+
+    Block& operator=(const Block& other) {
+        material = other.material;
+        state = other.state;
+        return *this;
+    }
+    Block& operator=(Material mat) {
+        material = mat;
+        state = 0;
+        return *this;
     }
 
     bool transparent() const {

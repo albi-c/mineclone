@@ -9,7 +9,13 @@ BETTER_ENUM(Material, int,
     AIR = 0,
     STONE,
     DIRT,
-    GRASS_BLOCK
+    GRASS_BLOCK,
+    LOG,
+    LEAVES,
+    SAND,
+    PLANKS,
+    FLOWER,
+    DEAD_BUSH
 );
 BETTER_ENUMS_DECLARE_STD_HASH(Material);
 

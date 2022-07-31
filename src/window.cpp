@@ -78,6 +78,8 @@ Window::Window()
     glfwPollEvents();
 
     renderer.init(&camera, width, height);
+    renderer.resize(1, 1);
+    camera.resize(1, 1);
 
     int flags;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
@@ -111,7 +113,7 @@ bool Window::update() {
         movement |= (int)CameraMoveDirection::UP;
     if (get_key(GLFW_KEY_LEFT_SHIFT))
         movement |= (int)CameraMoveDirection::DOWN;
-    camera.move(movement, dt * 10);
+    camera.move(movement, dt * 20);
 
     double time = glfwGetTime();
     dt = time - last_time;
@@ -153,6 +155,7 @@ void Window::_callback_framebuffer_resize(int width, int height) {
     this->height = height;
 
     renderer.resize(width, height);
+    camera.resize(width, height);
 }
 
 void Window::callback_mouse_move(GLFWwindow* glfw_window, double x, double y) {

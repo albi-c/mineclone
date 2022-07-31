@@ -19,6 +19,9 @@ static const std::vector<float> shape_data = {
 };
 
 int main() {
+    srand(time(0));
+    int seed = glm::linearRand<int>(-(2<<15), 2>>15);
+
     Window w;
 
     w.renderer.set_sky_color(glm::vec4(0.47, 0.65, 1.0, .0));
@@ -26,15 +29,9 @@ int main() {
     w.camera.pos.y = 60;
 
     Shader shader(BuiltinShader::BLOCK);
-
-    shader.uniform("texture_mix", 0.7f);
-
-    TextureAtlas atlas;
-    atlas.add("STONE", "res/stone.png");
-    atlas.add("DIRT", "res/dirt.png");
-    atlas.add("GRASS_BLOCK_SIDE", "res/grass_block_side.png");
-    atlas.add("GRASS_BLOCK_TOP", "res/grass_block_top.png");
-    atlas.add("LOG", "res/oak_log.png");
+    shader.uniform("light.ambient", glm::vec3(0.3f));
+    shader.uniform("light.diffuse", glm::vec3(1.1f));
+    shader.uniform("light.diffuse_pos", glm::vec3(100.0f, 165.0f, 10.0f));
 
     Texture3D tex3d;
     for (auto& path_ : fs::directory_iterator("res")) {
@@ -46,22 +43,18 @@ int main() {
     tex3d.generate();
 
     std::map<std::string, Texture3D*> textures;
-    textures["texture1"] = &tex3d;
+    textures["textureArray"] = &tex3d;
 
-    Chunk chunk(0, 0);
-
-    int count = 100;
-    double total = 0.0;
-    for (int i = 0; i < count; i++) {
-        double time1 = glfwGetTime();
-        chunk.mesh(&tex3d);
-        double time2 = glfwGetTime();
-        total += time2 - time1;
+    const int n_chunks = 8;
+    Chunk* chunks[n_chunks][n_chunks];
+    Mesh* meshes[n_chunks][n_chunks];
+    for (int i = 0; i < n_chunks; i++) {
+        for (int j = 0; j < n_chunks; j++) {
+            chunks[i][j] = new Chunk(seed, i, j);
+            meshes[i][j] = new Mesh(chunks[i][j]->mesh(&tex3d), &shader, {}, textures);
+            w.renderer.add_mesh(i + j * n_chunks, meshes[i][j], {i * 16, 0, j * 16});
+        }
     }
-    std::cout << total << " | " << total / count * 1000.0 << "\n";
-
-    Mesh mesh(chunk.mesh(&tex3d), &shader, {}, textures);
-    w.renderer.add_mesh(0, &mesh);
 
     w.grab_mouse(true);
 
