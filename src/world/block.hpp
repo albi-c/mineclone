@@ -1,0 +1,51 @@
+#pragma once
+
+#include "material.hpp"
+#include "../graphics/opengl.hpp"
+
+struct BlockPosition {
+    int x, y, z;
+
+    BlockPosition()
+        : x(0), y(0), z(0) {}
+    BlockPosition(int x, int y, int z)
+        : x(x), y(y), z(z) {}
+    
+    BlockPosition operator+(BlockPosition other) const {
+        return BlockPosition(x + other.x, y + other.y, z + other.z);
+    }
+};
+
+struct Block {
+    Material material;
+    int state;
+
+    Block()
+        : material(Material::AIR), state(0) {}
+    Block(Material material)
+        : material(material), state(0) {}
+    Block(Material material, int state)
+        : material(material), state(state) {}
+    
+    operator Material() const {
+        return material;
+    }
+
+    bool transparent() const {
+        return MaterialGroup::transparent.contains(material);
+    }
+
+    std::string face_texture(int face) {
+        switch (material) {
+            case Material::GRASS_BLOCK:
+                if (face == 5)
+                    return "GRASS_BLOCK_TOP";
+                else if (face == 4)
+                    return "DIRT";
+                else
+                    return "GRASS_BLOCK_SIDE";
+            default:
+                return material._to_string();
+        }
+    }
+};
