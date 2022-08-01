@@ -14,6 +14,7 @@ BETTER_ENUM(Material, int,
     LEAVES,
     SAND,
     PLANKS,
+    GRASS,
     FLOWER,
     DEAD_BUSH
 );
@@ -21,4 +22,5 @@ BETTER_ENUMS_DECLARE_STD_HASH(Material);
 
 namespace MaterialGroup {
     const extern std::unordered_set<Material> transparent;
+    const extern std::unordered_set<Material> plant;
 };

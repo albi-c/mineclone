@@ -8,8 +8,6 @@ void Renderer::init(Camera* camera, int width, int height) {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-
-    glEnable(GL_BLEND);
 }
 
 void Renderer::render() {

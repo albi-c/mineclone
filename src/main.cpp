@@ -21,12 +21,13 @@ static const std::vector<float> shape_data = {
 int main() {
     srand(time(0));
     int seed = glm::linearRand<int>(-(2<<15), 2>>15);
+    srand(seed);
 
     Window w;
 
     w.renderer.set_sky_color(glm::vec4(0.47, 0.65, 1.0, .0));
 
-    w.camera.pos.y = 60;
+    w.camera.pos.y = 70;
 
     Shader shader(BuiltinShader::BLOCK);
     shader.uniform("light.ambient", glm::vec3(0.3f));
@@ -45,7 +46,7 @@ int main() {
     std::map<std::string, Texture3D*> textures;
     textures["textureArray"] = &tex3d;
 
-    const int n_chunks = 8;
+    const int n_chunks = 16;
     Chunk* chunks[n_chunks][n_chunks];
     Mesh* meshes[n_chunks][n_chunks];
     for (int i = 0; i < n_chunks; i++) {
@@ -56,12 +57,21 @@ int main() {
         }
     }
 
+    w.camera.pos.x = n_chunks / 2 * 16;
+    w.camera.pos.z = n_chunks / 2 * 16;
+
     w.grab_mouse(true);
 
     while (w.update()) {
         w.render();
         if (w.get_key(GLFW_KEY_ESCAPE)) {
             w.close();
+        }
+
+        for (int i = 0; i < n_chunks; i++) {
+            for (int j = 0; j < n_chunks; j++) {
+                chunks[i][j]->update();
+            }
         }
     }
 

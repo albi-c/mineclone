@@ -45,6 +45,9 @@ struct Block {
     bool transparent() const {
         return MaterialGroup::transparent.contains(material);
     }
+    bool plant() const {
+        return MaterialGroup::plant.contains(material);
+    }
 
     std::string face_texture(int face) {
         switch (material) {
@@ -55,6 +58,11 @@ struct Block {
                     return "DIRT";
                 else
                     return "GRASS_BLOCK_SIDE";
+            case Material::LOG:
+                if (face >= 4)
+                    return "LOG_TOP";
+                else
+                    return "LOG";
             default:
                 return material._to_string();
         }

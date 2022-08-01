@@ -39,6 +39,10 @@ struct light_t {
 uniform light_t light;
 
 void main() {
+    vec4 color = texture(textureArray, TexCoord);
+    if (color.a == 0.0)
+        discard;
+
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(light.diffuse_pos - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
@@ -46,7 +50,7 @@ void main() {
     vec3 ambient = light.ambient;
     vec3 light = diffuse + ambient;
 
-    FragColor = texture(textureArray, TexCoord) * vec4(light, 1.0);
+    FragColor = color * vec4(light, 1.0);
 }
 )"}}
 };
