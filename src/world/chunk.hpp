@@ -10,6 +10,7 @@
 
 #include "block.hpp"
 #include "biome.hpp"
+#include "../event/event.hpp"
 #include "../graphics/mesh.hpp"
 #include "../graphics/opengl.hpp"
 #include "../graphics/texture.hpp"

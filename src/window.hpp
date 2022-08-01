@@ -8,6 +8,7 @@
 
 #include "graphics/opengl.hpp"
 #include "graphics/renderer.hpp"
+#include "event/event.hpp"
 
 class Window {
 public:

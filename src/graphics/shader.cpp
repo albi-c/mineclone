@@ -65,7 +65,7 @@ void main() {
 
 float shadow() {
     float visibility = 1.0;
-    float bias = 0.00017;
+    float bias = 0.0002;
 
     float shadowValue = texture(shadowMap, ShadowCoord.xy).x * 0.5;
     for (int x = -2; x <= 2; x++) {

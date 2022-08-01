@@ -5,23 +5,31 @@ namespace fs = std::filesystem;
 
 #include "window.hpp"
 #include "graphics/texture.hpp"
-#include "world/chunk.hpp"
+#include "world/world.hpp"
+#include "world/ray.hpp"
+#include "event/event.hpp"
 
-static const std::vector<float> shape_data = {
-    // positions          // colors           // texture coords
-    -0.5f, -0.5f, 1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-    -0.5f,  0.5f, 1.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,   // top left 
-     0.5f,  0.5f, 1.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+bool break_block_g = false;
+void mouse_click_callback(const Event& e) {
+    if ((long)e.data == GLFW_MOUSE_BUTTON_LEFT) {
+        break_block_g = true;
+    }
+}
 
-    -0.5f, -0.5f, -1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-     0.5f,  0.5f, -1.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-     0.5f, -0.5f, -1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right  
-};
+int chunk_redraw_pos_g[2] = {-1, -1};
+void chunk_redraw_callback(const Event& e) {
+    chunk_redraw_pos_g[0] = ((int*)e.data)[0];
+    chunk_redraw_pos_g[1] = ((int*)e.data)[1];
+}
 
 int main() {
     srand(time(0));
     int seed = glm::linearRand<int>(-(2<<15), 2>>15);
+    seed = 2;
     srand(seed);
+
+    Event::listen(EventType::MouseClick, mouse_click_callback);
+    Event::listen(EventType::ChunkRedraw, chunk_redraw_callback);
 
     Window w;
 
@@ -46,22 +54,21 @@ int main() {
     std::map<std::string, Texture3D*> textures;
     textures["textureArray"] = &tex3d;
 
-    const int n_chunks = 8;
+    const int n_chunks = 16;
     Chunk* chunks[n_chunks][n_chunks];
     Mesh* meshes[n_chunks][n_chunks];
     for (int i = 0; i < n_chunks; i++) {
         for (int j = 0; j < n_chunks; j++) {
             chunks[i][j] = new Chunk(seed, i, j);
             meshes[i][j] = new Mesh(chunks[i][j]->mesh(&tex3d), &shader, {}, textures);
-            w.renderer.add_mesh(i + j * n_chunks, meshes[i][j], {i * 16, 0, j * 16});
+            w.renderer.add_mesh(i + j * n_chunks, meshes[i][j], {i * 16 + 0.5, 0, j * 16 + 0.5});
         }
     }
 
-    w.camera.pos.x = n_chunks / 2 * 16;
-    w.camera.pos.z = n_chunks / 2 * 16;
+    w.camera.pos.x = n_chunks / 2 * CHUNK_SIZE;
+    w.camera.pos.z = n_chunks / 2 * CHUNK_SIZE;
 
     w.grab_mouse(true);
-
     while (w.update()) {
         w.render();
         if (w.get_key(GLFW_KEY_ESCAPE)) {
@@ -72,6 +79,34 @@ int main() {
             for (int j = 0; j < n_chunks; j++) {
                 chunks[i][j]->update();
             }
+        }
+
+        if (break_block_g) {
+            break_block_g = false;
+
+            Ray ray(w.camera.pos, w.camera.front);
+            glm::vec<4, int> bounds = glm::vec<4, int>(0, 0, n_chunks * CHUNK_SIZE, n_chunks * CHUNK_SIZE);
+            while (true) {
+                ray.step(0.01);
+
+                glm::vec3 pos = ray.position();
+                if (pos.x < bounds.x || pos.z < bounds.y || pos.x > bounds.z || pos.z > bounds.w || pos.y < 0 || pos.y > CHUNK_HEIGHT)
+                    break;
+                
+                if (chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->get((int)pos.x % 16, pos.y, (int)pos.z % 16) != Material::AIR) {
+                    chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->set((int)pos.x % 16, pos.y, (int)pos.z % 16, Material::AIR);
+                    break;
+                }
+            }
+        }
+
+        if (chunk_redraw_pos_g[0] != -1) {
+            int x = chunk_redraw_pos_g[0], y = chunk_redraw_pos_g[1];
+            chunk_redraw_pos_g[0] = -1, chunk_redraw_pos_g[1] = -1;
+
+            delete meshes[x][y];
+            meshes[x][y] = new Mesh(chunks[x][y]->mesh(&tex3d), &shader, {}, textures);
+            w.renderer.add_mesh(x + y * n_chunks, meshes[x][y], {x * 16 + 0.5, 0, y * 16 + 0.5});
         }
     }
 

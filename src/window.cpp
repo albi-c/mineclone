@@ -113,7 +113,7 @@ bool Window::update() {
         movement |= (int)CameraMoveDirection::UP;
     if (get_key(GLFW_KEY_LEFT_SHIFT))
         movement |= (int)CameraMoveDirection::DOWN;
-    camera.move(movement, dt * 20);
+    camera.move(movement, dt * 40);
 
     double time = glfwGetTime();
     dt = time - last_time;
@@ -177,6 +177,8 @@ void Window::callback_mouse_click(GLFWwindow* glfw_window, int button, int actio
     window->_callback_mouse_click(button, action, mods);
 }
 void Window::_callback_mouse_click(int button, int action, int mods) {
+    if (action == GLFW_PRESS)
+        Event{EventType::MouseClick, (void*)(long)button}.fire();
 }
 
 void Window::callback_key_press(GLFWwindow* glfw_window, int key, int scancode, int action, int mods) {

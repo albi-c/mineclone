@@ -1,6 +1,6 @@
 #include "renderer.hpp"
 
-#define SHADOW_SIZE 16384
+#define SHADOW_SIZE 4096
 
 void Renderer::init(Camera* camera, int width, int height) {
     this->camera = camera;
@@ -18,8 +18,12 @@ void Renderer::init(Camera* camera, int width, int height) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_SIZE, SHADOW_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float border_color[] = {
+        1.0f, 1.0f, 1.0f, 1.0f
+    };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_color);
 
     glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_map, 0);
@@ -64,8 +68,8 @@ glm::mat4 Renderer::render_shadows() {
     glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 100.0f, 2.0f), glm::vec3(100.0f, 0.0f, 100.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 projection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, -10.0f, 200.0f);
+    glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 120.0f, 2.0f), glm::vec3(100.0f, 0.0f, 100.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 projection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, -10.0f, 256.0f);
     
     glm::mat4 transform = projection * view;
 

@@ -17,6 +17,8 @@ public:
     glm::vec2 rot = glm::vec3(0.0f);
     float fov = 0.0f;
 
+    glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
+
     Camera(float fov);
 
     glm::mat4 view_matrix();
@@ -29,7 +31,6 @@ public:
     void resize(int width, int height);
 
 private:
-    glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::vec3 right;
     glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);

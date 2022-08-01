@@ -136,7 +136,7 @@ const std::array<std::array<float, 30>, 4> plant_faces = {{
 std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> Chunk::blocks_to_set;
 
 Chunk::Chunk()
-    : blocks(new Block[CHUNK_LENGTH]()) {}
+    : blocks(NULL) {}
 
 Chunk::Chunk(int seed, int cx, int cz)
     : seed(seed), cx(cx), cz(cz), blocks(new Block[CHUNK_LENGTH]()) {
@@ -145,7 +145,8 @@ Chunk::Chunk(int seed, int cx, int cz)
 }
 
 Chunk::~Chunk() {
-    delete[] blocks;
+    if (blocks != NULL)
+        delete[] blocks;
 }
 
 Block Chunk::get(int x, int y, int z) {
@@ -171,6 +172,10 @@ void Chunk::set(int x, int y, int z, const Block& block) {
         }
     } else {
         blocks[BP(x, y, z)] = block;
+        int* pos = new int[2];
+        pos[0] = cx;
+        pos[1] = cz;
+        Event{EventType::ChunkRedraw, (void*)pos}.fire();
     }
 }
 void Chunk::set(const BlockPosition& pos, const Block& block) {
