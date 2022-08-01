@@ -1,5 +1,7 @@
 #include <iostream>
 #include <algorithm>
+#include <set>
+#include <utility>
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -16,10 +18,12 @@ void mouse_click_callback(const Event& e) {
     }
 }
 
-int chunk_redraw_pos_g[2] = {-1, -1};
+// int chunk_redraw_pos_g[2] = {-1, -1};
+std::set<std::pair<int, int>> chunk_redraw_pos_g;
 void chunk_redraw_callback(const Event& e) {
-    chunk_redraw_pos_g[0] = ((int*)e.data)[0];
-    chunk_redraw_pos_g[1] = ((int*)e.data)[1];
+    // chunk_redraw_pos_g[0] = ((int*)e.data)[0];
+    // chunk_redraw_pos_g[1] = ((int*)e.data)[1];
+    chunk_redraw_pos_g.insert({((int*)e.data)[0], ((int*)e.data)[1]});
 }
 
 int main() {
@@ -100,14 +104,12 @@ int main() {
             }
         }
 
-        if (chunk_redraw_pos_g[0] != -1) {
-            int x = chunk_redraw_pos_g[0], y = chunk_redraw_pos_g[1];
-            chunk_redraw_pos_g[0] = -1, chunk_redraw_pos_g[1] = -1;
-
+        for (auto& [x, y] : chunk_redraw_pos_g) {
             delete meshes[x][y];
             meshes[x][y] = new Mesh(chunks[x][y]->mesh(&tex3d), &shader, {}, textures);
             w.renderer.add_mesh(x + y * n_chunks, meshes[x][y], {x * 16 + 0.5, 0, y * 16 + 0.5});
         }
+        chunk_redraw_pos_g.clear();
     }
 
     return 0;
