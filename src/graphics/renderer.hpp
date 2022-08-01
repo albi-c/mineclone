@@ -13,6 +13,7 @@ public:
     void init(Camera* camera, int width, int height);
 
     void render();
+    glm::mat4 render_shadows();
 
     void resize(int width, int height);
 
@@ -30,4 +31,6 @@ private:
     Camera* camera;
 
     std::map<int, std::pair<Mesh*, glm::vec3>> meshes;
+
+    GLuint shadow_map_fbo, shadow_map;
 };

@@ -245,6 +245,15 @@ void Chunk::generate() {
 
 void Chunk::update() {
     for (auto& [pos, block] : Chunk::blocks_to_set[{cx, cz}]) {
+        if (pos.x < 0)
+            pos.x += CHUNK_SIZE;
+        if (pos.z < 0)
+            pos.z += CHUNK_SIZE;
+        if (pos.x >= CHUNK_SIZE)
+            pos.x -= CHUNK_SIZE;
+        if (pos.z >= CHUNK_SIZE)
+            pos.z -= CHUNK_SIZE;
+        
         set(pos, block);
     }
     Chunk::blocks_to_set.erase({cx, cz});

@@ -10,12 +10,16 @@ layout (location = 2) in vec3 aNormal;
 out vec3 TexCoord;
 out vec3 Normal;
 out vec3 FragPos;
+out vec4 ShadowCoord;
 
 uniform mat4 transform;
 uniform mat4 model;
+uniform mat4 shadow_transform;
 
 void main() {
     gl_Position = transform * vec4(aPos, 1.0);
+
+    ShadowCoord = shadow_transform * vec4(aPos, 1.0);
 
     TexCoord = aTex;
     Normal = aNormal;
@@ -26,10 +30,12 @@ void main() {
 in vec3 TexCoord;
 in vec3 Normal;
 in vec3 FragPos;
+in vec4 ShadowCoord;
 
 out vec4 FragColor;
 
 uniform sampler2DArray textureArray;
+uniform sampler2D shadowMap;
 
 struct light_t {
     vec3 ambient;
@@ -37,6 +43,8 @@ struct light_t {
     vec3 diffuse_pos;
 };
 uniform light_t light;
+
+float shadow();
 
 void main() {
     vec4 color = texture(textureArray, TexCoord);
@@ -47,10 +55,53 @@ void main() {
     vec3 lightDir = normalize(light.diffuse_pos - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = light.diffuse * diff;
+
     vec3 ambient = light.ambient;
-    vec3 light = diffuse + ambient;
+    
+    vec3 light = (diffuse + ambient) * shadow();
 
     FragColor = color * vec4(light, 1.0);
+}
+
+float shadow() {
+    float visibility = 1.0;
+    float bias = 0.00017;
+
+    float shadowValue = texture(shadowMap, ShadowCoord.xy).x * 0.5;
+    for (int x = -2; x <= 2; x++) {
+        for (int y = -2; y <= 2; y++) {
+            shadowValue += texture(shadowMap, ShadowCoord.xy + vec2(x / 128, y / 128)).x * 0.02;
+        }
+    }
+    if (shadowValue < ShadowCoord.z - bias)
+        visibility *= 0.5;
+    
+    return visibility;
+}
+)"}},
+{BuiltinShader::DEPTH, {R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aTex;
+
+out vec3 TexCoord;
+
+uniform mat4 transform;
+
+void main() {
+    gl_Position = transform * vec4(aPos, 1.0);
+
+    TexCoord = aTex;
+}
+)", R"(
+#version 330 core
+in vec3 TexCoord;
+
+uniform sampler2DArray textureArray;
+
+void main() {
+    if (texture(textureArray, TexCoord).a == 0.0)
+        discard;
 }
 )"}}
 };

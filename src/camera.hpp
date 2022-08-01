@@ -21,6 +21,7 @@ public:
 
     glm::mat4 view_matrix();
     glm::mat4 proj_matrix();
+    glm::mat4 ortho_matrix();
 
     void move(char directions, float dt);
     void rotate(float x, float y);

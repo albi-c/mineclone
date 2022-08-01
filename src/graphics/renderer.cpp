@@ -1,5 +1,7 @@
 #include "renderer.hpp"
 
+#define SHADOW_SIZE 16384
+
 void Renderer::init(Camera* camera, int width, int height) {
     this->camera = camera;
 
@@ -8,9 +10,33 @@ void Renderer::init(Camera* camera, int width, int height) {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+
+    glGenFramebuffers(1, &shadow_map_fbo);
+
+    glGenTextures(1, &shadow_map);
+    glBindTexture(GL_TEXTURE_2D, shadow_map);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_SIZE, SHADOW_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_map, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Renderer::render() {
+    glm::mat4 shadow_transform = render_shadows();
+    glm::mat4 bias_matrix(
+        0.5, 0.0, 0.0, 0.0,
+        0.0, 0.5, 0.0, 0.0,
+        0.0, 0.0, 0.5, 0.0,
+        0.5, 0.5, 0.5, 1.0
+    );
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 view = camera->view_matrix();
@@ -18,14 +44,45 @@ void Renderer::render() {
     
     glm::mat4 transform = projection * view;
 
+    glActiveTexture(GL_TEXTURE15);
+    glBindTexture(GL_TEXTURE_2D, shadow_map_fbo);
+
+    for (auto& [id, mt] : meshes) {
+        Mesh* mesh = mt.first;
+        glm::mat4 transform_ = glm::translate(transform, mt.second);
+        glm::mat4 shadow_transform_ = glm::translate(shadow_transform, mt.second);
+        glm::mat4 model = glm::translate(glm::mat4(), mt.second);
+        mesh->shader->uniform("transform", transform_);
+        mesh->shader->uniform("shadow_transform", bias_matrix * shadow_transform_);
+        mesh->shader->uniform("model", model);
+        mesh->shader->uniform("shadowMap", 15);
+        mesh->render();
+    }
+}
+glm::mat4 Renderer::render_shadows() {
+    glViewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 100.0f, 2.0f), glm::vec3(100.0f, 0.0f, 100.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 projection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, -10.0f, 200.0f);
+    
+    glm::mat4 transform = projection * view;
+
     for (auto& [id, mt] : meshes) {
         Mesh* mesh = mt.first;
         glm::mat4 transform_ = glm::translate(transform, mt.second);
         glm::mat4 model = glm::translate(glm::mat4(), mt.second);
-        mesh->shader->uniform("transform", transform_);
-        mesh->shader->uniform("model", model);
-        mesh->render();
+        mesh->shader_shadow.uniform("transform", transform_);
+        mesh->shader_shadow.uniform("model", model);
+        mesh->shader_shadow.uniform("shadowMap", 5);
+        mesh->render_shadows();
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, width, height);
+
+    return transform;
 }
 
 void Renderer::resize(int width, int height) {

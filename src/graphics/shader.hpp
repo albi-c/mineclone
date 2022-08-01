@@ -8,7 +8,7 @@
 #include "opengl.hpp"
 
 enum class BuiltinShader {
-    BLOCK
+    BLOCK, DEPTH
 };
 
 class Shader {
