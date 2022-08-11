@@ -1,11 +1,11 @@
 CXX       = g++
 CXXSTD    = c++20
-CXXOPT    = -g
+CXXOPT    = -O3
 CXXFLAGS  = $(CXXOPT) -std=$(CXXSTD)
 
 CC       = gcc
 CCSTD    = c2x
-CCOPT    = -g
+CCOPT    = -O3
 CCFLAGS  = $(CCOPT) -std=$(CCSTD)
 
 LFLAGS = $(CXXOPT)

@@ -68,7 +68,6 @@ int main() {
             chunks[i][j] = new Chunk(seed, i, j);
         }
     }
-    double total = 0.0;
     for (int i = 0; i < n_chunks; i++) {
         for (int j = 0; j < n_chunks; j++) {
             if (i > 0)
@@ -79,18 +78,11 @@ int main() {
                 chunks[i][j]->set_neighbor(ChunkNeighbor::NZ, chunks[i][j-1]);
             if (j < n_chunks - 1)
                 chunks[i][j]->set_neighbor(ChunkNeighbor::PZ, chunks[i][j+1]);
-            
-            double time1 = glfwGetTime();
-            chunks[i][j]->mesh(&tex3d);
-            double time2 = glfwGetTime();
-            total += time2 - time1;
 
             meshes[i][j] = new Mesh(chunks[i][j]->mesh(&tex3d), &shader, {}, textures);
             w.renderer.add_mesh(i + j * n_chunks, meshes[i][j], {i * 16 + 0.5, 0, j * 16 + 0.5});
         }
     }
-
-    std::cout << "Total: " << total << "\nEach: " << total / (double)(n_chunks * n_chunks) << "\n";
 
     w.camera.pos.x = n_chunks / 2 * CHUNK_SIZE;
     w.camera.pos.z = n_chunks / 2 * CHUNK_SIZE;
