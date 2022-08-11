@@ -1,17 +1,13 @@
 #include "material.hpp"
 
-namespace MaterialGroup {
-    const std::unordered_set<Material> transparent = {
-        Material::AIR,
-        Material::LEAVES,
-        Material::FLOWER,
-        Material::DEAD_BUSH,
-        Material::GRASS
-    };
+int MATERIAL_PROPERTIES[Material::_size()];
 
-    const std::unordered_set<Material> plant = {
-        Material::FLOWER,
-        Material::DEAD_BUSH,
-        Material::GRASS
-    };
-};
+static const MaterialPropertiesInitializer material_properties_initializer;
+
+MaterialPropertiesInitializer::MaterialPropertiesInitializer() {
+    MATERIAL_PROPERTIES[Material::AIR] = MaterialProperty::TRANSPARENT;
+    MATERIAL_PROPERTIES[Material::LEAVES] = MaterialProperty::TRANSPARENT;
+    MATERIAL_PROPERTIES[Material::GRASS] = MaterialProperty::TRANSPARENT | MaterialProperty::PLANT;
+    MATERIAL_PROPERTIES[Material::FLOWER] = MaterialProperty::TRANSPARENT | MaterialProperty::PLANT;
+    MATERIAL_PROPERTIES[Material::DEAD_BUSH] = MaterialProperty::TRANSPARENT | MaterialProperty::PLANT;
+}

@@ -20,7 +20,14 @@ BETTER_ENUM(Material, int,
 );
 BETTER_ENUMS_DECLARE_STD_HASH(Material);
 
-namespace MaterialGroup {
-    const extern std::unordered_set<Material> transparent;
-    const extern std::unordered_set<Material> plant;
+BETTER_ENUM(MaterialProperty, int,
+    TRANSPARENT = 0x1,
+    PLANT = 0x2
+);
+
+extern int MATERIAL_PROPERTIES[Material::_size()];
+
+class MaterialPropertiesInitializer {
+public:
+    MaterialPropertiesInitializer();
 };

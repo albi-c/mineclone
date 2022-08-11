@@ -15,6 +15,13 @@
 #include "../graphics/opengl.hpp"
 #include "../graphics/texture.hpp"
 
+enum class ChunkNeighbor {
+    PX = 0,
+    NX,
+    PZ,
+    NZ
+};
+
 class Chunk {
 public:
     Chunk();
@@ -60,12 +67,21 @@ public:
 
     MeshData mesh(Texture3D* tex);
 
+    inline Chunk* get_neighbor(ChunkNeighbor neighbor) {
+        return neighbors[(int)neighbor];
+    }
+    inline void set_neighbor(ChunkNeighbor neighbor, Chunk* chunk) {
+        neighbors[(int)neighbor] = chunk;
+    }
+
 private:
     int cx, cz;
     int seed;
 
     // XZY order
     Block* blocks;
+
+    Chunk* neighbors[4] = {nullptr, nullptr, nullptr, nullptr};
 
     static std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> blocks_to_set;
 

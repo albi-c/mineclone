@@ -150,8 +150,19 @@ Chunk::~Chunk() {
 }
 
 Block Chunk::get(int x, int y, int z) {
-    if (x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1)
+    if (x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1) {
+        if (x > -16 && z > -16 && x < CHUNK_SIZE + 15 && z < CHUNK_SIZE + 15) {
+            if (x < 0 && neighbors[(int)ChunkNeighbor::NX] != nullptr)
+                return neighbors[(int)ChunkNeighbor::NX]->get(x + CHUNK_SIZE, y, z);
+            if (x > CHUNK_SIZE - 1 && neighbors[(int)ChunkNeighbor::PX] != nullptr)
+                return neighbors[(int)ChunkNeighbor::PX]->get(x - CHUNK_SIZE, y, z);
+            if (z < 0 && neighbors[(int)ChunkNeighbor::NZ] != nullptr)
+                return neighbors[(int)ChunkNeighbor::NZ]->get(x, y, z + CHUNK_SIZE);
+            if (z > CHUNK_SIZE - 1 && neighbors[(int)ChunkNeighbor::PZ] != nullptr)
+                return neighbors[(int)ChunkNeighbor::PZ]->get(x, y, z - CHUNK_SIZE);
+        }
         return Block();
+    }
     
     return blocks[BP(x, y, z)];
 }
@@ -162,20 +173,27 @@ Block Chunk::get(const BlockPosition& pos) {
 void Chunk::set(int x, int y, int z, const Block& block) {
     if (x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1) {
         if (x < 0) {
-            Chunk::blocks_to_set[{cx - 1, cz}].push_back({{x, y, z}, block});
+            Chunk::blocks_to_set[{cx - 1, cz}].push_back({{x + CHUNK_SIZE, y, z}, block});
         } else if (z < 0) {
-            Chunk::blocks_to_set[{cx, cz - 1}].push_back({{x, y, z}, block});
+            Chunk::blocks_to_set[{cx, cz - 1}].push_back({{x, y, z + CHUNK_SIZE}, block});
         } else if (x > CHUNK_SIZE - 1) {
-            Chunk::blocks_to_set[{cx + 1, cz}].push_back({{x, y, z}, block});
+            Chunk::blocks_to_set[{cx + 1, cz}].push_back({{x - CHUNK_SIZE, y, z}, block});
         } else if (z > CHUNK_SIZE - 1) {
-            Chunk::blocks_to_set[{cx, cz + 1}].push_back({{x, y, z}, block});
+            Chunk::blocks_to_set[{cx, cz + 1}].push_back({{x, y, z - CHUNK_SIZE}, block});
         }
     } else {
         blocks[BP(x, y, z)] = block;
-        int* pos = new int[2];
-        pos[0] = cx;
-        pos[1] = cz;
-        Event{EventType::ChunkRedraw, (void*)pos}.fire();
+
+        if (x == 0)
+            Event{EventType::ChunkRedraw, (void*)(((unsigned long)(cx - 1) << 32) | cz)}.fire();
+        if (x == CHUNK_SIZE - 1)
+            Event{EventType::ChunkRedraw, (void*)(((unsigned long)(cx + 1) << 32) | cz)}.fire();
+        if (z == 0)
+            Event{EventType::ChunkRedraw, (void*)(((unsigned long)cx << 32) | (cz - 1))}.fire();
+        if (z == CHUNK_SIZE - 1)
+            Event{EventType::ChunkRedraw, (void*)(((unsigned long)cx << 32) | (cz + 1))}.fire();
+
+        Event{EventType::ChunkRedraw, (void*)(((unsigned long)cx << 32) | cz)}.fire();
     }
 }
 void Chunk::set(const BlockPosition& pos, const Block& block) {
@@ -250,15 +268,6 @@ void Chunk::generate() {
 
 void Chunk::update() {
     for (auto& [pos, block] : Chunk::blocks_to_set[{cx, cz}]) {
-        if (pos.x < 0)
-            pos.x += CHUNK_SIZE;
-        if (pos.z < 0)
-            pos.z += CHUNK_SIZE;
-        if (pos.x >= CHUNK_SIZE)
-            pos.x -= CHUNK_SIZE;
-        if (pos.z >= CHUNK_SIZE)
-            pos.z -= CHUNK_SIZE;
-        
         set(pos, block);
     }
     Chunk::blocks_to_set.erase({cx, cz});
@@ -332,29 +341,42 @@ MeshData Chunk::mesh(Texture3D* tex) {
                     ADD_FACE_PART(texture, block, face_data, face, 5, x, y, z); \
                     vertices.insert(vertices.end(), &data[0], &data[FACE_PART_SIZE * 6])
                 
-                #define TRANSPARENT_CHECK(offset) \
-                    (block.transparent() ? blocks[offset] != block : blocks[offset].transparent())
+                #define TRANSPARENT_CHECK(xo, yo, zo) \
+                    (block.transparent() ? get(x + xo, y + yo, z + zo) != block : get(x + xo, y + yo, z + zo).transparent())
 
                 float face_data[FACE_PART_SIZE * 6];
 
-                if (x - 1 < 0 || TRANSPARENT_CHECK(i - 1)) {
+                // if (x - 1 < 0 || TRANSPARENT_CHECK(i - 1)) {
+                //     ADD_FACE(vertices, tex, block, face_data, 2, x, y, z);
+                // }
+                // if (x + 2 > CHUNK_SIZE || TRANSPARENT_CHECK(i + 1)) {
+                //     ADD_FACE(vertices, tex, block, face_data, 3, x, y, z);
+                // }
+
+                // if (z - 1 < 0 || TRANSPARENT_CHECK(i - CHUNK_SIZE)) {
+                //     ADD_FACE(vertices, tex, block, face_data, 0, x, y, z);
+                // }
+                // if (z + 2 > CHUNK_SIZE || TRANSPARENT_CHECK(i + CHUNK_SIZE)) {
+                //     ADD_FACE(vertices, tex, block, face_data, 1, x, y, z);
+                // }
+                if (TRANSPARENT_CHECK(-1, 0, 0)) {
                     ADD_FACE(vertices, tex, block, face_data, 2, x, y, z);
                 }
-                if (x + 2 > CHUNK_SIZE || TRANSPARENT_CHECK(i + 1)) {
+                if (TRANSPARENT_CHECK(1, 0, 0)) {
                     ADD_FACE(vertices, tex, block, face_data, 3, x, y, z);
                 }
 
-                if (z - 1 < 0 || TRANSPARENT_CHECK(i - CHUNK_SIZE)) {
+                if (TRANSPARENT_CHECK(0, 0, -1)) {
                     ADD_FACE(vertices, tex, block, face_data, 0, x, y, z);
                 }
-                if (z + 2 > CHUNK_SIZE || TRANSPARENT_CHECK(i + CHUNK_SIZE)) {
+                if (TRANSPARENT_CHECK(0, 0, 1)) {
                     ADD_FACE(vertices, tex, block, face_data, 1, x, y, z);
                 }
 
-                if (y - 1 < 0 || TRANSPARENT_CHECK(i - CHUNK_SIZE * CHUNK_SIZE)) {
+                if (y - 1 < 0 || TRANSPARENT_CHECK(0, -1, 0)) {
                     ADD_FACE(vertices, tex, block, face_data, 4, x, y, z);
                 }
-                if (y + 2 > CHUNK_HEIGHT || TRANSPARENT_CHECK(i + CHUNK_SIZE * CHUNK_SIZE)) {
+                if (y + 2 > CHUNK_HEIGHT || TRANSPARENT_CHECK(0, 1, 0)) {
                     ADD_FACE(vertices, tex, block, face_data, 5, x, y, z);
                 }
             }

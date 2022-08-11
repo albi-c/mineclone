@@ -1,7 +1,5 @@
 #pragma once
 
-#include <bitset>
-
 #include "util.hpp"
 #include "consts.hpp"
 #include "camera.hpp"

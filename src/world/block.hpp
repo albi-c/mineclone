@@ -43,10 +43,10 @@ struct Block {
     }
 
     bool transparent() const {
-        return MaterialGroup::transparent.contains(material);
+        return MATERIAL_PROPERTIES[material] & MaterialProperty::TRANSPARENT;
     }
     bool plant() const {
-        return MaterialGroup::plant.contains(material);
+        return MATERIAL_PROPERTIES[material] & MaterialProperty::PLANT;
     }
 
     std::string face_texture(int face) {
