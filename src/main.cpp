@@ -60,6 +60,30 @@ int main() {
     std::map<std::string, Texture3D*> textures;
     textures["textureArray"] = &tex3d;
 
+    Shader gui_shader(BuiltinShader::GUI);
+
+    Texture crosshair_tex("res/crosshair.png");
+    std::map<std::string, Texture*> crosshair_textures;
+    crosshair_textures["texture1"] = &crosshair_tex;
+    Mesh crosshair(MeshData({2, 2}, {
+        952.0f, 481.5f,  0.0f, 0.0f,
+        952.0f, 497.5f,  0.0f, 1.0f,
+        968.0f, 497.5f,  1.0f, 1.0f,
+        952.0f, 481.5f,  0.0f, 0.0f,
+        968.0f, 497.5f,  1.0f, 1.0f,
+        968.0f, 481.5f,  1.0f, 0.0f
+    }), &gui_shader, crosshair_textures, {});
+    // Mesh crosshair(MeshData({2, 2}, {
+    //     -0.5f, -0.5f,  0.0f, 0.0f,
+    //     -0.5f,  0.5f,  0.0f, 1.0f,
+    //      0.5f,  0.5f,  1.0f, 1.0f,
+    //     -0.5f, -0.5f,  0.0f, 0.0f,
+    //      0.5f,  0.5f,  1.0f, 1.0f,
+    //      0.5f, -0.5f,  1.0f, 0.0f
+    // }), &gui_shader, crosshair_textures, {});
+
+    w.renderer.add_mesh(0, &crosshair, glm::vec3(0.0f));
+
     const int n_chunks = 4;
     Chunk* chunks[n_chunks][n_chunks];
     Mesh* meshes[n_chunks][n_chunks];
@@ -80,7 +104,7 @@ int main() {
                 chunks[i][j]->set_neighbor(ChunkNeighbor::PZ, chunks[i][j+1]);
 
             meshes[i][j] = new Mesh(chunks[i][j]->mesh(&tex3d), &shader, {}, textures);
-            w.renderer.add_mesh(i + j * n_chunks, meshes[i][j], {i * 16 + 0.5, 0, j * 16 + 0.5});
+            w.renderer.add_mesh((i + j * n_chunks + 1) << 8, meshes[i][j], {i * 16 + 0.5, 0, j * 16 + 0.5});
         }
     }
 

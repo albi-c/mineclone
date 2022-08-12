@@ -13,7 +13,7 @@ glm::mat4 Camera::proj_matrix() {
     return glm::perspective(fov, (float)width / (float)height, 0.1f, 1000.0f);
 }
 glm::mat4 Camera::ortho_matrix() {
-    return glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -1000.0f, 1000.0f);
+    return glm::ortho(0.0f, (float)width, 0.0f, (float)height, -10.0f, 10.0f);
 }
 
 void Camera::move(char directions, float dt) {

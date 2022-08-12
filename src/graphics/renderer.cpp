@@ -1,6 +1,6 @@
 #include "renderer.hpp"
 
-#define SHADOW_SIZE 4096
+#define SHADOW_SIZE 0
 
 const static std::vector<float> HDR_MESH_DATA = {
     -1.0f, -1.0f,  0.0f, 0.0f,
@@ -59,6 +59,8 @@ void Renderer::render() {
     
     glm::mat4 transform = projection * view;
 
+    glm::mat4 ortho = camera->ortho_matrix();
+
     glActiveTexture(GL_TEXTURE15);
     glBindTexture(GL_TEXTURE_2D, shadow_map_fbo);
 
@@ -68,6 +70,7 @@ void Renderer::render() {
         glm::mat4 shadow_transform_ = glm::translate(shadow_transform, mt.second);
         glm::mat4 model = glm::translate(glm::mat4(), mt.second);
         mesh->shader->uniform("transform", transform_);
+        mesh->shader->uniform("ortho", ortho);
         mesh->shader->uniform("shadow_transform", bias_matrix * shadow_transform_);
         mesh->shader->uniform("model", model);
         mesh->shader->uniform("shadowMap", 15);

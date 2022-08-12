@@ -103,6 +103,36 @@ void main() {
     if (texture(textureArray, TexCoord).a == 0.0)
         discard;
 }
+)"}},
+{BuiltinShader::GUI, {R"(
+#version 330 core
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec2 aTex;
+
+out vec2 TexCoord;
+
+uniform mat4 ortho;
+
+void main() {
+    gl_Position = ortho * vec4(aPos, 1.0, 1.0);
+
+    TexCoord = aTex;
+}
+)", R"(
+#version 330 core
+in vec2 TexCoord;
+
+out vec4 FragColor;
+
+uniform sampler2D texture1;
+
+void main() {
+    vec4 color = texture(texture1, TexCoord);
+    if (color.a == 0.0)
+        discard;
+    
+    FragColor = color;
+}
 )"}}
 };
 
@@ -138,20 +168,20 @@ void Shader::uniform(const std::string& name, double value) {
     glUniform1f(glGetUniformLocation(program, name.c_str()), value);
 }
 
-void Shader::uniform(const std::string& name, glm::vec2 value) {
+void Shader::uniform(const std::string& name, const glm::vec2& value) {
     prepare_set_uniform();
     glUniform2fv(glGetUniformLocation(program, name.c_str()), 1, &value[0]);
 }
-void Shader::uniform(const std::string& name, glm::vec3 value) {
+void Shader::uniform(const std::string& name, const glm::vec3& value) {
     prepare_set_uniform();
     glUniform3fv(glGetUniformLocation(program, name.c_str()), 1, &value[0]);
 }
-void Shader::uniform(const std::string& name, glm::vec4 value) {
+void Shader::uniform(const std::string& name, const glm::vec4& value) {
     prepare_set_uniform();
     glUniform4fv(glGetUniformLocation(program, name.c_str()), 1, &value[0]);
 }
 
-void Shader::uniform(const std::string& name, glm::mat4 value) {
+void Shader::uniform(const std::string& name, const glm::mat4& value) {
     prepare_set_uniform();
     glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, &value[0][0]);
 }
