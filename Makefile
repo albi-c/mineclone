@@ -5,12 +5,12 @@ DEBUG_FLAG = -g
 
 CXX       = g++
 CXXSTD    = c++20
-CXXOPT   := $(DEBUG_FLAG) -I./src
+CXXOPT   := -O3 $(DEBUG_FLAG) -I./src
 CXXFLAGS := $(CXXOPT) -std=$(CXXSTD)
 
 CC       = gcc
 CCSTD    = c2x
-CCOPT   := $(DEBUG_FLAG) -I./src
+CCOPT   := -O3 $(DEBUG_FLAG) -I./src
 CCFLAGS := $(CCOPT) -std=$(CCSTD)
 
 LFLAGS = $(CXXOPT)

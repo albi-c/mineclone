@@ -10,4 +10,5 @@ MaterialPropertiesInitializer::MaterialPropertiesInitializer() {
     MATERIAL_PROPERTIES[Material::GRASS] = MaterialProperty::TRANSPARENT | MaterialProperty::PLANT;
     MATERIAL_PROPERTIES[Material::FLOWER] = MaterialProperty::TRANSPARENT | MaterialProperty::PLANT;
     MATERIAL_PROPERTIES[Material::DEAD_BUSH] = MaterialProperty::TRANSPARENT | MaterialProperty::PLANT;
+    MATERIAL_PROPERTIES[Material::GLASS] = MaterialProperty::TRANSPARENT;
 }

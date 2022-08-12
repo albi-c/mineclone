@@ -10,14 +10,19 @@ namespace fs = std::filesystem;
 
 #include "window.hpp"
 #include "graphics/texture.hpp"
-#include "world/world.hpp"
+#include "world/chunk.hpp"
 #include "world/ray.hpp"
 #include "event/event.hpp"
 
+#define CHUNK_MESH_ID(x, z, n_chunks) (((x) + (z) * (n_chunks) + 1) << 8)
+
 bool break_block_g = false;
+bool place_block_g = false;
 void mouse_click_callback(const Event& e) {
     if ((long)e.data == GLFW_MOUSE_BUTTON_LEFT) {
         break_block_g = true;
+    } else if ((long)e.data == GLFW_MOUSE_BUTTON_RIGHT) {
+        place_block_g = true;
     }
 }
 
@@ -59,8 +64,9 @@ int main() {
     }
     tex3d.generate();
 
-    std::map<std::string, Texture3D*> textures;
-    textures["textureArray"] = &tex3d;
+    std::map<std::string, Texture*> textures;
+    std::map<std::string, Texture3D*> textures3d;
+    textures3d["textureArray"] = &tex3d;
 
     Shader gui_shader(BuiltinShader::GUI);
 
@@ -84,9 +90,9 @@ int main() {
     //      0.5f, -0.5f,  1.0f, 0.0f
     // }), &gui_shader, crosshair_textures, {});
 
-    w.renderer.add_mesh(0, &crosshair, glm::vec3(0.0f));
+    // w.renderer.add_mesh(0, &crosshair, glm::vec3(0.0f));
 
-    const int n_chunks = 4;
+    const int n_chunks = 8;
     Chunk* chunks[n_chunks][n_chunks];
     Mesh* meshes[n_chunks][n_chunks];
     for (int i = 0; i < n_chunks; i++) {
@@ -105,8 +111,8 @@ int main() {
             if (j < n_chunks - 1)
                 chunks[i][j]->set_neighbor(ChunkNeighbor::PZ, chunks[i][j+1]);
 
-            meshes[i][j] = new Mesh(chunks[i][j]->mesh(&tex3d), &shader, {}, textures);
-            w.renderer.add_mesh((i + j * n_chunks + 1) << 8, meshes[i][j], {i * 16 + 0.5, 0, j * 16 + 0.5});
+            meshes[i][j] = new Mesh(chunks[i][j]->mesh(&tex3d), &shader, textures, textures3d);
+            w.renderer.add_mesh(CHUNK_MESH_ID(i, j, n_chunks), meshes[i][j], {i * 16 + 0.5, 0, j * 16 + 0.5});
         }
     }
 
@@ -132,6 +138,26 @@ int main() {
                     
                     if (chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->get((int)pos.x % 16, pos.y, (int)pos.z % 16) != Material::AIR) {
                         chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->set((int)pos.x % 16, pos.y, (int)pos.z % 16, Material::AIR);
+                        break;
+                    }
+                }
+            }
+            if (place_block_g) {
+                place_block_g = false;
+
+                Ray ray(w.camera.pos, w.camera.front);
+                glm::vec<4, int> bounds = glm::vec<4, int>(0, 0, n_chunks * CHUNK_SIZE, n_chunks * CHUNK_SIZE);
+                while (true) {
+                    ray.step(0.01);
+
+                    glm::vec3 pos = ray.position();
+                    if (pos.x < bounds.x || pos.z < bounds.y || pos.x > bounds.z || pos.z > bounds.w || pos.y < 0 || pos.y > CHUNK_HEIGHT)
+                        break;
+                    
+                    if (chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->get((int)pos.x % 16, pos.y, (int)pos.z % 16) != Material::AIR) {
+                        ray.step(-0.01);
+                        pos = ray.position();
+                        chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->set((int)pos.x % 16, pos.y, (int)pos.z % 16, Material::GLASS);
                         break;
                     }
                 }
@@ -162,8 +188,8 @@ int main() {
 
         for (auto& [pos, mesh] : generated_chunk_meshes) {
             delete meshes[pos.first][pos.second];
-            meshes[pos.first][pos.second] = new Mesh(mesh, &shader, {}, textures);
-            w.renderer.add_mesh(pos.first + pos.second * n_chunks, meshes[pos.first][pos.second], {pos.first * 16 + 0.5, 0, pos.second * 16 + 0.5});
+            meshes[pos.first][pos.second] = new Mesh(mesh, &shader, textures, textures3d);
+            w.renderer.add_mesh(CHUNK_MESH_ID(pos.first, pos.second, n_chunks), meshes[pos.first][pos.second], {pos.first * 16 + 0.5, 0, pos.second * 16 + 0.5});
         }
         generated_chunk_meshes.clear();
     }

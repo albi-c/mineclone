@@ -1,9 +1,8 @@
 #include "mesh.hpp"
 
-Mesh::Mesh()
-    : shader_shadow(BuiltinShader::DEPTH) {}
 Mesh::Mesh(const MeshData& data, Shader* shader, const std::map<std::string, Texture*>& textures, const std::map<std::string, Texture3D*>& textures3d)
     : shader(shader), textures(textures), textures3d(textures3d), shader_shadow(BuiltinShader::DEPTH) {
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 

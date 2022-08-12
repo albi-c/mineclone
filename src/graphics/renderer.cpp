@@ -1,15 +1,6 @@
 #include "renderer.hpp"
 
-#define SHADOW_SIZE 0
-
-const static std::vector<float> HDR_MESH_DATA = {
-    -1.0f, -1.0f,  0.0f, 0.0f,
-    -1.0f,  1.0f,  0.0f, 1.0f,
-     1.0f,  1.0f,  1.0f, 1.0f,
-    -1.0f, -1.0f,  0.0f, 0.0f,
-     1.0f,  1.0f,  1.0f, 1.0f,
-     1.0f, -1.0f,  1.0f, 0.0f
-};
+#define SHADOW_SIZE 4096
 
 void Renderer::init(Camera* camera, int width, int height) {
     
@@ -78,6 +69,9 @@ void Renderer::render() {
     }
 }
 glm::mat4 Renderer::render_shadows() {
+    if (SHADOW_SIZE == 0)
+        return glm::mat4();
+    
     glViewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
     glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
     glClear(GL_DEPTH_BUFFER_BIT);

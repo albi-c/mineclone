@@ -10,7 +10,6 @@
 
 class Renderer {
 public:
-
     void init(Camera* camera, int width, int height);
 
     void render();

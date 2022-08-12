@@ -21,7 +21,6 @@ public:
     Shader* shader;
     Shader shader_shadow;
 
-    Mesh();
     Mesh(const MeshData& data, Shader* shader, const std::map<std::string, Texture*>& textures, const std::map<std::string, Texture3D*>& texture3d);
 
     void render();
