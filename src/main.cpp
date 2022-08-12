@@ -60,7 +60,7 @@ int main() {
     std::map<std::string, Texture3D*> textures;
     textures["textureArray"] = &tex3d;
 
-    const int n_chunks = 32;
+    const int n_chunks = 4;
     Chunk* chunks[n_chunks][n_chunks];
     Mesh* meshes[n_chunks][n_chunks];
     for (int i = 0; i < n_chunks; i++) {

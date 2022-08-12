@@ -21,7 +21,7 @@ EXECOPTS =
 all: $(EXEC)
 
 $(EXEC): $(OBJECTS) $(COBJECTS)
-	$(CXX) $(LFLAGS) -o $@ $^ -lGL -lglfw -ldl -lGLEW
+	$(CXX) $(LFLAGS) -o $@ $^ -lGL -lglfw -ldl -lGLEW -pthread
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
