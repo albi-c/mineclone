@@ -1,3 +1,4 @@
 mineclone
-.vscode
+.vscode/
 *.o
+build/
