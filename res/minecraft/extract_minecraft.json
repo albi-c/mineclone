@@ -1,0 +1,42 @@
+[
+    "dead_bush",
+    "dirt",
+    {
+        "name": "flower",
+        "file": "poppy"
+    },
+    {
+        "name": "grass_block_side",
+        "overlay": {
+            "file": "grass_block_side_overlay",
+            "tint": true
+        }
+    },
+    {
+        "name": "grass_block_top",
+        "tint": true
+    },
+    {
+        "name": "grass",
+        "tint": true
+    },
+    {
+        "name": "leaves",
+        "file": "oak_leaves",
+        "tint": true
+    },
+    {
+        "name": "log_top",
+        "file": "oak_log_top"
+    },
+    {
+        "name": "log",
+        "file": "oak_log"
+    },
+    {
+        "name": "planks",
+        "file": "oak_planks"
+    },
+    "sand",
+    "stone"
+]

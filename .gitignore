@@ -2,3 +2,4 @@ mineclone
 .vscode/
 *.o
 build/
+res/minecraft/*.png

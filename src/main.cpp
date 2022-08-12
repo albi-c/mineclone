@@ -49,11 +49,13 @@ int main() {
     shader.uniform("light.diffuse_pos", glm::vec3(2.0f, 120.0f, 2.0f));
 
     Texture3D tex3d;
-    for (auto& path_ : fs::directory_iterator("res/tex")) {
+    for (auto& path_ : fs::directory_iterator("res/minecraft")) {
         std::string path = path_.path();
+        if (path.length() <= 4 || 0 != path.compare(path.length() - 4, 4, ".png"))
+            continue;
         std::string path_u = path;
         std::transform(path_u.begin(), path_u.end(), path_u.begin(), ::toupper);
-        tex3d.add(path_u.substr(8, path.length() - 12), path);
+        tex3d.add(path_u.substr(14, path.find_last_of(".") - 14), path);
     }
     tex3d.generate();
 
