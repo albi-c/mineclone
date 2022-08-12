@@ -1,10 +1,9 @@
 #pragma once
 
-#include "util.hpp"
-#include "consts.hpp"
 #include "camera.hpp"
+#include "event.hpp"
 
-#include "graphics/opengl.hpp"
+#include "lib/opengl.hpp"
 #include "graphics/renderer.hpp"
 #include "event/event.hpp"
 

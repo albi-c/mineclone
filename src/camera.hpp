@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/opengl.hpp"
+#include "lib/opengl.hpp"
 
 enum class CameraMoveDirection {
     FORWARD = 0x1,

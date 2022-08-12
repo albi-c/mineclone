@@ -3,9 +3,10 @@
 #include <map>
 #include <vector>
 
-#include "opengl.hpp"
-#include "shader.hpp"
-#include "texture.hpp"
+#include "lib/opengl.hpp"
+#include "graphics/shaders/shader.hpp"
+#include "graphics/textures/texture.hpp"
+#include "graphics/textures/texture_array.hpp"
 
 struct MeshData {
     std::vector<int> part_sizes;
@@ -21,7 +22,7 @@ public:
     Shader* shader;
     Shader shader_shadow;
 
-    Mesh(const MeshData& data, Shader* shader, const std::map<std::string, Texture*>& textures, const std::map<std::string, Texture3D*>& texture3d);
+    Mesh(const MeshData& data, Shader* shader, const std::map<std::string, Texture*>& textures, const std::map<std::string, TextureArray*>& textureArrays);
 
     void render();
     void render_shadows();
@@ -31,6 +32,6 @@ public:
 private:
     GLuint VAO, VBO;
     std::map<std::string, Texture*> textures;
-    std::map<std::string, Texture3D*> textures3d;
+    std::map<std::string, TextureArray*> textureArrays;
     int vertices;
 };

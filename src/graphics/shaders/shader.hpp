@@ -4,8 +4,7 @@
 #include <utility>
 #include <string>
 
-#include "../util.hpp"
-#include "opengl.hpp"
+#include "lib/opengl.hpp"
 
 enum class BuiltinShader {
     BLOCK, DEPTH, GUI

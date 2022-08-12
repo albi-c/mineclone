@@ -3,11 +3,10 @@
 #define SHADOW_SIZE 4096
 
 void Renderer::init(Camera* camera, int width, int height) {
-    
     this->camera = camera;
 
     resize(width, height);
-    set_sky_color(glm::vec4());
+    set_sky_color(glm::vec3());
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -34,6 +33,24 @@ void Renderer::init(Camera* camera, int width, int height) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void Renderer::render2d(Mesh& mesh) {
+    glm::mat4 projection = camera->ortho_matrix();
+
+    mesh.shader->uniform("transform", projection);
+    mesh.render();
+}
+
+void Renderer::render3d(Mesh& mesh, const glm::vec3& translate) {
+    glm::mat4 view = camera->view_matrix();
+    glm::mat4 projection = camera->proj_matrix();
+    
+    glm::mat4 transform = projection * view;
+
+    glm::mat4 transform_ = glm::translate(transform, translate);
+    mesh.shader->uniform("transform", transform_);
+    mesh.render();
+}
+
 void Renderer::render() {
     glm::mat4 shadow_transform = render_shadows();
     glm::mat4 bias_matrix(
@@ -50,8 +67,6 @@ void Renderer::render() {
     
     glm::mat4 transform = projection * view;
 
-    glm::mat4 ortho = camera->ortho_matrix();
-
     glActiveTexture(GL_TEXTURE15);
     glBindTexture(GL_TEXTURE_2D, shadow_map_fbo);
 
@@ -61,7 +76,6 @@ void Renderer::render() {
         glm::mat4 shadow_transform_ = glm::translate(shadow_transform, mt.second);
         glm::mat4 model = glm::translate(glm::mat4(), mt.second);
         mesh->shader->uniform("transform", transform_);
-        mesh->shader->uniform("ortho", ortho);
         mesh->shader->uniform("shadow_transform", bias_matrix * shadow_transform_);
         mesh->shader->uniform("model", model);
         mesh->shader->uniform("shadowMap", 15);
@@ -104,9 +118,9 @@ void Renderer::resize(int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void Renderer::set_sky_color(const glm::vec4& color) {
+void Renderer::set_sky_color(const glm::vec3& color) {
     sky_color = color;
-    glClearColor(sky_color.r, sky_color.g, sky_color.b, sky_color.a);
+    glClearColor(sky_color.r, sky_color.g, sky_color.b, 1.0f);
 }
 
 void Renderer::add_mesh(int id, Mesh* mesh, const glm::vec3& translate) {

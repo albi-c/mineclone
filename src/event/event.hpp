@@ -2,30 +2,101 @@
 
 #include <map>
 #include <vector>
+#include <mutex>
+#include <type_traits>
+#include <queue>
+#include <functional>
 
-#define BETTER_ENUMS_MACRO_FILE "../lib/enum_macros.h"
-#include "../lib/enum.h"
+struct Event {
+    virtual ~Event() {}
+};
 
-BETTER_ENUM(EventType, int,
-    MouseClick = 0,
-    ChunkRedraw
-);
-BETTER_ENUMS_DECLARE_STD_HASH(EventType);
-
-class Event {
+template <class T>
+class EventHandler {
 public:
-    EventType type;
-    void* data;
+    inline virtual void event_(const Event& event) {
+        dynamic_cast<EventHandler<T>*>(this)->event(static_cast<const T&>(event));
+    }
+    virtual void event(const T& event) =0;
+};
 
-    static void fire(const Event& event);
-    inline void fire() const { Event::fire(*this); }
+template <class T>
+class FunctionEventHandler : public EventHandler<T> {
+public:
+    inline FunctionEventHandler(std::function<void(T)> callback)
+        : callback(callback) {}
 
-    static void listen(EventType type, void(*callback)(const Event&));
-
-    inline bool operator==(const Event& other) const { return type == other.type && data == other.data; }
-    inline bool operator==(EventType other) const { return type == other; }
-    inline bool operator==(EventType::_enumerated other) const { return type == (EventType)other; }
+    inline virtual void event(const T& event) override {
+        callback(event);
+    }
 
 private:
-    static std::map<EventType, std::vector<void(*)(const Event&)>> callbacks;
+    std::function<void(T)> callback;
+};
+
+template <class T>
+class EventQueue : public EventHandler<T> {
+public:
+    inline virtual void event(const T& event) override {
+        std::lock_guard<std::mutex> lock(mutex);
+        queue.push(event);
+    }
+
+    inline T pop() {
+        std::lock_guard<std::mutex> lock(mutex);
+        T& value = queue.front();
+        queue.pop();
+        return value;
+    }
+    inline bool empty() {
+        std::lock_guard<std::mutex> lock(mutex);
+        return queue.empty();
+    }
+
+private:
+    std::queue<T> queue;
+    std::mutex mutex;
+};
+
+template <class T>
+class FunctionEventQueue : public EventQueue<T> {
+public:
+    inline FunctionEventQueue(std::function<void(const T&)> callback)
+        : callback(callback) {}
+    
+    inline void process() {
+        while (!this->empty())
+            callback(this->pop());
+    }
+
+    inline void process_one() {
+        if (!this->empty())
+            callback(this->pop());
+    }
+
+private:
+    std::function<void(const T&)> callback;
+};
+
+class EventManager {
+public:
+    template <class T>
+    inline static void fire(const T& event) {
+        size_t type = typeid(T).hash_code();
+        std::lock_guard<std::mutex> lock(EventManager::_mutex(type));
+        for (auto& handler : EventManager::_handlers(type)) {
+            handler(event);
+        }
+    }
+
+    template <class T>
+    inline static void listen(EventHandler<T>& handler) {
+        size_t type = typeid(T).hash_code();
+        std::lock_guard<std::mutex> lock(EventManager::_mutex(type));
+        EventManager::_handlers(type).push_back(std::function([&handler](const Event& event) { handler.event_(event); }));
+    }
+
+private:
+    static std::vector<std::function<void(const Event&)>>& _handlers(std::size_t id);
+    static std::mutex& _mutex(std::size_t id);
 };

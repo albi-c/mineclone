@@ -2,7 +2,7 @@
 
 #define GLFW_INCLUDE_NONE
 
-#include "../lib/glad/glad.h"
+#include "glad/glad.h"
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -12,3 +12,6 @@
 #include <glm/gtc/random.hpp>
 
 #include <iostream>
+
+#include "config.hpp"
+#include "util.hpp"

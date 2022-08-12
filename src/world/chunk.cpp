@@ -185,15 +185,15 @@ void Chunk::set(int x, int y, int z, const Block& block) {
         blocks[BP(x, y, z)] = block;
 
         if (x == 0)
-            Event{EventType::ChunkRedraw, (void*)(((unsigned long)(cx - 1) << 32) | cz)}.fire();
+            EventManager::fire(EventChunkRedraw{cx - 1, cz});
         if (x == CHUNK_SIZE - 1)
-            Event{EventType::ChunkRedraw, (void*)(((unsigned long)(cx + 1) << 32) | cz)}.fire();
+            EventManager::fire(EventChunkRedraw{cx + 1, cz});
         if (z == 0)
-            Event{EventType::ChunkRedraw, (void*)(((unsigned long)cx << 32) | (cz - 1))}.fire();
+            EventManager::fire(EventChunkRedraw{cx, cz - 1});
         if (z == CHUNK_SIZE - 1)
-            Event{EventType::ChunkRedraw, (void*)(((unsigned long)cx << 32) | (cz + 1))}.fire();
+            EventManager::fire(EventChunkRedraw{cx, cz + 1});
 
-        Event{EventType::ChunkRedraw, (void*)(((unsigned long)cx << 32) | cz)}.fire();
+        EventManager::fire(EventChunkRedraw{cx, cz});
     }
 }
 void Chunk::set(const BlockPosition& pos, const Block& block) {
@@ -273,7 +273,7 @@ void Chunk::update() {
     Chunk::blocks_to_set.erase({cx, cz});
 }
 
-MeshData Chunk::mesh(Texture3D* tex) {
+MeshData Chunk::mesh(const TextureArray& tex) {
     std::vector<float> vertices;
     vertices.reserve(100);
 
@@ -295,7 +295,7 @@ MeshData Chunk::mesh(Texture3D* tex) {
                         data[PLANT_PART_SIZE * part + 2] = plant_faces[face][5 * part + 2] + z; \
                         data[PLANT_PART_SIZE * part + 3] = plant_faces[face][5 * part + 3]; \
                         data[PLANT_PART_SIZE * part + 4] = plant_faces[face][5 * part + 4]; \
-                        data[PLANT_PART_SIZE * part + 5] = tex->position(block.face_texture(face)); \
+                        data[PLANT_PART_SIZE * part + 5] = tex.position(block.face_texture(face)); \
                         data[PLANT_PART_SIZE * part + 6] = plant_normals[face][0]; \
                         data[PLANT_PART_SIZE * part + 7] = plant_normals[face][1]; \
                         data[PLANT_PART_SIZE * part + 8] = plant_normals[face][2]
@@ -327,7 +327,7 @@ MeshData Chunk::mesh(Texture3D* tex) {
                     data[FACE_PART_SIZE * part + 2] = block_faces[face][5 * part + 2] + z; \
                     data[FACE_PART_SIZE * part + 3] = block_faces[face][5 * part + 3]; \
                     data[FACE_PART_SIZE * part + 4] = block_faces[face][5 * part + 4]; \
-                    data[FACE_PART_SIZE * part + 5] = tex->position(block.face_texture(face)); \
+                    data[FACE_PART_SIZE * part + 5] = tex.position(block.face_texture(face)); \
                     data[FACE_PART_SIZE * part + 6] = block_normals[face][0]; \
                     data[FACE_PART_SIZE * part + 7] = block_normals[face][1]; \
                     data[FACE_PART_SIZE * part + 8] = block_normals[face][2]
@@ -346,19 +346,6 @@ MeshData Chunk::mesh(Texture3D* tex) {
 
                 float face_data[FACE_PART_SIZE * 6];
 
-                // if (x - 1 < 0 || TRANSPARENT_CHECK(i - 1)) {
-                //     ADD_FACE(vertices, tex, block, face_data, 2, x, y, z);
-                // }
-                // if (x + 2 > CHUNK_SIZE || TRANSPARENT_CHECK(i + 1)) {
-                //     ADD_FACE(vertices, tex, block, face_data, 3, x, y, z);
-                // }
-
-                // if (z - 1 < 0 || TRANSPARENT_CHECK(i - CHUNK_SIZE)) {
-                //     ADD_FACE(vertices, tex, block, face_data, 0, x, y, z);
-                // }
-                // if (z + 2 > CHUNK_SIZE || TRANSPARENT_CHECK(i + CHUNK_SIZE)) {
-                //     ADD_FACE(vertices, tex, block, face_data, 1, x, y, z);
-                // }
                 if (TRANSPARENT_CHECK(-1, 0, 0)) {
                     ADD_FACE(vertices, tex, block, face_data, 2, x, y, z);
                 }

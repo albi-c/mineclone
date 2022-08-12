@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../graphics/opengl.hpp"
+#include "lib/opengl.hpp"
 
 class Ray {
 public:

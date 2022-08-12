@@ -8,12 +8,12 @@
 #include <array>
 #include <map>
 
-#include "block.hpp"
-#include "biome.hpp"
-#include "../event/event.hpp"
-#include "../graphics/mesh.hpp"
-#include "../graphics/opengl.hpp"
-#include "../graphics/texture.hpp"
+#include "world/block.hpp"
+#include "world/biome.hpp"
+#include "event/event.hpp"
+#include "graphics/mesh.hpp"
+#include "lib/opengl.hpp"
+#include "graphics/textures/texture_array.hpp"
 
 enum class ChunkNeighbor {
     PX = 0,
@@ -65,7 +65,7 @@ public:
 
     void update();
 
-    MeshData mesh(Texture3D* tex);
+    MeshData mesh(const TextureArray& tex);
 
     inline Chunk* get_neighbor(ChunkNeighbor neighbor) {
         return neighbors[(int)neighbor];
@@ -86,4 +86,11 @@ private:
     static std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> blocks_to_set;
 
     void generate_biomes(Biome output[16][16]);
+};
+
+struct EventChunkRedraw : Event {
+    int cx, cz;
+
+    EventChunkRedraw(int cx, int cz)
+        : cx(cx), cz(cz) {}
 };

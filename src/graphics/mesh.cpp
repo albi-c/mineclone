@@ -1,7 +1,7 @@
 #include "mesh.hpp"
 
-Mesh::Mesh(const MeshData& data, Shader* shader, const std::map<std::string, Texture*>& textures, const std::map<std::string, Texture3D*>& textures3d)
-    : shader(shader), textures(textures), textures3d(textures3d), shader_shadow(BuiltinShader::DEPTH) {
+Mesh::Mesh(const MeshData& data, Shader* shader, const std::map<std::string, Texture*>& textures, const std::map<std::string, TextureArray*>& textureArrays)
+    : shader(shader), textures(textures), textureArrays(textureArrays), shader_shadow(BuiltinShader::DEPTH) {
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -17,7 +17,7 @@ void Mesh::render() {
         shader->uniform(name, i);
         i++;
     }
-    for (auto& [name, texture] : textures3d) {
+    for (auto& [name, texture] : textureArrays) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D_ARRAY, texture->texture);
         shader->uniform(name, i);
@@ -37,7 +37,7 @@ void Mesh::render_shadows() {
         shader_shadow.uniform(name, i);
         i++;
     }
-    for (auto& [name, texture] : textures3d) {
+    for (auto& [name, texture] : textureArrays) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D_ARRAY, texture->texture);
         shader_shadow.uniform(name, i);

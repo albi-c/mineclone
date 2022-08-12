@@ -1,16 +1,17 @@
 EXEC     = mineclone
 EXECOPTS = 
 
+OPTIM_FLAG =
 DEBUG_FLAG = -g
 
 CXX       = g++
 CXXSTD    = c++20
-CXXOPT   := -O3 $(DEBUG_FLAG) -I./src
+CXXOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src
 CXXFLAGS := $(CXXOPT) -std=$(CXXSTD)
 
 CC       = gcc
 CCSTD    = c2x
-CCOPT   := -O3 $(DEBUG_FLAG) -I./src
+CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src
 CCFLAGS := $(CCOPT) -std=$(CCSTD)
 
 LFLAGS = $(CXXOPT)

@@ -1,13 +1,11 @@
 #include "event.hpp"
 
-std::map<EventType, std::vector<void(*)(const Event&)>> Event::callbacks;
+static std::map<std::size_t, std::vector<std::function<void(const Event&)>>> EventManager_handlers;
+static std::map<std::size_t, std::mutex> EventManager_mutexes;
 
-void Event::fire(const Event& event) {
-    for (auto& callback : Event::callbacks[event.type]) {
-        callback(event);
-    }
+std::vector<std::function<void(const Event&)>>& EventManager::_handlers(std::size_t id) {
+    return EventManager_handlers[id];
 }
-
-void Event::listen(EventType type, void(*callback)(const Event&)) {
-    Event::callbacks[type].push_back(callback);
+std::mutex& EventManager::_mutex(std::size_t id) {
+    return EventManager_mutexes[id];
 }

@@ -2,8 +2,10 @@
 
 #include <unordered_set>
 
-#define BETTER_ENUMS_MACRO_FILE "../lib/enum_macros.h"
-#include "../lib/enum.h"
+#ifndef BETTER_ENUMS_MACRO_FILE
+#define BETTER_ENUMS_MACRO_FILE "lib/enum_macros.h"
+#endif
+#include "lib/enum.h"
 
 BETTER_ENUM(Material, int,
     AIR = 0,
