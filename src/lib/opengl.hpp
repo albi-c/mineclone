@@ -14,4 +14,7 @@
 #include <iostream>
 
 #include "config.hpp"
-#include "util.hpp"
+
+#include "util/util.hpp"
+#include "util/file.hpp"
+#include "util/string.hpp"

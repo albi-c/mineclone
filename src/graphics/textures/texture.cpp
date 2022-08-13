@@ -42,6 +42,10 @@ static GLuint load_texture(const std::string& filename) {
     return texture;
 }
 
+Texture::Texture() {}
+Texture::Texture(Texture* other) {
+    texture = other->texture;
+}
 Texture::Texture(const std::string& filename) {
     texture = load_texture(filename);
 }

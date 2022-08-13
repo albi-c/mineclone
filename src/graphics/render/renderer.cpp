@@ -1,6 +1,6 @@
 #include "renderer.hpp"
 
-#define SHADOW_SIZE 4096
+#define SHADOW_SIZE 0
 
 void Renderer::init(Camera* camera, int width, int height) {
     this->camera = camera;
@@ -33,22 +33,19 @@ void Renderer::init(Camera* camera, int width, int height) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Renderer::render2d(Mesh& mesh) {
+void Renderer::render2d(Renderable& obj) {
     glm::mat4 projection = camera->ortho_matrix();
 
-    mesh.shader->uniform("transform", projection);
-    mesh.render();
+    obj.render({{"transform", camera->ortho_matrix()}});
 }
 
-void Renderer::render3d(Mesh& mesh, const glm::vec3& translate) {
+void Renderer::render3d(Renderable& mesh, const glm::vec3& translate) {
     glm::mat4 view = camera->view_matrix();
     glm::mat4 projection = camera->proj_matrix();
     
-    glm::mat4 transform = projection * view;
+    glm::mat4 transform = glm::translate(projection * view, translate);
 
-    glm::mat4 transform_ = glm::translate(transform, translate);
-    mesh.shader->uniform("transform", transform_);
-    mesh.render();
+    mesh.render({{"transform", transform}});
 }
 
 void Renderer::render() {
@@ -71,15 +68,16 @@ void Renderer::render() {
     glBindTexture(GL_TEXTURE_2D, shadow_map_fbo);
 
     for (auto& [id, mt] : meshes) {
-        Mesh* mesh = mt.first;
+        Renderable* mesh = mt.first;
         glm::mat4 transform_ = glm::translate(transform, mt.second);
         glm::mat4 shadow_transform_ = glm::translate(shadow_transform, mt.second);
         glm::mat4 model = glm::translate(glm::mat4(), mt.second);
-        mesh->shader->uniform("transform", transform_);
-        mesh->shader->uniform("shadow_transform", bias_matrix * shadow_transform_);
-        mesh->shader->uniform("model", model);
-        mesh->shader->uniform("shadowMap", 15);
-        mesh->render();
+        mesh->render({
+            {"transform", transform_},
+            {"shadow_transform", bias_matrix * shadow_transform_},
+            {"model", model},
+            {"shadowMap", 15}
+        });
     }
 }
 glm::mat4 Renderer::render_shadows() {
@@ -96,13 +94,14 @@ glm::mat4 Renderer::render_shadows() {
     glm::mat4 transform = projection * view;
 
     for (auto& [id, mt] : meshes) {
-        Mesh* mesh = mt.first;
+        Renderable* mesh = mt.first;
         glm::mat4 transform_ = glm::translate(transform, mt.second);
         glm::mat4 model = glm::translate(glm::mat4(), mt.second);
-        mesh->shader_shadow.uniform("transform", transform_);
-        mesh->shader_shadow.uniform("model", model);
-        mesh->shader_shadow.uniform("shadowMap", 5);
-        mesh->render_shadows();
+        mesh->render_shadows({
+            {"transform", transform_},
+            {"model", model},
+            {"shadowMap", 5}
+        });
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -123,15 +122,15 @@ void Renderer::set_sky_color(const glm::vec3& color) {
     glClearColor(sky_color.r, sky_color.g, sky_color.b, 1.0f);
 }
 
-void Renderer::add_mesh(int id, Mesh* mesh, const glm::vec3& translate) {
+void Renderer::add_mesh(int id, Renderable* mesh, const glm::vec3& translate) {
     meshes[id] = {mesh, translate};
 }
 void Renderer::remove_mesh(int id) {
     meshes.erase(id);
 }
-Mesh* Renderer::get_mesh(int id) {
+Renderable* Renderer::get_mesh(int id) {
     return meshes[id].first;
 }
-std::map<int, std::pair<Mesh*, glm::vec3>>& Renderer::get_meshes() {
+std::map<int, std::pair<Renderable*, glm::vec3>>& Renderer::get_meshes() {
     return meshes;
 }

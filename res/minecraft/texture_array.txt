@@ -1,0 +1,13 @@
+dead_bush
+dirt
+flower
+grass_block_side
+grass_block_top
+grass
+leaves
+log_top
+log
+planks
+sand
+stone
+glass

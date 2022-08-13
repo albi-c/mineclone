@@ -14,6 +14,13 @@ static void free_texture_data(unsigned char* data) {
     stbi_image_free(data);
 }
 
+TextureArray::TextureArray() {}
+TextureArray::TextureArray(TextureArray* other) {
+    texture = other->texture;
+    textures = other->textures;
+    positions = other->positions;
+}
+
 void TextureArray::add(const std::string& name, const std::string& filename) {
     textures[name] = filename;
 }

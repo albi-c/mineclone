@@ -4,7 +4,7 @@
 #include "event.hpp"
 
 #include "lib/opengl.hpp"
-#include "graphics/renderer.hpp"
+#include "graphics/render/renderer.hpp"
 #include "event/event.hpp"
 
 class Window {

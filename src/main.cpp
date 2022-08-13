@@ -15,6 +15,10 @@ namespace fs = std::filesystem;
 #include "world/chunk.hpp"
 #include "util/ray.hpp"
 #include "event/event.hpp"
+#include "util/string.hpp"
+
+// TESTING
+#include "resources/loader.hpp"
 
 #define CHUNK_MESH_ID(x, z, n_chunks) (((x) + (z) * (n_chunks) + 1) << 8)
 
@@ -30,49 +34,48 @@ int main() {
 
     w.camera.pos.y = 70;
 
-    Shader shader(BuiltinShader::BLOCK);
-    shader.uniform("light.ambient", glm::vec3(0.3f));
-    shader.uniform("light.diffuse", glm::vec3(0.7f));
-    shader.uniform("light.diffuse_pos", glm::vec3(2.0f, 120.0f, 2.0f));
+    auto shader = std::make_shared<Shader>(new Shader(BuiltinShader::BLOCK));
+    shader->uniform("light.ambient", glm::vec3(0.3f));
+    shader->uniform("light.diffuse", glm::vec3(0.7f));
+    shader->uniform("light.diffuse_pos", glm::vec3(2.0f, 120.0f, 2.0f));
 
-    TextureArray texArr;
-    for (auto& path_ : fs::directory_iterator("res/minecraft")) {
-        std::string path = path_.path();
-        if (path.length() <= 4 || 0 != path.compare(path.length() - 4, 4, ".png"))
-            continue;
-        std::string path_u = path;
-        std::transform(path_u.begin(), path_u.end(), path_u.begin(), ::toupper);
-        texArr.add(path_u.substr(14, path.find_last_of(".") - 14), path);
-    }
-    texArr.generate();
+    auto texArr = ResourceLoader::texture_array("minecraft", true);
+    texArr->generate();
 
-    std::map<std::string, Texture*> textures;
-    std::map<std::string, TextureArray*> textureArrays;
-    textureArrays["textureArray"] = &texArr;
+    std::map<std::string, std::shared_ptr<Texture>> textures;
+    textures["textureArray"] = texArr;
 
-    Shader gui_shader(BuiltinShader::GUI);
+    auto color_shader = std::make_shared<Shader>(new Shader(BuiltinShader::COLOR2D));
 
-    Texture crosshair_tex("res/crosshair.png");
-    std::map<std::string, Texture*> crosshair_textures;
-    crosshair_textures["texture1"] = &crosshair_tex;
-    Mesh crosshair(MeshData({2, 2}, {
-        952.0f, 481.5f,  0.0f, 0.0f,
-        952.0f, 497.5f,  0.0f, 1.0f,
-        968.0f, 497.5f,  1.0f, 1.0f,
-        952.0f, 481.5f,  0.0f, 0.0f,
-        968.0f, 497.5f,  1.0f, 1.0f,
-        968.0f, 481.5f,  1.0f, 0.0f
-    }), &gui_shader, crosshair_textures, {});
+    Mesh crosshair(MeshData({2, 3}, {
+        -0.5f,  0.0f,   1.0f, 0.0f, 0.0f,
+        -0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
+         0.5f,  0.0f,   1.0f, 0.0f, 0.0f
+    }), color_shader, {});
+
+    w.renderer.add_mesh(0, &crosshair);
+
+    // auto crosshair_tex = ResourceLoader::texture("crosshair");
+    // std::map<std::string, std::shared_ptr<Texture>> crosshair_textures;
+    // crosshair_textures["texture1"] = crosshair_tex;
     // Mesh crosshair(MeshData({2, 2}, {
-    //     -0.5f, -0.5f,  0.0f, 0.0f,
-    //     -0.5f,  0.5f,  0.0f, 1.0f,
-    //      0.5f,  0.5f,  1.0f, 1.0f,
-    //     -0.5f, -0.5f,  0.0f, 0.0f,
-    //      0.5f,  0.5f,  1.0f, 1.0f,
-    //      0.5f, -0.5f,  1.0f, 0.0f
-    // }), &gui_shader, crosshair_textures, {});
+    //     952.0f, 481.5f,  0.0f, 0.0f,
+    //     952.0f, 497.5f,  0.0f, 1.0f,
+    //     968.0f, 497.5f,  1.0f, 1.0f,
+    //     952.0f, 481.5f,  0.0f, 0.0f,
+    //     968.0f, 497.5f,  1.0f, 1.0f,
+    //     968.0f, 481.5f,  1.0f, 0.0f
+    // }), gui_shader, crosshair_textures);
+    // // Mesh crosshair(MeshData({2, 2}, {
+    // //     -0.5f, -0.5f,  0.0f, 0.0f,
+    // //     -0.5f,  0.5f,  0.0f, 1.0f,
+    // //      0.5f,  0.5f,  1.0f, 1.0f,
+    // //     -0.5f, -0.5f,  0.0f, 0.0f,
+    // //      0.5f,  0.5f,  1.0f, 1.0f,
+    // //      0.5f, -0.5f,  1.0f, 0.0f
+    // // }), &gui_shader, crosshair_textures, {});
 
-    const int n_chunks = 8;
+    const int n_chunks = 16;
     Chunk* chunks[n_chunks][n_chunks];
     Mesh* meshes[n_chunks][n_chunks];
     for (int i = 0; i < n_chunks; i++) {
@@ -93,7 +96,7 @@ int main() {
             
             chunks[i][j]->update();
 
-            meshes[i][j] = new Mesh(chunks[i][j]->mesh(texArr), &shader, textures, textureArrays);
+            meshes[i][j] = new Mesh(chunks[i][j]->mesh(*texArr), shader, textures);
             w.renderer.add_mesh(CHUNK_MESH_ID(i, j, n_chunks), meshes[i][j], {i * 16 + 0.5, 0, j * 16 + 0.5});
         }
     }
@@ -149,7 +152,7 @@ int main() {
             if (e.cx < 0 || e.cz < 0 || e.cx >= n_chunks || e.cz >= n_chunks)
                 return;
             
-            MeshData data = chunks[e.cx][e.cz]->mesh(texArr);
+            MeshData data = chunks[e.cx][e.cz]->mesh(*texArr);
             
             generated_chunk_meshes_mutex.lock();
 
@@ -174,7 +177,7 @@ int main() {
     w.grab_mouse(true);
     while (w.update()) {
         w.render();
-        w.renderer.render2d(crosshair);
+        // w.renderer.render2d(crosshair);
         if (w.get_key(GLFW_KEY_ESCAPE)) {
             w.close();
         }
@@ -183,7 +186,7 @@ int main() {
 
         for (auto& [pos, mesh] : generated_chunk_meshes) {
             delete meshes[pos.first][pos.second];
-            meshes[pos.first][pos.second] = new Mesh(mesh, &shader, textures, textureArrays);
+            meshes[pos.first][pos.second] = new Mesh(mesh, shader, textures);
             w.renderer.add_mesh(CHUNK_MESH_ID(pos.first, pos.second, n_chunks), meshes[pos.first][pos.second], {pos.first * 16 + 0.5, 0, pos.second * 16 + 0.5});
         }
         generated_chunk_meshes.clear();

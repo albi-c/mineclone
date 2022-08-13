@@ -104,38 +104,36 @@ void main() {
         discard;
 }
 )"}},
-{BuiltinShader::GUI, {R"(
+{BuiltinShader::COLOR2D, {R"(
 #version 330 core
 layout (location = 0) in vec2 aPos;
-layout (location = 1) in vec2 aTex;
+layout (location = 1) in vec3 aColor;
 
-out vec2 TexCoord;
+out vec3 Color;
 
 uniform mat4 ortho;
 
 void main() {
     gl_Position = ortho * vec4(aPos, 1.0, 1.0);
+    gl_Position = vec4(aPos, 1.0, 1.0);
 
-    TexCoord = aTex;
+    Color = aColor;
 }
 )", R"(
 #version 330 core
-in vec2 TexCoord;
+in vec3 Color;
 
 out vec4 FragColor;
 
-uniform sampler2D texture1;
-
 void main() {
-    vec4 color = texture(texture1, TexCoord);
-    if (color.a == 0.0)
-        discard;
-    
-    FragColor = color;
+    FragColor = vec4(Color, 1.0);
 }
 )"}}
 };
 
+Shader::Shader(Shader* other) {
+    program = other->program;
+}
 Shader::Shader(const std::string& vertex_code, const std::string& fragment_code) {
     init(vertex_code, fragment_code);
 }
@@ -147,10 +145,6 @@ void Shader::use() {
     glUseProgram(program);
 }
 
-void Shader::uniform(const std::string& name, bool value) {
-    prepare_set_uniform();
-    glUniform1i(glGetUniformLocation(program, name.c_str()), value);
-}
 void Shader::uniform(const std::string& name, int value) {
     prepare_set_uniform();
     glUniform1i(glGetUniformLocation(program, name.c_str()), value);

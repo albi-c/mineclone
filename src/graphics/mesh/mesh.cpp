@@ -1,7 +1,11 @@
 #include "mesh.hpp"
 
-Mesh::Mesh(const MeshData& data, Shader* shader, const std::map<std::string, Texture*>& textures, const std::map<std::string, TextureArray*>& textureArrays)
-    : shader(shader), textures(textures), textureArrays(textureArrays), shader_shadow(BuiltinShader::DEPTH) {
+Mesh::Mesh(
+        const MeshData& data,
+        std::shared_ptr<Shader> shader,
+        const std::map<std::string, std::shared_ptr<Texture>>& textures
+    )
+    : shader(shader), textures(textures), shader_shadow(BuiltinShader::DEPTH) {
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -9,19 +13,16 @@ Mesh::Mesh(const MeshData& data, Shader* shader, const std::map<std::string, Tex
     rebuild(data);
 }
 
-void Mesh::render() {
+void Mesh::render(const std::map<std::string, Uniform>& uniforms) {
     int i = 0;
     for (auto& [name, texture] : textures) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, texture->texture);
+        texture->bind(i);
         shader->uniform(name, i);
         i++;
     }
-    for (auto& [name, texture] : textureArrays) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, texture->texture);
-        shader->uniform(name, i);
-        i++;
+
+    for (auto& [name, uniform] : uniforms) {
+        uniform.set(*shader, name);
     }
 
     shader->use();
@@ -29,25 +30,25 @@ void Mesh::render() {
 
     glDrawArrays(GL_TRIANGLES, 0, vertices);
 }
-void Mesh::render_shadows() {
+void Mesh::render_shadows(const std::map<std::string, Uniform>& uniforms) {
     int i = 0;
     for (auto& [name, texture] : textures) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, texture->texture);
-        shader_shadow.uniform(name, i);
+        texture->bind(i);
+        shader->uniform(name, i);
         i++;
     }
-    for (auto& [name, texture] : textureArrays) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, texture->texture);
-        shader_shadow.uniform(name, i);
-        i++;
+
+    for (auto& [name, uniform] : uniforms) {
+        uniform.set(*shader, name);
     }
 
     shader_shadow.use();
     glBindVertexArray(VAO);
 
     glDrawArrays(GL_TRIANGLES, 0, vertices);
+}
+
+std::vector<std::string> Mesh::required_textures() const {
 }
 
 void Mesh::rebuild(const MeshData& data) {

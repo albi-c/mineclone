@@ -5,15 +5,15 @@
 #include <utility>
 
 #include "lib/opengl.hpp"
-#include "graphics/mesh.hpp"
+#include "renderable.hpp"
 #include "camera.hpp"
 
 class Renderer {
 public:
     void init(Camera* camera, int width, int height);
 
-    void render2d(Mesh& mesh);
-    void render3d(Mesh& mesh, const glm::vec3& translate = glm::vec3());
+    void render2d(Renderable& mesh);
+    void render3d(Renderable& mesh, const glm::vec3& translate = glm::vec3());
     void render();
     glm::mat4 render_shadows();
 
@@ -21,10 +21,10 @@ public:
 
     void set_sky_color(const glm::vec3& color);
 
-    void add_mesh(int id, Mesh* mesh, const glm::vec3& translate = glm::vec3());
+    void add_mesh(int id, Renderable* mesh, const glm::vec3& translate = glm::vec3());
     void remove_mesh(int id);
-    Mesh* get_mesh(int id);
-    std::map<int, std::pair<Mesh*, glm::vec3>>& get_meshes();
+    Renderable* get_mesh(int id);
+    std::map<int, std::pair<Renderable*, glm::vec3>>& get_meshes();
 
 private:
     int width, height;
@@ -32,7 +32,7 @@ private:
 
     Camera* camera;
 
-    std::map<int, std::pair<Mesh*, glm::vec3>> meshes;
+    std::map<int, std::pair<Renderable*, glm::vec3>> meshes;
 
     GLuint shadow_map_fbo, shadow_map;
 };

@@ -4,12 +4,12 @@ EXECOPTS =
 OPTIM_FLAG =
 DEBUG_FLAG = -g
 
-CXX       = g++
+CXX       = clang
 CXXSTD    = c++20
 CXXOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src
 CXXFLAGS := $(CXXOPT) -std=$(CXXSTD)
 
-CC       = gcc
+CC       = clang
 CCSTD    = c2x
 CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src
 CCFLAGS := $(CCOPT) -std=$(CCSTD)
@@ -27,7 +27,7 @@ all: $(EXEC)
 	@echo $(RDIRS)
 
 $(EXEC): $(OBJECTS) $(COBJECTS)
-	$(CXX) $(LFLAGS) -o $@ $^ -lGL -lglfw -ldl -lGLEW -pthread
+	$(CXX) $(LFLAGS) -o $@ $^ -lGL -lglfw -ldl -lGLEW -pthread -lm -lstdc++
 
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)

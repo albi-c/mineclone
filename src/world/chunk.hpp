@@ -11,7 +11,7 @@
 #include "world/block.hpp"
 #include "world/biome.hpp"
 #include "event/event.hpp"
-#include "graphics/mesh.hpp"
+#include "graphics/mesh/mesh.hpp"
 #include "lib/opengl.hpp"
 #include "graphics/textures/texture_array.hpp"
 

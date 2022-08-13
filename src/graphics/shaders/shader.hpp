@@ -7,17 +7,17 @@
 #include "lib/opengl.hpp"
 
 enum class BuiltinShader {
-    BLOCK, DEPTH, GUI
+    BLOCK, DEPTH, COLOR2D
 };
 
 class Shader {
 public:
+    Shader(Shader* other);
     Shader(const std::string& vertex_code, const std::string& fragment_code);
     Shader(BuiltinShader shader);
 
     void use();
 
-    void uniform(const std::string& name, bool value);
     void uniform(const std::string& name, int value);
     void uniform(const std::string& name, GLuint value);
     void uniform(const std::string& name, float value);

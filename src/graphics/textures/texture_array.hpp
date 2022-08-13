@@ -1,18 +1,16 @@
 #pragma once
 
-#define TEXTURE_PIXEL_SIZE 4
+#include "texture.hpp"
 
-#include <map>
-#include <vector>
-#include <utility>
-#include <cstring>
-
-#include "lib/opengl.hpp"
-#include "lib/stb_image.h"
-
-class TextureArray {
+class TextureArray : public Texture {
 public:
-    GLuint texture;
+    TextureArray();
+    TextureArray(TextureArray* other);
+
+    inline void bind(int texture_unit) override {
+        glActiveTexture(GL_TEXTURE0 + texture_unit);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+    }
 
     void add(const std::string& name, const std::string& filename);
 
@@ -23,4 +21,6 @@ public:
 private:
     std::map<std::string, std::string> textures;
     std::map<std::string, int> positions;
+
+    GLuint texture;
 };
