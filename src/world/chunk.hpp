@@ -23,6 +23,14 @@ enum class ChunkNeighbor {
     NZ
 };
 
+struct ChunkPosition {
+    int x, z;
+
+    ChunkPosition() {}
+    ChunkPosition(int x, int z)
+        : x(x), z(z){}
+};
+
 class Chunk {
 public:
     Chunk();
@@ -73,6 +81,8 @@ public:
     std::shared_ptr<Chunk> get_neighbor(ChunkNeighbor neighbor);
     void set_neighbor(ChunkNeighbor neighbor, std::shared_ptr<Chunk> chunk);
 
+    ChunkPosition position();
+
 private:
     int cx, cz;
     int seed;
@@ -84,7 +94,7 @@ private:
 
     static std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> blocks_to_set;
 
-    void generate_biomes(Biome output[16][16]);
+    void generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]);
 };
 
 struct EventChunkRedraw : Event {

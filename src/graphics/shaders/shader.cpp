@@ -72,7 +72,7 @@ void main() {
 
 float shadow() {
     float visibility = 1.0;
-    float bias = 0.0002;
+    float bias = 0.0003;
 
     float shadowValue = texture(shadowMap, ShadowCoord.xy).x * 0.5;
     for (int x = -2; x <= 2; x++) {
@@ -121,8 +121,8 @@ out vec3 Color;
 uniform mat4 ortho;
 
 void main() {
-    gl_Position = ortho * vec4(aPos, 1.0, 1.0);
-    gl_Position = vec4(aPos, 0.0, 1.0);
+    // gl_Position = ortho * vec4(aPos, 1.0, 1.0);
+    gl_Position = vec4(aPos, -0.5, 1.0);
 
     Color = aColor;
 }

@@ -16,9 +16,10 @@ namespace fs = std::filesystem;
 #include "util/ray.hpp"
 #include "event/event.hpp"
 #include "util/string.hpp"
-
-// TESTING
 #include "resources/loader.hpp"
+
+#define MESH_GROUP_GUI 0
+#define MESH_GROUP_WORLD 1
 
 #define CHUNK_MESH_ID(x, z, n_chunks) (((x) + (z) * (n_chunks) + 1) << 8)
 
@@ -54,9 +55,11 @@ int main() {
          0.5f,  0.0f,   1.0f, 0.0f, 0.0f
     }), color_shader, {}));
 
-    w.renderer.add_object(crosshair);
+    w.renderer.add_object(MESH_GROUP_GUI, crosshair);
 
-    const int n_chunks = 16;
+    // w.renderer.group_disable(MESH_GROUP_WORLD);
+
+    const int n_chunks = 8;
     std::shared_ptr<Chunk> chunks[n_chunks][n_chunks];
     std::shared_ptr<Mesh> meshes[n_chunks][n_chunks];
     for (int i = 0; i < n_chunks; i++) {
@@ -81,10 +84,10 @@ int main() {
                 chunks[i][j]->mesh(*texArr),
                 shader,
                 textures,
-                {i * 16 + 0.5, 0, j * 16 + 0.5},
-                {{i * 16 + 0.5, 0, j * 16 + 0.5}, {i * 16 + 16.5, 256, j * 16 + 16.5}}
+                {i * CHUNK_SIZE + 0.5, 0, j * CHUNK_SIZE + 0.5},
+                {{i * CHUNK_SIZE + 0.5, 0, j * CHUNK_SIZE + 0.5}, {i * CHUNK_SIZE + CHUNK_SIZE + 0.5, CHUNK_HEIGHT, j * CHUNK_SIZE + CHUNK_SIZE + 0.5}}
             ));
-            w.renderer.add_object(meshes[i][j]);
+            w.renderer.add_object(MESH_GROUP_WORLD, meshes[i][j]);
         }
     }
 
@@ -108,8 +111,8 @@ int main() {
                         if (pos.x < bounds.x || pos.z < bounds.y || pos.x > bounds.z || pos.z > bounds.w || pos.y < 0 || pos.y > CHUNK_HEIGHT)
                             break;
                         
-                        if (chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->get((int)pos.x % 16, pos.y, (int)pos.z % 16) != Material::AIR) {
-                            chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->set((int)pos.x % 16, pos.y, (int)pos.z % 16, Material::AIR);
+                        if (chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->get((int)pos.x % CHUNK_SIZE, pos.y, (int)pos.z % CHUNK_SIZE) != Material::AIR) {
+                            chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->set((int)pos.x % CHUNK_SIZE, pos.y, (int)pos.z % CHUNK_SIZE, Material::AIR);
                             break;
                         }
                     }
@@ -123,10 +126,10 @@ int main() {
                         if (pos.x < bounds.x || pos.z < bounds.y || pos.x > bounds.z || pos.z > bounds.w || pos.y < 0 || pos.y > CHUNK_HEIGHT)
                             break;
                         
-                        if (chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->get((int)pos.x % 16, pos.y, (int)pos.z % 16) != Material::AIR) {
+                        if (chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->get((int)pos.x % CHUNK_SIZE, pos.y, (int)pos.z % CHUNK_SIZE) != Material::AIR) {
                             ray.step(-0.01);
                             pos = ray.position();
-                            chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->set((int)pos.x % 16, pos.y, (int)pos.z % 16, Material::GLASS);
+                            chunks[(int)pos.x/CHUNK_SIZE][(int)pos.z/CHUNK_SIZE]->set((int)pos.x % CHUNK_SIZE, pos.y, (int)pos.z % CHUNK_SIZE, Material::GLASS);
                             break;
                         }
                     }
@@ -175,10 +178,10 @@ int main() {
                 mesh,
                 shader,
                 textures,
-                {pos.first * 16 + 0.5, 0, pos.second * 16 + 0.5},
-                {{pos.first * 16 + 0.5, 0, pos.second * 16 + 0.5}, {pos.first * 16 + 16.5, 256, pos.second * 16 + 16.5}}
+                {pos.first * CHUNK_SIZE + 0.5, 0, pos.second * CHUNK_SIZE + 0.5},
+                {{pos.first * CHUNK_SIZE + 0.5, 0, pos.second * CHUNK_SIZE + 0.5}, {pos.first * CHUNK_SIZE + CHUNK_SIZE + 0.5, CHUNK_HEIGHT, pos.second * CHUNK_SIZE + CHUNK_SIZE + 0.5}}
             ));
-            w.renderer.add_object(meshes[pos.first][pos.second]);
+            w.renderer.add_object(MESH_GROUP_WORLD, meshes[pos.first][pos.second]);
         }
         generated_chunk_meshes.clear();
 

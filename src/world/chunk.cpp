@@ -137,7 +137,7 @@ Chunk::~Chunk() {
 
 Block Chunk::get(int x, int y, int z) {
     if (x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1) {
-        if (x > -16 && z > -16 && x < CHUNK_SIZE + 15 && z < CHUNK_SIZE + 15) {
+        if (x > -CHUNK_SIZE && z > -CHUNK_SIZE && x < CHUNK_SIZE * 2 - 1 && z < CHUNK_SIZE * 2 - 1) {
             if (x < 0 && has_neighbor(ChunkNeighbor::NX))
                 return get_neighbor(ChunkNeighbor::NX)->get(x + CHUNK_SIZE, y, z);
             
@@ -205,7 +205,7 @@ void Chunk::fill(const BlockPosition& pos1, const BlockPosition& pos2, const Blo
 void Chunk::generate() {
     #define DEFAULT_BIOME {Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS}
     #define DEFAULT_BIOME_ROW DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME
-    Biome biomes[16][16] = {
+    Biome biomes[CHUNK_SIZE][CHUNK_SIZE] = {
         DEFAULT_BIOME_ROW, DEFAULT_BIOME_ROW
     };
 
@@ -264,7 +264,6 @@ void Chunk::update() {
 
 MeshData Chunk::mesh(const TextureArray& tex) {
     std::vector<float> vertices;
-    vertices.reserve(100);
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
@@ -372,10 +371,14 @@ void Chunk::set_neighbor(ChunkNeighbor neighbor, std::shared_ptr<Chunk> chunk) {
     neighbors[(int)neighbor] = chunk;
 }
 
-void Chunk::generate_biomes(Biome output[16][16]) {
+void Chunk::generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]) {
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
             output[x][z] = Biome::_from_integral((glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 512.0f, (cz * CHUNK_SIZE + z) / 512.0f, seed)) + 1.0f) / 2.0f * (Biome::_size()));
         }
     }
+}
+
+ChunkPosition Chunk::position() {
+    return {cx, cz};
 }

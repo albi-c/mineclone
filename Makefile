@@ -1,8 +1,18 @@
 EXEC     = mineclone
 EXECOPTS = 
 
-OPTIM_FLAG =
-DEBUG_FLAG = -g
+DEBUG = true
+
+ifeq ($(DEBUG), true)
+	OPTIM_FLAG =
+	DEBUG_FLAG = -g
+	OBJDIR = build/debug
+endif
+ifneq ($(DEBUG), true)
+	OPTIM_FLAG = -O3
+	DEBUG_FLAG =
+	OBJDIR = build/release
+endif
 
 CXX       = clang
 CXXSTD    = c++20
@@ -15,8 +25,6 @@ CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src
 CCFLAGS := $(CCOPT) -std=$(CCSTD)
 
 LFLAGS = $(CXXOPT)
-
-OBJDIR = build
 
 SOURCES  := $(shell find src/ -type f -name '*.cpp')
 OBJECTS  := $(patsubst src/%.cpp, $(OBJDIR)/src/%.o, $(SOURCES))
@@ -51,4 +59,5 @@ cdebug:
 	@$(MAKE) debug
 
 clean:
+	echo $(DD)
 	rm -f $(EXEC) $(OBJECTS) $(COBJECTS)

@@ -56,23 +56,28 @@ void Renderer::render() {
 
     std::lock_guard<std::mutex> lock(mutex);
 
-    std::vector<unsigned int> removed_objects;
-    for (auto& [id, object] : objects) {
-        if (auto obj = object.lock()) {
-            if (obj->in_frustum(frustum)) {
-                obj->render({
-                    glm::translate(transform, obj->translation()),
-                    glm::translate(glm::mat4(), obj->translation()),
-                    bias_matrix * glm::translate(shadow_transform, obj->translation()),
-                    15
-                });
+    for (auto& [_, group] : groups) {
+        if (!group.enabled)
+            continue;
+        
+        std::vector<unsigned int> removed_objects;
+        for (auto& [id, object] : group.objects) {
+            if (auto obj = object.lock()) {
+                if (obj->in_frustum(frustum)) {
+                    obj->render({
+                        glm::translate(transform, obj->translation()),
+                        glm::translate(glm::mat4(), obj->translation()),
+                        bias_matrix * glm::translate(shadow_transform, obj->translation()),
+                        15
+                    });
+                }
+            } else {
+                removed_objects.push_back(id);
             }
-        } else {
-            removed_objects.push_back(id);
         }
-    }
-    for (auto& id : removed_objects) {
-        objects.erase(id);
+        for (auto& id : removed_objects) {
+            group.objects.erase(id);
+        }
     }
 }
 glm::mat4 Renderer::render_shadows() {
@@ -88,21 +93,26 @@ glm::mat4 Renderer::render_shadows() {
     
     glm::mat4 transform = projection * view;
 
-    std::vector<unsigned int> removed_objects;
-    for (auto& [id, object] : objects) {
-        if (auto obj = object.lock()) {
-            obj->render_shadows({
-                glm::translate(transform, obj->translation()),
-                glm::translate(glm::mat4(), obj->translation()),
-                glm::mat4(),
-                0
-            });
-        } else {
-            removed_objects.push_back(id);
+    for (auto& [_, group] : groups) {
+        if (!group.enabled)
+            continue;
+        
+        std::vector<unsigned int> removed_objects;
+        for (auto& [id, object] : group.objects) {
+            if (auto obj = object.lock()) {
+                obj->render_shadows({
+                    glm::translate(transform, obj->translation()),
+                    glm::translate(glm::mat4(), obj->translation()),
+                    glm::mat4(),
+                    0
+                });
+            } else {
+                removed_objects.push_back(id);
+            }
         }
-    }
-    for (auto& id : removed_objects) {
-        objects.erase(id);
+        for (auto& id : removed_objects) {
+            group.objects.erase(id);
+        }
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -123,23 +133,34 @@ void Renderer::set_sky_color(const glm::vec3& color) {
     glClearColor(sky_color.r, sky_color.g, sky_color.b, 1.0f);
 }
 
-unsigned int Renderer::add_object(std::shared_ptr<Renderable> obj) {
+unsigned int Renderer::add_object(unsigned int group, std::shared_ptr<Renderable> obj) {
     std::lock_guard<std::mutex> lock(mutex);
 
-    obj->renderer_id_set(n_objects);
-    objects[n_objects] = obj;
-    return n_objects++;
+    RendererGroup& g = groups[group];
+    obj->renderer_id_set(g.id_counter);
+    g.objects[g.id_counter] = obj;
+    return g.id_counter++;
 }
-void Renderer::remove_object(std::shared_ptr<Renderable> obj) {
-    remove_object(obj->renderer_id_get());
+void Renderer::remove_object(unsigned int group, std::shared_ptr<Renderable> obj) {
+    remove_object(group, obj->renderer_id_get());
 }
-void Renderer::remove_object(unsigned int id) {
+void Renderer::remove_object(unsigned int group, unsigned int id) {
     std::lock_guard<std::mutex> lock(mutex);
 
-    objects.erase(id);
+    groups[group].objects.erase(id);
 }
-std::shared_ptr<Renderable> Renderer::get_object(unsigned int id) {
+std::shared_ptr<Renderable> Renderer::get_object(unsigned int group, unsigned int id) {
     std::lock_guard<std::mutex> lock(mutex);
     
-    return objects[id].lock();
+    return groups[group].objects[id].lock();
+}
+
+void Renderer::group_enable(unsigned int group, bool enabled) {
+    groups[group].enabled = enabled;
+}
+void Renderer::group_disable(unsigned int group) {
+    group_enable(group, false);
+}
+bool Renderer::group_enabled(unsigned int group) {
+    return groups[group].enabled;
 }
