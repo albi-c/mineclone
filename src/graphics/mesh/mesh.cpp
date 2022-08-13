@@ -11,14 +11,16 @@ Mesh::Mesh(Mesh* other)
     }
     vertices = other->vertices;
     translation_ = other->translation_;
+    aabb = other->aabb;
 }
 Mesh::Mesh(
         const MeshData& data,
         std::shared_ptr<Shader> shader,
         const std::map<std::string, std::shared_ptr<Texture>>& textures,
-        const glm::vec3& translation
+        const glm::vec3& translation,
+        const frustum::AABB& aabb
     )
-    : shader(shader), textures(textures), shader_shadow(BuiltinShader::DEPTH), translation_(translation) {
+    : shader(shader), textures(textures), shader_shadow(BuiltinShader::DEPTH), translation_(translation), aabb(aabb) {
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -63,6 +65,10 @@ void Mesh::render_shadows(const RenderData& data) {
 
 glm::vec3 Mesh::translation() const {
     return translation_;
+}
+
+bool Mesh::in_frustum(const frustum::Frustum& frustum) const {
+    return aabb.in_frustum(frustum);
 }
 
 void Mesh::rebuild(const MeshData& data) {

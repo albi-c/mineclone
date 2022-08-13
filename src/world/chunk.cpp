@@ -2,28 +2,6 @@
 
 // xyz to block index
 #define BP(x, y, z) ((x) | ((z) << 4) | ((y) << 8))
-#define A_BP(xyz) (BP(xyz[0], yyz[1], xyz[2]))
-// offset block index by xyz
-#define BPO(pos, x, y, z) ((pos) + BP(x, y, z))
-#define A_BPO(pos, xyz) ((pos) + A_BP(xyz))
-// block index to x
-#define BPX(pos) ((pos) & 0xf)
-// block index to y
-#define BPY(pos) ((pos) >> 4 & 0xf)
-// block index to z
-#define BPZ(pos) ((pos) >> 8 & 0x7f)
-// block index to xyz
-static constexpr void BPP(int pos, int& x, int& y, int& z) {
-    x = pos & 0xf;
-    y = (pos >> 4) & 0xf;
-    z = (pos >> 8) & 0x7f;
-}
-// is block index at the edge
-static constexpr bool BPE(int pos) {
-    int x, y, z;
-    BPP(pos, x, y, z);
-    return x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1;
-}
 
 const static int block_neighbors[6][3] = {
     {0, 0, -1},

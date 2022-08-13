@@ -6,7 +6,7 @@
 
 #include "lib/opengl.hpp"
 #include "renderable.hpp"
-#include "camera.hpp"
+#include "camera/camera.hpp"
 
 class Renderer {
 public:
@@ -31,7 +31,7 @@ private:
     Camera* camera;
 
     std::map<unsigned int, std::weak_ptr<Renderable>> objects;
-    unsigned int n_objects;
+    unsigned int n_objects = 0;
     std::mutex mutex;
 
     GLuint shadow_map_fbo, shadow_map;

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "lib/opengl.hpp"
+#include "camera/frustum.hpp"
 #include "graphics/shaders/uniform.hpp"
 
 struct RenderData {
@@ -25,6 +26,10 @@ public:
 
     inline virtual glm::vec3 translation() const {
         return glm::vec3(0.0f);
+    }
+
+    inline virtual bool in_frustum(const frustum::Frustum& frustum) const {
+        return true;
     }
 
     inline void renderer_id_set(unsigned int id) { renderer_id = id; }

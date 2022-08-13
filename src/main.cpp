@@ -77,7 +77,13 @@ int main() {
             
             chunks[i][j]->update();
 
-            meshes[i][j] = std::make_shared<Mesh>(new Mesh(chunks[i][j]->mesh(*texArr), shader, textures, {i * 16 + 0.5, 0, j * 16 + 0.5}));
+            meshes[i][j] = std::make_shared<Mesh>(new Mesh(
+                chunks[i][j]->mesh(*texArr),
+                shader,
+                textures,
+                {i * 16 + 0.5, 0, j * 16 + 0.5},
+                {{i * 16 + 0.5, 0, j * 16 + 0.5}, {i * 16 + 16.5, 256, j * 16 + 16.5}}
+            ));
             w.renderer.add_object(meshes[i][j]);
         }
     }
@@ -158,7 +164,6 @@ int main() {
     w.grab_mouse(true);
     while (w.update()) {
         w.render();
-        // w.renderer.render2d(crosshair);
         if (w.get_key(GLFW_KEY_ESCAPE)) {
             w.close();
         }
@@ -166,7 +171,13 @@ int main() {
         generated_chunk_meshes_mutex.lock();
 
         for (auto& [pos, mesh] : generated_chunk_meshes) {
-            meshes[pos.first][pos.second] = std::make_shared<Mesh>(new Mesh(mesh, shader, textures, {pos.first * 16 + 0.5, 0, pos.second * 16 + 0.5}));
+            meshes[pos.first][pos.second] = std::make_shared<Mesh>(new Mesh(
+                mesh,
+                shader,
+                textures,
+                {pos.first * 16 + 0.5, 0, pos.second * 16 + 0.5},
+                {{pos.first * 16 + 0.5, 0, pos.second * 16 + 0.5}, {pos.first * 16 + 16.5, 256, pos.second * 16 + 16.5}}
+            ));
             w.renderer.add_object(meshes[pos.first][pos.second]);
         }
         generated_chunk_meshes.clear();

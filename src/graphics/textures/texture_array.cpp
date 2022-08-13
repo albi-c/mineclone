@@ -41,7 +41,7 @@ void TextureArray::generate() {
             tsize = width;
         }
         
-        if (tsize != tsize) {
+        if (tsize != width) {
             raiseError("Textures in array must be the same size");
         }
 

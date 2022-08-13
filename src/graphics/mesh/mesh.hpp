@@ -9,6 +9,7 @@
 #include "graphics/textures/texture.hpp"
 #include "graphics/textures/texture_array.hpp"
 #include "graphics/render/renderable.hpp"
+#include "camera/frustum.hpp"
 
 struct MeshData {
     std::vector<int> part_sizes;
@@ -29,13 +30,16 @@ public:
         const MeshData& data,
         std::shared_ptr<Shader> shader,
         const std::map<std::string, std::shared_ptr<Texture>>& textures,
-        const glm::vec3& translation = glm::vec3(0.0f)
+        const glm::vec3& translation = glm::vec3(0.0f),
+        const frustum::AABB& aabb = frustum::AABB()
     );
 
     void render(const RenderData& data) override;
     void render_shadows(const RenderData& data) override;
 
     glm::vec3 translation() const override;
+
+    bool in_frustum(const frustum::Frustum& frustum) const override;
 
     void rebuild(const MeshData& data);
 
@@ -44,4 +48,5 @@ private:
     std::map<std::string, std::shared_ptr<Texture>> textures;
     int vertices;
     glm::vec3 translation_;
+    frustum::AABB aabb;
 };

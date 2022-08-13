@@ -10,10 +10,26 @@ glm::mat4 Camera::view_matrix() {
     return glm::lookAt(pos, pos + front, up);
 }
 glm::mat4 Camera::proj_matrix() {
-    return glm::perspective(fov, (float)width / (float)height, 0.1f, 1000.0f);
+    return glm::perspective(fov, (float)width / (float)height, near_plane, far_plane);
 }
 glm::mat4 Camera::ortho_matrix() {
     return glm::ortho(0.0f, (float)width, 0.0f, (float)height, -10.0f, 10.0f);
+}
+
+frustum::Frustum Camera::frustum() {
+    frustum::Frustum frustum;
+    const float halfVSide = far_plane * tanf(fov * .5f);
+    const float halfHSide = halfVSide * ((float)width / (float)height);
+    const glm::vec3 frontMultFar = far_plane * front;
+
+    frustum.near = {pos + near_plane * front, front};
+    frustum.far = {pos + frontMultFar, -front};
+    frustum.right = {pos, glm::cross(up, frontMultFar + right * halfHSide)};
+    frustum.left = {pos, glm::cross(frontMultFar - right * halfHSide, up)};
+    frustum.top = {pos, glm::cross(right, frontMultFar - up * halfVSide)};
+    frustum.bottom = {pos, glm::cross(frontMultFar + up * halfVSide, right)};
+
+    return frustum;
 }
 
 void Camera::move(char directions, float dt) {

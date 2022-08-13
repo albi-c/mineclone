@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lib/opengl.hpp"
+#include "frustum.hpp"
 
 enum class CameraMoveDirection {
     FORWARD = 0x1,
@@ -19,11 +20,16 @@ public:
 
     glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
 
+    float near_plane = 0.1f;
+    float far_plane = 1000.0f;
+
     Camera(float fov);
 
     glm::mat4 view_matrix();
     glm::mat4 proj_matrix();
     glm::mat4 ortho_matrix();
+
+    frustum::Frustum frustum();
 
     void move(char directions, float dt);
     void rotate(float x, float y);
