@@ -1,6 +1,6 @@
 #include "renderer.hpp"
 
-#define SHADOW_SIZE 0
+#define SHADOW_SIZE 4096
 
 void Renderer::init(Camera* camera, int width, int height) {
     this->camera = camera;
@@ -33,21 +33,6 @@ void Renderer::init(Camera* camera, int width, int height) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Renderer::render2d(Renderable& obj) {
-    glm::mat4 projection = camera->ortho_matrix();
-
-    obj.render({{"transform", camera->ortho_matrix()}});
-}
-
-void Renderer::render3d(Renderable& mesh, const glm::vec3& translate) {
-    glm::mat4 view = camera->view_matrix();
-    glm::mat4 projection = camera->proj_matrix();
-    
-    glm::mat4 transform = glm::translate(projection * view, translate);
-
-    mesh.render({{"transform", transform}});
-}
-
 void Renderer::render() {
     glm::mat4 shadow_transform = render_shadows();
     glm::mat4 bias_matrix(
@@ -59,25 +44,31 @@ void Renderer::render() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glActiveTexture(GL_TEXTURE15);
+    glBindTexture(GL_TEXTURE_2D, shadow_map_fbo);
+
     glm::mat4 view = camera->view_matrix();
     glm::mat4 projection = camera->proj_matrix();
     
     glm::mat4 transform = projection * view;
 
-    glActiveTexture(GL_TEXTURE15);
-    glBindTexture(GL_TEXTURE_2D, shadow_map_fbo);
+    std::lock_guard<std::mutex> lock(mutex);
 
-    for (auto& [id, mt] : meshes) {
-        Renderable* mesh = mt.first;
-        glm::mat4 transform_ = glm::translate(transform, mt.second);
-        glm::mat4 shadow_transform_ = glm::translate(shadow_transform, mt.second);
-        glm::mat4 model = glm::translate(glm::mat4(), mt.second);
-        mesh->render({
-            {"transform", transform_},
-            {"shadow_transform", bias_matrix * shadow_transform_},
-            {"model", model},
-            {"shadowMap", 15}
-        });
+    std::vector<unsigned int> removed_objects;
+    for (auto& [id, object] : objects) {
+        if (auto obj = object.lock()) {
+            obj->render({
+                glm::translate(transform, obj->translation()),
+                glm::translate(glm::mat4(), obj->translation()),
+                bias_matrix * glm::translate(shadow_transform, obj->translation()),
+                15
+            });
+        } else {
+            removed_objects.push_back(id);
+        }
+    }
+    for (auto& id : removed_objects) {
+        objects.erase(id);
     }
 }
 glm::mat4 Renderer::render_shadows() {
@@ -93,15 +84,21 @@ glm::mat4 Renderer::render_shadows() {
     
     glm::mat4 transform = projection * view;
 
-    for (auto& [id, mt] : meshes) {
-        Renderable* mesh = mt.first;
-        glm::mat4 transform_ = glm::translate(transform, mt.second);
-        glm::mat4 model = glm::translate(glm::mat4(), mt.second);
-        mesh->render_shadows({
-            {"transform", transform_},
-            {"model", model},
-            {"shadowMap", 5}
-        });
+    std::vector<unsigned int> removed_objects;
+    for (auto& [id, object] : objects) {
+        if (auto obj = object.lock()) {
+            obj->render_shadows({
+                glm::translate(transform, obj->translation()),
+                glm::translate(glm::mat4(), obj->translation()),
+                glm::mat4(),
+                0
+            });
+        } else {
+            removed_objects.push_back(id);
+        }
+    }
+    for (auto& id : removed_objects) {
+        objects.erase(id);
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -122,15 +119,23 @@ void Renderer::set_sky_color(const glm::vec3& color) {
     glClearColor(sky_color.r, sky_color.g, sky_color.b, 1.0f);
 }
 
-void Renderer::add_mesh(int id, Renderable* mesh, const glm::vec3& translate) {
-    meshes[id] = {mesh, translate};
+unsigned int Renderer::add_object(std::shared_ptr<Renderable> obj) {
+    std::lock_guard<std::mutex> lock(mutex);
+
+    obj->renderer_id_set(n_objects);
+    objects[n_objects] = obj;
+    return n_objects++;
 }
-void Renderer::remove_mesh(int id) {
-    meshes.erase(id);
+void Renderer::remove_object(std::shared_ptr<Renderable> obj) {
+    remove_object(obj->renderer_id_get());
 }
-Renderable* Renderer::get_mesh(int id) {
-    return meshes[id].first;
+void Renderer::remove_object(unsigned int id) {
+    std::lock_guard<std::mutex> lock(mutex);
+
+    objects.erase(id);
 }
-std::map<int, std::pair<Renderable*, glm::vec3>>& Renderer::get_meshes() {
-    return meshes;
+std::shared_ptr<Renderable> Renderer::get_object(unsigned int id) {
+    std::lock_guard<std::mutex> lock(mutex);
+    
+    return objects[id].lock();
 }

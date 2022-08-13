@@ -1,11 +1,24 @@
 #include "mesh.hpp"
 
+Mesh::Mesh(Mesh* other)
+    : shader_shadow(BuiltinShader::DEPTH) {
+    
+    shader = other->shader;
+    VAO = other->VAO;
+    VBO = other->VBO;
+    for (auto& [name, tex] : other->textures) {
+        textures[name] = tex;
+    }
+    vertices = other->vertices;
+    translation_ = other->translation_;
+}
 Mesh::Mesh(
         const MeshData& data,
         std::shared_ptr<Shader> shader,
-        const std::map<std::string, std::shared_ptr<Texture>>& textures
+        const std::map<std::string, std::shared_ptr<Texture>>& textures,
+        const glm::vec3& translation
     )
-    : shader(shader), textures(textures), shader_shadow(BuiltinShader::DEPTH) {
+    : shader(shader), textures(textures), shader_shadow(BuiltinShader::DEPTH), translation_(translation) {
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -13,7 +26,7 @@ Mesh::Mesh(
     rebuild(data);
 }
 
-void Mesh::render(const std::map<std::string, Uniform>& uniforms) {
+void Mesh::render(const RenderData& data) {
     int i = 0;
     for (auto& [name, texture] : textures) {
         texture->bind(i);
@@ -21,26 +34,26 @@ void Mesh::render(const std::map<std::string, Uniform>& uniforms) {
         i++;
     }
 
-    for (auto& [name, uniform] : uniforms) {
-        uniform.set(*shader, name);
-    }
+    shader->uniform("transform", data.transform);
+    shader->uniform("model", data.model);
+    shader->uniform("shadow_transform", data.shadow_transform);
+    shader->uniform("shadowMap", data.shadow_map);
 
     shader->use();
     glBindVertexArray(VAO);
 
     glDrawArrays(GL_TRIANGLES, 0, vertices);
 }
-void Mesh::render_shadows(const std::map<std::string, Uniform>& uniforms) {
+void Mesh::render_shadows(const RenderData& data) {
     int i = 0;
     for (auto& [name, texture] : textures) {
         texture->bind(i);
-        shader->uniform(name, i);
+        shader_shadow.uniform(name, i);
         i++;
     }
 
-    for (auto& [name, uniform] : uniforms) {
-        uniform.set(*shader, name);
-    }
+    shader_shadow.uniform("transform", data.transform);
+    shader_shadow.uniform("model", data.model);
 
     shader_shadow.use();
     glBindVertexArray(VAO);
@@ -48,7 +61,8 @@ void Mesh::render_shadows(const std::map<std::string, Uniform>& uniforms) {
     glDrawArrays(GL_TRIANGLES, 0, vertices);
 }
 
-std::vector<std::string> Mesh::required_textures() const {
+glm::vec3 Mesh::translation() const {
+    return translation_;
 }
 
 void Mesh::rebuild(const MeshData& data) {

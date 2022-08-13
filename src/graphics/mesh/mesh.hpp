@@ -24,16 +24,18 @@ public:
     std::shared_ptr<Shader> shader;
     Shader shader_shadow;
 
+    Mesh(Mesh* other);
     Mesh(
         const MeshData& data,
         std::shared_ptr<Shader> shader,
-        const std::map<std::string, std::shared_ptr<Texture>>& textures
+        const std::map<std::string, std::shared_ptr<Texture>>& textures,
+        const glm::vec3& translation = glm::vec3(0.0f)
     );
 
-    void render(const std::map<std::string, Uniform>& uniforms) override;
-    void render_shadows(const std::map<std::string, Uniform>& uniforms) override;
+    void render(const RenderData& data) override;
+    void render_shadows(const RenderData& data) override;
 
-    std::vector<std::string> required_textures() const override;
+    glm::vec3 translation() const override;
 
     void rebuild(const MeshData& data);
 
@@ -41,4 +43,5 @@ private:
     GLuint VAO, VBO;
     std::map<std::string, std::shared_ptr<Texture>> textures;
     int vertices;
+    glm::vec3 translation_;
 };

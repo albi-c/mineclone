@@ -67,7 +67,7 @@ void TextureArray::generate() {
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, width, height, n_textures, 0, GL_RGBA, GL_UNSIGNED_BYTE, idata);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_SRGB8_ALPHA8, width, height, n_textures, 0, GL_RGBA, GL_UNSIGNED_BYTE, idata);
 
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }

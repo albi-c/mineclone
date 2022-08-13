@@ -38,6 +38,7 @@ int main() {
     shader->uniform("light.ambient", glm::vec3(0.3f));
     shader->uniform("light.diffuse", glm::vec3(0.7f));
     shader->uniform("light.diffuse_pos", glm::vec3(2.0f, 120.0f, 2.0f));
+    shader->uniform("light.sun", glm::vec3(1.5f, 1.5f, 1.1f));
 
     auto texArr = ResourceLoader::texture_array("minecraft", true);
     texArr->generate();
@@ -47,40 +48,20 @@ int main() {
 
     auto color_shader = std::make_shared<Shader>(new Shader(BuiltinShader::COLOR2D));
 
-    Mesh crosshair(MeshData({2, 3}, {
+    auto crosshair = std::make_shared<Mesh>(new Mesh(MeshData({2, 3}, {
         -0.5f,  0.0f,   1.0f, 0.0f, 0.0f,
         -0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
          0.5f,  0.0f,   1.0f, 0.0f, 0.0f
-    }), color_shader, {});
+    }), color_shader, {}));
 
-    w.renderer.add_mesh(0, &crosshair);
-
-    // auto crosshair_tex = ResourceLoader::texture("crosshair");
-    // std::map<std::string, std::shared_ptr<Texture>> crosshair_textures;
-    // crosshair_textures["texture1"] = crosshair_tex;
-    // Mesh crosshair(MeshData({2, 2}, {
-    //     952.0f, 481.5f,  0.0f, 0.0f,
-    //     952.0f, 497.5f,  0.0f, 1.0f,
-    //     968.0f, 497.5f,  1.0f, 1.0f,
-    //     952.0f, 481.5f,  0.0f, 0.0f,
-    //     968.0f, 497.5f,  1.0f, 1.0f,
-    //     968.0f, 481.5f,  1.0f, 0.0f
-    // }), gui_shader, crosshair_textures);
-    // // Mesh crosshair(MeshData({2, 2}, {
-    // //     -0.5f, -0.5f,  0.0f, 0.0f,
-    // //     -0.5f,  0.5f,  0.0f, 1.0f,
-    // //      0.5f,  0.5f,  1.0f, 1.0f,
-    // //     -0.5f, -0.5f,  0.0f, 0.0f,
-    // //      0.5f,  0.5f,  1.0f, 1.0f,
-    // //      0.5f, -0.5f,  1.0f, 0.0f
-    // // }), &gui_shader, crosshair_textures, {});
+    w.renderer.add_object(crosshair);
 
     const int n_chunks = 16;
-    Chunk* chunks[n_chunks][n_chunks];
-    Mesh* meshes[n_chunks][n_chunks];
+    std::shared_ptr<Chunk> chunks[n_chunks][n_chunks];
+    std::shared_ptr<Mesh> meshes[n_chunks][n_chunks];
     for (int i = 0; i < n_chunks; i++) {
         for (int j = 0; j < n_chunks; j++) {
-            chunks[i][j] = new Chunk(seed, i, j);
+            chunks[i][j] = std::make_shared<Chunk>(new Chunk(seed, i, j));
         }
     }
     for (int i = 0; i < n_chunks; i++) {
@@ -96,8 +77,8 @@ int main() {
             
             chunks[i][j]->update();
 
-            meshes[i][j] = new Mesh(chunks[i][j]->mesh(*texArr), shader, textures);
-            w.renderer.add_mesh(CHUNK_MESH_ID(i, j, n_chunks), meshes[i][j], {i * 16 + 0.5, 0, j * 16 + 0.5});
+            meshes[i][j] = std::make_shared<Mesh>(new Mesh(chunks[i][j]->mesh(*texArr), shader, textures, {i * 16 + 0.5, 0, j * 16 + 0.5}));
+            w.renderer.add_object(meshes[i][j]);
         }
     }
 
@@ -185,9 +166,8 @@ int main() {
         generated_chunk_meshes_mutex.lock();
 
         for (auto& [pos, mesh] : generated_chunk_meshes) {
-            delete meshes[pos.first][pos.second];
-            meshes[pos.first][pos.second] = new Mesh(mesh, shader, textures);
-            w.renderer.add_mesh(CHUNK_MESH_ID(pos.first, pos.second, n_chunks), meshes[pos.first][pos.second], {pos.first * 16 + 0.5, 0, pos.second * 16 + 0.5});
+            meshes[pos.first][pos.second] = std::make_shared<Mesh>(new Mesh(mesh, shader, textures, {pos.first * 16 + 0.5, 0, pos.second * 16 + 0.5}));
+            w.renderer.add_object(meshes[pos.first][pos.second]);
         }
         generated_chunk_meshes.clear();
 

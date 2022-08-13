@@ -12,8 +12,6 @@ class Renderer {
 public:
     void init(Camera* camera, int width, int height);
 
-    void render2d(Renderable& mesh);
-    void render3d(Renderable& mesh, const glm::vec3& translate = glm::vec3());
     void render();
     glm::mat4 render_shadows();
 
@@ -21,10 +19,10 @@ public:
 
     void set_sky_color(const glm::vec3& color);
 
-    void add_mesh(int id, Renderable* mesh, const glm::vec3& translate = glm::vec3());
-    void remove_mesh(int id);
-    Renderable* get_mesh(int id);
-    std::map<int, std::pair<Renderable*, glm::vec3>>& get_meshes();
+    unsigned int add_object(std::shared_ptr<Renderable> obj);
+    void remove_object(const std::shared_ptr<Renderable> obj);
+    void remove_object(unsigned int id);
+    std::shared_ptr<Renderable> get_object(unsigned int id);
 
 private:
     int width, height;
@@ -32,7 +30,9 @@ private:
 
     Camera* camera;
 
-    std::map<int, std::pair<Renderable*, glm::vec3>> meshes;
+    std::map<unsigned int, std::weak_ptr<Renderable>> objects;
+    unsigned int n_objects;
+    std::mutex mutex;
 
     GLuint shadow_map_fbo, shadow_map;
 };

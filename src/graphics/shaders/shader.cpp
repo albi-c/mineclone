@@ -39,8 +39,11 @@ uniform sampler2D shadowMap;
 
 struct light_t {
     vec3 ambient;
+
     vec3 diffuse;
     vec3 diffuse_pos;
+
+    vec3 sun;
 };
 uniform light_t light;
 
@@ -58,9 +61,13 @@ void main() {
 
     vec3 ambient = light.ambient;
     
-    vec3 light = (diffuse + ambient) * shadow();
+    vec3 light = (diffuse + ambient) * shadow() * light.sun;
 
-    FragColor = color * vec4(light, 1.0);
+    color *= vec4(light, 1.0);
+
+    color /= vec4(color.rgb + 1.0, 1.0);
+    
+    FragColor = vec4(pow(color.rgb, vec3(1.0 / 2.2)), 1.0);
 }
 
 float shadow() {
@@ -74,7 +81,7 @@ float shadow() {
         }
     }
     if (shadowValue < ShadowCoord.z - bias)
-        visibility *= 0.5;
+        visibility *= 0.1;
     
     return visibility;
 }

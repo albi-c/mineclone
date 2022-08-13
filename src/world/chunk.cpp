@@ -137,7 +137,15 @@ std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> Chun
 
 Chunk::Chunk()
     : blocks(NULL) {}
-
+Chunk::Chunk(Chunk* other) {
+    cx = other->cx;
+    cz = other->cz;
+    seed = other->seed;
+    blocks = other->blocks;
+    for (int i = 0; i < 4; i++) {
+        neighbors[i] = other->neighbors[i];
+    }
+}
 Chunk::Chunk(int seed, int cx, int cz)
     : seed(seed), cx(cx), cz(cz), blocks(new Block[CHUNK_LENGTH]()) {
     
@@ -152,14 +160,17 @@ Chunk::~Chunk() {
 Block Chunk::get(int x, int y, int z) {
     if (x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1) {
         if (x > -16 && z > -16 && x < CHUNK_SIZE + 15 && z < CHUNK_SIZE + 15) {
-            if (x < 0 && neighbors[(int)ChunkNeighbor::NX] != nullptr)
-                return neighbors[(int)ChunkNeighbor::NX]->get(x + CHUNK_SIZE, y, z);
-            if (x > CHUNK_SIZE - 1 && neighbors[(int)ChunkNeighbor::PX] != nullptr)
-                return neighbors[(int)ChunkNeighbor::PX]->get(x - CHUNK_SIZE, y, z);
-            if (z < 0 && neighbors[(int)ChunkNeighbor::NZ] != nullptr)
-                return neighbors[(int)ChunkNeighbor::NZ]->get(x, y, z + CHUNK_SIZE);
-            if (z > CHUNK_SIZE - 1 && neighbors[(int)ChunkNeighbor::PZ] != nullptr)
-                return neighbors[(int)ChunkNeighbor::PZ]->get(x, y, z - CHUNK_SIZE);
+            if (x < 0 && has_neighbor(ChunkNeighbor::NX))
+                return get_neighbor(ChunkNeighbor::NX)->get(x + CHUNK_SIZE, y, z);
+            
+            if (x > CHUNK_SIZE - 1 && has_neighbor(ChunkNeighbor::PX))
+                return get_neighbor(ChunkNeighbor::PX)->get(x - CHUNK_SIZE, y, z);
+            
+            if (z < 0 && has_neighbor(ChunkNeighbor::NZ))
+                return get_neighbor(ChunkNeighbor::NZ)->get(x, y, z + CHUNK_SIZE);
+            
+            if (z > CHUNK_SIZE - 1 && has_neighbor(ChunkNeighbor::PZ))
+                return get_neighbor(ChunkNeighbor::PZ)->get(x, y, z - CHUNK_SIZE);
         }
         return Block();
     }
@@ -371,6 +382,16 @@ MeshData Chunk::mesh(const TextureArray& tex) {
     }
 
     return MeshData({3, 3, 3}, vertices);
+}
+
+bool Chunk::has_neighbor(ChunkNeighbor neighbor) {
+    return neighbors[(int)neighbor].lock() != nullptr;
+}
+std::shared_ptr<Chunk> Chunk::get_neighbor(ChunkNeighbor neighbor) {
+    return neighbors[(int)neighbor].lock();
+}
+void Chunk::set_neighbor(ChunkNeighbor neighbor, std::shared_ptr<Chunk> chunk) {
+    neighbors[(int)neighbor] = chunk;
 }
 
 void Chunk::generate_biomes(Biome output[16][16]) {

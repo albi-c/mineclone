@@ -7,6 +7,7 @@
 #include <utility>
 #include <array>
 #include <map>
+#include <memory>
 
 #include "world/block.hpp"
 #include "world/biome.hpp"
@@ -25,6 +26,7 @@ enum class ChunkNeighbor {
 class Chunk {
 public:
     Chunk();
+    Chunk(Chunk* other);
     Chunk(int seed, int cx, int cz);
     ~Chunk();
 
@@ -67,12 +69,9 @@ public:
 
     MeshData mesh(const TextureArray& tex);
 
-    inline Chunk* get_neighbor(ChunkNeighbor neighbor) {
-        return neighbors[(int)neighbor];
-    }
-    inline void set_neighbor(ChunkNeighbor neighbor, Chunk* chunk) {
-        neighbors[(int)neighbor] = chunk;
-    }
+    bool has_neighbor(ChunkNeighbor neighbor);
+    std::shared_ptr<Chunk> get_neighbor(ChunkNeighbor neighbor);
+    void set_neighbor(ChunkNeighbor neighbor, std::shared_ptr<Chunk> chunk);
 
 private:
     int cx, cz;
@@ -81,7 +80,7 @@ private:
     // XZY order
     Block* blocks;
 
-    Chunk* neighbors[4] = {nullptr, nullptr, nullptr, nullptr};
+    std::weak_ptr<Chunk> neighbors[4];
 
     static std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> blocks_to_set;
 
