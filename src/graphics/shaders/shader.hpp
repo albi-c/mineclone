@@ -7,7 +7,7 @@
 #include "lib/opengl.hpp"
 
 enum class BuiltinShader {
-    BLOCK, DEPTH, COLOR2D
+    BLOCK, DEPTH, GUI
 };
 
 class Shader {

@@ -47,17 +47,18 @@ int main() {
     std::map<std::string, std::shared_ptr<Texture>> textures;
     textures["textureArray"] = texArr;
 
-    auto color_shader = std::make_shared<Shader>(new Shader(BuiltinShader::COLOR2D));
+    auto color_shader = std::make_shared<Shader>(new Shader(BuiltinShader::GUI));
 
     auto crosshair = std::make_shared<Mesh>(new Mesh(MeshData({2, 3}, {
-        -0.5f,  0.0f,   1.0f, 0.0f, 0.0f,
+        -0.5f,  10.0f,   1.0f, 0.0f, 0.0f,
         -0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
-         0.5f,  0.0f,   1.0f, 0.0f, 0.0f
+         9.5f,  0.0f,   1.0f, 0.0f, 0.0f
     }), color_shader, {}));
 
     w.renderer.add_object(MESH_GROUP_GUI, crosshair);
 
-    // w.renderer.group_disable(MESH_GROUP_WORLD);
+    w.renderer.group_options(MESH_GROUP_GUI).cull_faces = false;
+    w.renderer.group_options(MESH_GROUP_GUI).shadows_enabled = false;
 
     const int n_chunks = 8;
     std::shared_ptr<Chunk> chunks[n_chunks][n_chunks];

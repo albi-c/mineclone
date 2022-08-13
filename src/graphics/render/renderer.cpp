@@ -9,7 +9,7 @@ void Renderer::init(Camera* camera, int width, int height) {
     set_sky_color(glm::vec3());
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
 
     // SHADOW MAP
     glGenFramebuffers(1, &shadow_map_fbo);
@@ -54,11 +54,18 @@ void Renderer::render() {
     
     glm::mat4 transform = projection * view;
 
+    glm::mat4 ortho = camera->ortho_matrix();
+
     std::lock_guard<std::mutex> lock(mutex);
 
     for (auto& [_, group] : groups) {
-        if (!group.enabled)
+        if (!group.options.enabled)
             continue;
+        
+        if (group.options.cull_faces)
+            glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
         
         std::vector<unsigned int> removed_objects;
         for (auto& [id, object] : group.objects) {
@@ -68,6 +75,7 @@ void Renderer::render() {
                         glm::translate(transform, obj->translation()),
                         glm::translate(glm::mat4(), obj->translation()),
                         bias_matrix * glm::translate(shadow_transform, obj->translation()),
+                        ortho,
                         15
                     });
                 }
@@ -93,9 +101,16 @@ glm::mat4 Renderer::render_shadows() {
     
     glm::mat4 transform = projection * view;
 
+    glm::mat4 ortho = camera->ortho_matrix();
+
     for (auto& [_, group] : groups) {
-        if (!group.enabled)
+        if (!group.options.enabled || !group.options.shadows_enabled)
             continue;
+        
+        if (group.options.cull_faces)
+            glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
         
         std::vector<unsigned int> removed_objects;
         for (auto& [id, object] : group.objects) {
@@ -104,6 +119,7 @@ glm::mat4 Renderer::render_shadows() {
                     glm::translate(transform, obj->translation()),
                     glm::translate(glm::mat4(), obj->translation()),
                     glm::mat4(),
+                    ortho,
                     0
                 });
             } else {
@@ -155,12 +171,6 @@ std::shared_ptr<Renderable> Renderer::get_object(unsigned int group, unsigned in
     return groups[group].objects[id].lock();
 }
 
-void Renderer::group_enable(unsigned int group, bool enabled) {
-    groups[group].enabled = enabled;
-}
-void Renderer::group_disable(unsigned int group) {
-    group_enable(group, false);
-}
-bool Renderer::group_enabled(unsigned int group) {
-    return groups[group].enabled;
+RendererGroupOptions& Renderer::group_options(unsigned int group) {
+    return groups[group].options;
 }

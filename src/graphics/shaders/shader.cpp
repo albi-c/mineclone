@@ -111,7 +111,7 @@ void main() {
         discard;
 }
 )"}},
-{BuiltinShader::COLOR2D, {R"(
+{BuiltinShader::GUI, {R"(
 #version 330 core
 layout (location = 0) in vec2 aPos;
 layout (location = 1) in vec3 aColor;
@@ -121,8 +121,7 @@ out vec3 Color;
 uniform mat4 ortho;
 
 void main() {
-    // gl_Position = ortho * vec4(aPos, 1.0, 1.0);
-    gl_Position = vec4(aPos, -0.5, 1.0);
+    gl_Position = ortho * vec4(aPos, 1.0, 1.0);
 
     Color = aColor;
 }

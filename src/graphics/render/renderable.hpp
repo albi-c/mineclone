@@ -11,6 +11,7 @@ struct RenderData {
     glm::mat4 transform;
     glm::mat4 model;
     glm::mat4 shadow_transform;
+    glm::mat4 ortho;
 
     GLuint shadow_map;
 };

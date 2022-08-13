@@ -8,10 +8,16 @@
 #include "renderable.hpp"
 #include "camera/camera.hpp"
 
+struct RendererGroupOptions {
+    bool enabled = true;
+    bool shadows_enabled = true;
+    bool cull_faces = true;
+};
+
 struct RendererGroup {
     std::map<unsigned int, std::weak_ptr<Renderable>> objects;
     unsigned int id_counter;
-    bool enabled = true;
+    RendererGroupOptions options;
 };
 
 class Renderer {
@@ -30,9 +36,7 @@ public:
     void remove_object(unsigned int group, unsigned int id);
     std::shared_ptr<Renderable> get_object(unsigned int group, unsigned int id);
 
-    void group_enable(unsigned int group, bool enabled = true);
-    void group_disable(unsigned int group);
-    bool group_enabled(unsigned int group);
+    RendererGroupOptions& group_options(unsigned int group);
 
 private:
     int width, height;
