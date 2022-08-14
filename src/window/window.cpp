@@ -3,6 +3,7 @@
 #include "gl_debug.inl"
 
 Window::Window() {
+    
     Camera::init(45.0f);
 
     glfwInit();
@@ -73,21 +74,6 @@ Window::~Window() {
 bool Window::update() {
     glfwPollEvents();
 
-    char movement = 0;
-    if (get_key(GLFW_KEY_W))
-        movement |= (int)CameraMoveDirection::FORWARD;
-    if (get_key(GLFW_KEY_S))
-        movement |= (int)CameraMoveDirection::BACKWARD;
-    if (get_key(GLFW_KEY_A))
-        movement |= (int)CameraMoveDirection::LEFT;
-    if (get_key(GLFW_KEY_D))
-        movement |= (int)CameraMoveDirection::RIGHT;
-    if (get_key(GLFW_KEY_SPACE))
-        movement |= (int)CameraMoveDirection::UP;
-    if (get_key(GLFW_KEY_LEFT_SHIFT))
-        movement |= (int)CameraMoveDirection::DOWN;
-    Camera::move(movement, dt * 40);
-
     double time = glfwGetTime();
     dt = time - last_time;
     last_time = time;
@@ -126,6 +112,11 @@ void Window::grab_mouse(bool grabbed) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
+void Window::pressed_keys(bool* keys) {
+    for (int i = 0; i < GLFW_KEY_LAST; i++)
+        keys[i] = glfwGetKey(window, i) == GLFW_PRESS;
+}
+
 void Window::callback_framebuffer_resize(GLFWwindow* glfw_window, int width, int height) {
     Window* window = (Window*)glfwGetWindowUserPointer(glfw_window);
     window->_callback_framebuffer_resize(width, height);
@@ -133,8 +124,6 @@ void Window::callback_framebuffer_resize(GLFWwindow* glfw_window, int width, int
 void Window::_callback_framebuffer_resize(int width, int height) {
     this->width = width;
     this->height = height;
-
-    // Camera::resize(width, height);
 
     EventManager::fire(EventFramebufferResize{width, height});
 }

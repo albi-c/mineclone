@@ -27,6 +27,8 @@ public:
 
     void grab_mouse(bool grabbed);
 
+    void pressed_keys(bool* keys);
+
 private:
     GLFWwindow* window;
     int width = 1, height = 1;

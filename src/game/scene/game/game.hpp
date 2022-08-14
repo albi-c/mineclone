@@ -24,6 +24,7 @@
 
 #include "graphics/render/renderer.hpp"
 
+#include "game/options.hpp"
 #include "game/event.hpp"
 #include "game/scene/scene.hpp"
 #include "graphics/gui/imgui.hpp"
@@ -93,6 +94,7 @@ namespace game {
         void enable();
 
         void update(float dt);
+        void update_keyboard(float dt, const bool* pressed);
         void render();
 
         SceneFlags get_options();

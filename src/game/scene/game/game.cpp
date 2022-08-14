@@ -29,6 +29,22 @@ namespace game {
 
         d.player.update(dt);
     }
+    void SceneGame::update_keyboard(float dt, const bool* pressed) {
+        char movement = 0;
+        if (pressed[GLFW_KEY_W])
+            movement |= (int)CameraMoveDirection::FORWARD;
+        if (pressed[GLFW_KEY_S])
+            movement |= (int)CameraMoveDirection::BACKWARD;
+        if (pressed[GLFW_KEY_A])
+            movement |= (int)CameraMoveDirection::LEFT;
+        if (pressed[GLFW_KEY_D])
+            movement |= (int)CameraMoveDirection::RIGHT;
+        if (pressed[GLFW_KEY_SPACE])
+            movement |= (int)CameraMoveDirection::UP;
+        if (pressed[GLFW_KEY_LEFT_SHIFT])
+            movement |= (int)CameraMoveDirection::DOWN;
+        d.player.move(movement, dt * 40);
+    }
     void SceneGame::render() {
         Renderer::set_sky_color({0.47, 0.65, 1.0});
 
@@ -49,7 +65,6 @@ namespace game {
     void SceneGame::on_window_resize(const EventFramebufferResize& e) {
     }
     void SceneGame::on_mouse_move(const EventMouseMove& e) {
-        // Camera::rotate(e.x, e.y);
         d.player.rotate(e.x, e.y);
     }
     void SceneGame::on_mouse_click(const EventMouseClick& e) {

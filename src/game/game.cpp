@@ -16,13 +16,16 @@ void Game::init() {
 }
 
 void Game::run() {
-    double dt;
+    static double dt;
+    static bool pressed_keys[GLFW_KEY_LAST + 1];
     static bool running = true;
 
     std::thread update_thread([&]() {
         while ((running = window->update(dt))) {
             if (scene) {
                 scene->update(dt);
+                window->pressed_keys(pressed_keys);
+                scene->update_keyboard(dt, pressed_keys);
             }
 
             game_stop_event_queue.process();
