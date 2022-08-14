@@ -16,12 +16,12 @@ endif
 
 CXX       = clang
 CXXSTD    = c++20
-CXXOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src -I./src/lib/imgui `pkg-config --cflags freetype2`
+CXXOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src -I./lib/imgui `pkg-config --cflags freetype2`
 CXXFLAGS := $(CXXOPT) -std=$(CXXSTD)
 
 CC       = clang
 CCSTD    = c2x
-CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src -I./src/lib/imgui `pkg-config --cflags freetype2`
+CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src -I./lib/imgui `pkg-config --cflags freetype2`
 CCFLAGS := $(CCOPT) -std=$(CCSTD)
 
 LFLAGS = $(CXXOPT) -lGL -lglfw -ldl -lGLEW -pthread -lm -lstdc++ -lfreetype
@@ -31,10 +31,15 @@ OBJECTS  := $(patsubst src/%.cpp, $(OBJDIR)/src/%.o, $(SOURCES))
 CSOURCES := $(shell find src/ -type f -name '*.c')
 COBJECTS := $(patsubst src/%.c, $(OBJDIR)/src/%.o, $(CSOURCES))
 
+LIB_SOURCES  := $(shell find lib/ -type f -name '*.cpp')
+LIB_OBJECTS  := $(patsubst lib/%.cpp, $(OBJDIR)/lib/%.o, $(LIB_SOURCES))
+LIB_CSOURCES := $(shell find lib/ -type f -name '*.c')
+LIB_COBJECTS := $(patsubst lib/%.c, $(OBJDIR)/lib/%.o, $(LIB_CSOURCES))
+
 all: $(EXEC)
 	@echo $(RDIRS)
 
-$(EXEC): $(OBJECTS) $(COBJECTS)
+$(EXEC): $(OBJECTS) $(COBJECTS) $(LIB_OBJECTS) $(LIB_COBJECTS)
 	$(CXX) $(LFLAGS) -o $@ $^
 
 $(OBJDIR)/%.o: %.cpp
@@ -60,3 +65,6 @@ cdebug:
 
 clean:
 	rm -f $(EXEC) $(OBJECTS) $(COBJECTS)
+
+clean_libs:
+	rm -f $(LIB_OBJECTS) $(LIB_COBJECTS)
