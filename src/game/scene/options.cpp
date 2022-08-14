@@ -1,13 +1,10 @@
 #include "options.hpp"
 
-void SceneOptions::init() {}
-
-void SceneOptions::update() {}
 void SceneOptions::render() {
     imgui::frame_start();
 
     {
-        const int TEXT_SCALE = 4;
+        const int TEXT_SCALE = 3;
         const ImVec2 BUTTON_SIZE{700, 60};
 
         ImGui::TextScalePush(TEXT_SCALE);
@@ -25,6 +22,8 @@ void SceneOptions::render() {
         );
 
         ImGui::TextScaledCentered("Options", 10);
+
+        ImGui::Separator();
 
         if (ImGui::ButtonCentered("back", BUTTON_SIZE))
             EventManager::fire(EventSceneChange{"main_menu"});

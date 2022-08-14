@@ -8,17 +8,23 @@ void Game::init() {
 
     add_scene<SceneMainMenu>("main_menu");
     switch_scene("main_menu");
+
+    add_scene<SceneOptions>("options");
+
+    add_scene<game::SceneGame>("game:game");
+    add_scene<game::ScenePaused>("game:paused");
 }
 
 void Game::run() {
-    while (window->update()) {
+    double dt;
+    while (window->update(dt)) {
         game_stop_event_queue.process();
         scene_change_event_queue.process();
 
         window->render_start();
 
         if (scene) {
-            scene->update();
+            scene->update(dt);
             scene->render();
         }
         

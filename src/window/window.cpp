@@ -94,6 +94,10 @@ bool Window::update() {
 
     return !glfwWindowShouldClose(window);
 }
+bool Window::update(double& dt) {
+    dt = this->dt;
+    return update();
+}
 void Window::render_start() {
     Renderer::render_start();
 }

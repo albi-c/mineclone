@@ -33,7 +33,7 @@ void Renderer::init(int width, int height) {
 void Renderer::render_start() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
-void Renderer::render(std::shared_ptr<Renderable> obj, const RenderFlags& flags) {
+void Renderer::render(std::shared_ptr<Renderable> obj, const RenderOptions& flags) {
     std::lock_guard<std::mutex> lock(mutex);
 
     render_queue.push_back({obj, flags});

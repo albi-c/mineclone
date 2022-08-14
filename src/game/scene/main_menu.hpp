@@ -9,11 +9,5 @@ public:
     SceneMainMenu() {}
     SceneMainMenu(SceneMainMenu* other) {}
 
-    void init();
-
-    void update();
     void render();
-
-private:
-    bool selected = false;
 };

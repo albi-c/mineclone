@@ -33,6 +33,8 @@ public:
         const frustum::AABB& aabb = frustum::AABB()
     );
 
+    Mesh& operator=(const Mesh& other);
+
     void render(const RenderData& data) override;
     void render_shadows(const RenderData& data) override;
 

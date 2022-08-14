@@ -59,5 +59,4 @@ cdebug:
 	@$(MAKE) debug
 
 clean:
-	echo $(DD)
 	rm -f $(EXEC) $(OBJECTS) $(COBJECTS)

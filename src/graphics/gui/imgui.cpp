@@ -50,11 +50,11 @@ namespace ImGui {
         float textWidth =   ImGui::CalcTextSize(text.c_str()).x;
 
         ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-        ImGui::Text(text.c_str());
+        ImGui::Text("%s", text.c_str());
     }
     void TextScaled(const std::string& text, int scale) {
         TextScalePush(scale);
-        ImGui::Text(text.c_str());
+        ImGui::Text("%s", text.c_str());
         TextScalePop();
     }
     void TextScaledCentered(const std::string& text, int scale) {

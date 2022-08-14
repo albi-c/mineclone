@@ -21,5 +21,6 @@ std::shared_ptr<TextureArray> ResourceLoader::texture_array(const std::string& n
             tex_arr->add(names_to_uppercase ? su::to_upper(line) : line, "res/textures/" + name + "/" + line + ".png");
         }
     }
+    tex_arr->generate();
     return tex_arr;
 }

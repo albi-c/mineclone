@@ -10,8 +10,5 @@ public:
     SceneOptions() {}
     SceneOptions(SceneOptions* other) {}
 
-    void init();
-
-    void update();
     void render();
 };

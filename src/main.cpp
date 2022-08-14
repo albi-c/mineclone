@@ -50,7 +50,6 @@ int main() {
     // shader->uniform("light.sun", glm::vec3(1.5f, 1.5f, 1.1f));
 
     // auto texArr = ResourceLoader::texture_array("minecraft", true);
-    // texArr->generate();
 
     // std::map<std::string, std::shared_ptr<Texture>> textures;
     // textures["textureArray"] = texArr;

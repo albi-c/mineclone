@@ -17,6 +17,7 @@ public:
     ~Window();
 
     bool update();
+    bool update(double& dt);
     void render_start();
     void render_end();
 
