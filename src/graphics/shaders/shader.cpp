@@ -137,13 +137,18 @@ void main() {
 )"}}
 };
 
-Shader::Shader(Shader* other) {
+Shader::Shader(Shader* other)
+    : shadow(other->shadow) {
+    
     program = other->program;
 }
 Shader::Shader(const std::string& vertex_code, const std::string& fragment_code) {
+    shadow = new Shader(BuiltinShader::DEPTH);
     init(vertex_code, fragment_code);
 }
 Shader::Shader(BuiltinShader shader) {
+    if (shader != BuiltinShader::DEPTH)
+        shadow = new Shader(BuiltinShader::DEPTH);
     init(BUILTIN_SHADERS.at(shader).first, BUILTIN_SHADERS.at(shader).second);
 }
 

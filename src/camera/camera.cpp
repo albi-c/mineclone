@@ -1,8 +1,8 @@
 #include "camera.hpp"
 
-Camera::Camera(float fov)
-    : fov(fov) {
-    
+void Camera::init(float fov) {
+    Camera::fov = fov;
+
     update_vectors();
 }
 
@@ -67,8 +67,8 @@ void Camera::rotate(float x, float y) {
 }
 
 void Camera::resize(int width, int height) {
-    this->width = width;
-    this->height = height;
+    Camera::width = width;
+    Camera::height = height;
 }
 
 void Camera::update_vectors() {

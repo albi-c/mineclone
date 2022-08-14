@@ -1,8 +1,6 @@
 #include "mesh.hpp"
 
-Mesh::Mesh(Mesh* other)
-    : shader_shadow(BuiltinShader::DEPTH) {
-    
+Mesh::Mesh(Mesh* other) {
     shader = other->shader;
     VAO = other->VAO;
     VBO = other->VBO;
@@ -20,7 +18,7 @@ Mesh::Mesh(
         const glm::vec3& translation,
         const frustum::AABB& aabb
     )
-    : shader(shader), textures(textures), shader_shadow(BuiltinShader::DEPTH), translation_(translation), aabb(aabb) {
+    : shader(shader), textures(textures), translation_(translation), aabb(aabb) {
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -51,14 +49,14 @@ void Mesh::render_shadows(const RenderData& data) {
     int i = 0;
     for (auto& [name, texture] : textures) {
         texture->bind(i);
-        shader_shadow.uniform(name, i);
+        shader->shadow->uniform(name, i);
         i++;
     }
 
-    shader_shadow.uniform("transform", data.transform);
-    shader_shadow.uniform("model", data.model);
+    shader->shadow->uniform("transform", data.transform);
+    shader->shadow->uniform("model", data.model);
 
-    shader_shadow.use();
+    shader->shadow->use();
     glBindVertexArray(VAO);
 
     glDrawArrays(GL_TRIANGLES, 0, vertices);

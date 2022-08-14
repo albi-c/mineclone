@@ -16,15 +16,15 @@ endif
 
 CXX       = clang
 CXXSTD    = c++20
-CXXOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src
+CXXOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src -I./src/lib/imgui `pkg-config --cflags freetype2`
 CXXFLAGS := $(CXXOPT) -std=$(CXXSTD)
 
 CC       = clang
 CCSTD    = c2x
-CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src
+CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src -I./src/lib/imgui `pkg-config --cflags freetype2`
 CCFLAGS := $(CCOPT) -std=$(CCSTD)
 
-LFLAGS = $(CXXOPT)
+LFLAGS = $(CXXOPT) -lGL -lglfw -ldl -lGLEW -pthread -lm -lstdc++ -lfreetype
 
 SOURCES  := $(shell find src/ -type f -name '*.cpp')
 OBJECTS  := $(patsubst src/%.cpp, $(OBJDIR)/src/%.o, $(SOURCES))
@@ -35,7 +35,7 @@ all: $(EXEC)
 	@echo $(RDIRS)
 
 $(EXEC): $(OBJECTS) $(COBJECTS)
-	$(CXX) $(LFLAGS) -o $@ $^ -lGL -lglfw -ldl -lGLEW -pthread -lm -lstdc++
+	$(CXX) $(LFLAGS) -o $@ $^
 
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)

@@ -14,34 +14,34 @@ enum class CameraMoveDirection {
 
 class Camera {
 public:
-    glm::vec3 pos = glm::vec3(0.0f);
-    glm::vec2 rot = glm::vec3(0.0f);
-    float fov = 0.0f;
+    static inline glm::vec3 pos = glm::vec3(0.0f);
+    static inline glm::vec2 rot = glm::vec3(0.0f);
+    static inline float fov = 0.0f;
 
-    glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
+    static inline glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
 
-    float near_plane = 0.1f;
-    float far_plane = 1000.0f;
+    static inline float near_plane = 0.1f;
+    static inline float far_plane = 1000.0f;
 
-    Camera(float fov);
+    static void init(float fov);
 
-    glm::mat4 view_matrix();
-    glm::mat4 proj_matrix();
-    glm::mat4 ortho_matrix();
+    static glm::mat4 view_matrix();
+    static glm::mat4 proj_matrix();
+    static glm::mat4 ortho_matrix();
 
-    frustum::Frustum frustum();
+    static frustum::Frustum frustum();
 
-    void move(char directions, float dt);
-    void rotate(float x, float y);
+    static void move(char directions, float dt);
+    static void rotate(float x, float y);
 
-    void resize(int width, int height);
+    static void resize(int width, int height);
 
 private:
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 right;
-    glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
+    static inline glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    static inline glm::vec3 right;
+    static inline glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-    int width, height;
+    static inline int width, height;
 
-    void update_vectors();
+    static void update_vectors();
 };

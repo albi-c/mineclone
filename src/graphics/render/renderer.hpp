@@ -20,32 +20,33 @@ struct RendererGroup {
     RendererGroupOptions options;
 };
 
+struct RenderFlags {
+    bool render_shadows = true;
+    bool cull_faces = true;
+};
+
 class Renderer {
 public:
-    void init(Camera* camera, int width, int height);
+    static void init(int width, int height);
 
-    void render();
-    glm::mat4 render_shadows();
+    static void render_start();
+    static void render(std::shared_ptr<Renderable> obj, const RenderFlags& flags = RenderFlags{});
+    static void render_end();
 
-    void resize(int width, int height);
+    static void resize(int width, int height);
 
-    void set_sky_color(const glm::vec3& color);
-
-    unsigned int add_object(unsigned int group, std::shared_ptr<Renderable> obj);
-    void remove_object(unsigned int group, const std::shared_ptr<Renderable> obj);
-    void remove_object(unsigned int group, unsigned int id);
-    std::shared_ptr<Renderable> get_object(unsigned int group, unsigned int id);
-
-    RendererGroupOptions& group_options(unsigned int group);
+    static void set_sky_color(const glm::vec3& color);
 
 private:
-    int width, height;
-    glm::vec3 sky_color;
+    static inline int width, height;
+    static inline glm::vec3 sky_color;
 
-    Camera* camera;
+    static inline std::shared_ptr<Camera> camera;
 
-    std::map<int, RendererGroup> groups;
-    std::mutex mutex;
+    static inline std::vector<std::pair<std::weak_ptr<Renderable>, RenderFlags>> render_queue;
+    static inline std::mutex mutex;
 
-    GLuint shadow_map_fbo, shadow_map;
+    static inline GLuint shadow_map_fbo, shadow_map;
+
+    static glm::mat4 render_shadows();
 };

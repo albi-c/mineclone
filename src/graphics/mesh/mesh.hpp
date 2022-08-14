@@ -23,7 +23,6 @@ struct MeshData {
 class Mesh : public Renderable {
 public:
     std::shared_ptr<Shader> shader;
-    Shader shader_shadow;
 
     Mesh(Mesh* other);
     Mesh(

@@ -5,6 +5,7 @@
 #include "lib/opengl.hpp"
 #include "graphics/render/renderer.hpp"
 #include "event/event.hpp"
+#include "graphics/gui/imgui.hpp"
 
 class Window {
 public:
@@ -12,10 +13,12 @@ public:
     Camera camera;
 
     Window();
+    Window(Window* other);
     ~Window();
 
     bool update();
-    void render();
+    void render_start();
+    void render_end();
 
     bool get_key(int key);
 

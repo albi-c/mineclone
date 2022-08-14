@@ -2,14 +2,11 @@
 
 #define SHADOW_SIZE 4096
 
-void Renderer::init(Camera* camera, int width, int height) {
-    this->camera = camera;
-
+void Renderer::init(int width, int height) {
     resize(width, height);
     set_sky_color(glm::vec3());
 
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
 
     // SHADOW MAP
     glGenFramebuffers(1, &shadow_map_fbo);
@@ -33,7 +30,17 @@ void Renderer::init(Camera* camera, int width, int height) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Renderer::render() {
+void Renderer::render_start() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+void Renderer::render(std::shared_ptr<Renderable> obj, const RenderFlags& flags) {
+    std::lock_guard<std::mutex> lock(mutex);
+
+    render_queue.push_back({obj, flags});
+}
+void Renderer::render_end() {
+    std::lock_guard<std::mutex> lock(mutex);
+    
     glm::mat4 shadow_transform = render_shadows();
     glm::mat4 bias_matrix(
         0.5, 0.0, 0.0, 0.0,
@@ -42,52 +49,53 @@ void Renderer::render() {
         0.5, 0.5, 0.5, 1.0
     );
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glActiveTexture(GL_TEXTURE15);
     glBindTexture(GL_TEXTURE_2D, shadow_map_fbo);
 
-    frustum::Frustum frustum = camera->frustum();
+    frustum::Frustum frustum = Camera::frustum();
 
-    glm::mat4 view = camera->view_matrix();
-    glm::mat4 projection = camera->proj_matrix();
+    glm::mat4 view = Camera::view_matrix();
+    glm::mat4 projection = Camera::proj_matrix();
     
     glm::mat4 transform = projection * view;
 
-    glm::mat4 ortho = camera->ortho_matrix();
+    glm::mat4 ortho = Camera::ortho_matrix();
 
-    std::lock_guard<std::mutex> lock(mutex);
 
-    for (auto& [_, group] : groups) {
-        if (!group.options.enabled)
-            continue;
-        
-        if (group.options.cull_faces)
+    for (auto& [object, flags] : render_queue) {
+        if (flags.cull_faces)
             glEnable(GL_CULL_FACE);
         else
             glDisable(GL_CULL_FACE);
         
-        std::vector<unsigned int> removed_objects;
-        for (auto& [id, object] : group.objects) {
-            if (auto obj = object.lock()) {
-                if (obj->in_frustum(frustum)) {
-                    obj->render({
-                        glm::translate(transform, obj->translation()),
-                        glm::translate(glm::mat4(), obj->translation()),
-                        bias_matrix * glm::translate(shadow_transform, obj->translation()),
-                        ortho,
-                        15
-                    });
-                }
-            } else {
-                removed_objects.push_back(id);
+        if (auto obj = object.lock()) {
+            if (obj->in_frustum(frustum)) {
+                obj->render({
+                    glm::translate(transform, obj->translation()),
+                    glm::translate(glm::mat4(), obj->translation()),
+                    bias_matrix * glm::translate(shadow_transform, obj->translation()),
+                    ortho,
+                    15
+                });
             }
         }
-        for (auto& id : removed_objects) {
-            group.objects.erase(id);
-        }
     }
+
+    render_queue.clear();
 }
+
+void Renderer::resize(int width, int height) {
+    Renderer::width = width;
+    Renderer::height = height;
+
+    glViewport(0, 0, width, height);
+}
+
+void Renderer::set_sky_color(const glm::vec3& color) {
+    sky_color = color;
+    glClearColor(sky_color.r, sky_color.g, sky_color.b, 1.0f);
+}
+
 glm::mat4 Renderer::render_shadows() {
     if (SHADOW_SIZE == 0)
         return glm::mat4();
@@ -103,31 +111,20 @@ glm::mat4 Renderer::render_shadows() {
 
     glm::mat4 ortho = camera->ortho_matrix();
 
-    for (auto& [_, group] : groups) {
-        if (!group.options.enabled || !group.options.shadows_enabled)
+    glEnable(GL_CULL_FACE);
+
+    for (auto& [object, flags] : render_queue) {
+        if (!flags.render_shadows)
             continue;
         
-        if (group.options.cull_faces)
-            glEnable(GL_CULL_FACE);
-        else
-            glDisable(GL_CULL_FACE);
-        
-        std::vector<unsigned int> removed_objects;
-        for (auto& [id, object] : group.objects) {
-            if (auto obj = object.lock()) {
-                obj->render_shadows({
-                    glm::translate(transform, obj->translation()),
-                    glm::translate(glm::mat4(), obj->translation()),
-                    glm::mat4(),
-                    ortho,
-                    0
-                });
-            } else {
-                removed_objects.push_back(id);
-            }
-        }
-        for (auto& id : removed_objects) {
-            group.objects.erase(id);
+        if (auto obj = object.lock()) {
+            obj->render_shadows({
+                glm::translate(transform, obj->translation()),
+                glm::translate(glm::mat4(), obj->translation()),
+                glm::mat4(),
+                ortho,
+                0
+            });
         }
     }
 
@@ -135,42 +132,4 @@ glm::mat4 Renderer::render_shadows() {
     glViewport(0, 0, width, height);
 
     return transform;
-}
-
-void Renderer::resize(int width, int height) {
-    this->width = width;
-    this->height = height;
-
-    glViewport(0, 0, width, height);
-}
-
-void Renderer::set_sky_color(const glm::vec3& color) {
-    sky_color = color;
-    glClearColor(sky_color.r, sky_color.g, sky_color.b, 1.0f);
-}
-
-unsigned int Renderer::add_object(unsigned int group, std::shared_ptr<Renderable> obj) {
-    std::lock_guard<std::mutex> lock(mutex);
-
-    RendererGroup& g = groups[group];
-    obj->renderer_id_set(g.id_counter);
-    g.objects[g.id_counter] = obj;
-    return g.id_counter++;
-}
-void Renderer::remove_object(unsigned int group, std::shared_ptr<Renderable> obj) {
-    remove_object(group, obj->renderer_id_get());
-}
-void Renderer::remove_object(unsigned int group, unsigned int id) {
-    std::lock_guard<std::mutex> lock(mutex);
-
-    groups[group].objects.erase(id);
-}
-std::shared_ptr<Renderable> Renderer::get_object(unsigned int group, unsigned int id) {
-    std::lock_guard<std::mutex> lock(mutex);
-    
-    return groups[group].objects[id].lock();
-}
-
-RendererGroupOptions& Renderer::group_options(unsigned int group) {
-    return groups[group].options;
 }

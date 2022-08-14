@@ -259,7 +259,8 @@ void Chunk::update() {
     for (auto& [pos, block] : Chunk::blocks_to_set[{cx, cz}]) {
         set(pos, block);
     }
-    Chunk::blocks_to_set.erase({cx, cz});
+    if (blocks_to_set.find({cx, cz}) != blocks_to_set.end())
+        Chunk::blocks_to_set.erase({cx, cz});
 }
 
 MeshData Chunk::mesh(const TextureArray& tex) {

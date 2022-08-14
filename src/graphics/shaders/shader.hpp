@@ -12,6 +12,8 @@ enum class BuiltinShader {
 
 class Shader {
 public:
+    Shader* shadow;
+
     Shader(Shader* other);
     Shader(const std::string& vertex_code, const std::string& fragment_code);
     Shader(BuiltinShader shader);

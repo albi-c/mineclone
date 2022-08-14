@@ -3,13 +3,24 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <set>
 
 #include "chunk.hpp"
 #include "block.hpp"
+#include "event.hpp"
+#include "util.hpp"
 
 class World {
 public:
-    World(int seed);
+    World(int seed, unsigned int render_distance = 1, int x = 0, int z = 0);
+
+    void update();
+    void update_loaded();
+    void generate();
+
+    void move(int x, int z);
+
+    void set_render_distance(unsigned int distance);
 
     Block get(int x, int y, int z);
     inline Block get(const BlockPosition& pos) {
@@ -57,6 +68,10 @@ public:
 
 private:
     int seed;
+    int x, z;
 
+    unsigned int render_distance = 1;
+
+    std::set<std::pair<int, int>> required_chunks;
     std::map<std::pair<int, int>, std::shared_ptr<Chunk>> chunks;
 };
