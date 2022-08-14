@@ -3,3 +3,4 @@ mineclone
 *.o
 build/
 res/minecraft/*.png
+imgui.ini

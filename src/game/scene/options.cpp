@@ -30,7 +30,8 @@ void SceneOptions::render() {
 
         ImGui::Checkbox("shadows", &Options::shadows);
 
-        ImGui::End();
+        if (ImGui::SliderInt("render distance", &Options::render_distance, 4, 32))
+            std::cout << Options::render_distance << "\n";
 
         ImGui::TextScalePop();
     }

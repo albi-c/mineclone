@@ -29,6 +29,7 @@ namespace imgui {
         ImGui::NewFrame();
     }
     void frame_end() {
+        ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }

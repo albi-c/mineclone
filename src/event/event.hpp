@@ -53,6 +53,11 @@ public:
         return queue.empty();
     }
 
+    inline void clear() {
+        std::lock_guard<std::mutex> lock(mutex);
+        std::queue<T>().swap(queue);
+    }
+
 private:
     std::queue<T> queue;
     std::mutex mutex;

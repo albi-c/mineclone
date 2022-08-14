@@ -35,8 +35,6 @@ void SceneMainMenu::render() {
             EventManager::fire(EventGameStop{});
         ImGui::PopStyleColor();
 
-        ImGui::End();
-
         ImGui::TextScalePop();
     }
 

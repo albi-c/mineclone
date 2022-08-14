@@ -17,26 +17,47 @@ void Game::init() {
 
 void Game::run() {
     double dt;
-    while (window->update(dt)) {
-        game_stop_event_queue.process();
-        scene_change_event_queue.process();
+    static bool running = true;
 
+    std::thread update_thread([&]() {
+        while ((running = window->update(dt))) {
+            if (scene) {
+                scene->update(dt);
+            }
+
+            game_stop_event_queue.process();
+            scene_change_event_queue.process();
+        }
+    });
+
+    while (running) {
         window->render_start();
 
         if (scene) {
-            scene->update(dt);
             scene->render();
         }
         
         window->render_end();
     }
+
+    update_thread.join();
 }
 void Game::stop() {
     window->close();
 }
 
 void Game::switch_scene(const std::string& name) {
+    if (scene)
+        scene->disable();
+    
     scene = scenes[name];
+
+    scene->enable();
+
+    if (scene->get_options().grab_mouse)
+        window->grab_mouse(true);
+    else
+        window->grab_mouse(false);
 }
 template <class T>
 void Game::add_scene(const std::string& name) {

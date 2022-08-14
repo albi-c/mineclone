@@ -1,7 +1,13 @@
 #include "camera.hpp"
 
+void CameraHandlers::framebuffer_resize_event_handler(const EventFramebufferResize& e) {
+    Camera::resize(e.width, e.height);
+}
+
 void Camera::init(float fov) {
     Camera::fov = fov;
+
+    EventManager::listen(handlers.framebuffer_resize_event_queue);
 
     update_vectors();
 }
@@ -10,9 +16,11 @@ glm::mat4 Camera::view_matrix() {
     return glm::lookAt(pos, pos + front, up);
 }
 glm::mat4 Camera::proj_matrix() {
+    handlers.framebuffer_resize_event_queue.process();
     return glm::perspective(fov, (float)width / (float)height, near_plane, far_plane);
 }
 glm::mat4 Camera::ortho_matrix() {
+    handlers.framebuffer_resize_event_queue.process();
     return glm::ortho(0.0f, (float)width, 0.0f, (float)height, -10.0f, 10.0f);
 }
 
@@ -55,8 +63,8 @@ void Camera::move(char directions, float dt) {
     pos += offset * dt;
 }
 void Camera::rotate(float x, float y) {
-    rot.x += x * 0.1;
-    rot.y += y * 0.1;
+    rot.x += x * 0.1f;
+    rot.y += y * 0.1f;
 
     if (rot.y > 89.0f)
         rot.y = 89.0f;

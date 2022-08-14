@@ -14,12 +14,12 @@ ifneq ($(DEBUG), true)
 	OBJDIR = build/release
 endif
 
-CXX       = clang
+CXX       = g++
 CXXSTD    = c++20
 CXXOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src -I./lib/imgui `pkg-config --cflags freetype2`
 CXXFLAGS := $(CXXOPT) -std=$(CXXSTD)
 
-CC       = clang
+CC       = gcc
 CCSTD    = c2x
 CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src -I./lib/imgui `pkg-config --cflags freetype2`
 CCFLAGS := $(CCOPT) -std=$(CCSTD)

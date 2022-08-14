@@ -18,19 +18,10 @@ namespace game {
             r.block_textures_map,
             glm::vec3(0.5f, 0.0f, 0.0f)
         ));
+    }
 
-        d.gui_meshes["test"] = std::make_shared<Mesh>(new Mesh(
-            {
-                {2, 3},
-                {
-                    -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-                     0.0f,  0.5f,  0.0f, 1.0f, 0.0f,
-                     0.5f, -0.5f,  0.0f, 0.0f, 1.0f
-                }
-            },
-            r.gui_shader,
-            {}
-        ));
+    void SceneGame::enable() {
+        handlers.clear();
     }
 
     void SceneGame::update(float dt) {
@@ -51,8 +42,20 @@ namespace game {
         }
     }
 
+    SceneFlags SceneGame::get_options() {
+        return {true};
+    }
+
+    void SceneGame::on_window_resize(const EventFramebufferResize& e) {
+    }
     void SceneGame::on_mouse_move(const EventMouseMove& e) {
+        // Camera::rotate(e.x, e.y);
+        d.player.rotate(e.x, e.y);
     }
     void SceneGame::on_mouse_click(const EventMouseClick& e) {
+    }
+    void SceneGame::on_key_press(const EventKeyPress& e) {
+        if (e.key == GLFW_KEY_ESCAPE && e.action == GLFW_PRESS)
+            EventManager::fire(EventSceneChange{"game:paused"});
     }
 };

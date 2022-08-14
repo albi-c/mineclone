@@ -1,6 +1,19 @@
 #include "paused.hpp"
 
 namespace game {
+    void ScenePaused::init() {
+        scene = this;
+
+        EventManager::listen(key_press_event_queue);
+    }
+
+    void ScenePaused::enable() {
+        key_press_event_queue.clear();
+    }
+
+    void ScenePaused::update(float dt) {
+        key_press_event_queue.process();
+    }
     void ScenePaused::render() {
         imgui::frame_start();
 
@@ -32,11 +45,14 @@ namespace game {
             if (ImGui::ButtonCentered("resume", BUTTON_SIZE))
                 EventManager::fire(EventSceneChange{"game:game"});
 
-            ImGui::End();
-
             ImGui::TextScalePop();
         }
 
         imgui::frame_end();
+    }
+
+    void ScenePaused::on_key_press(const EventKeyPress& e) {
+        if (e.key == GLFW_KEY_ESCAPE && e.action == GLFW_PRESS)
+            EventManager::fire(EventSceneChange{"game:game"});
     }
 };

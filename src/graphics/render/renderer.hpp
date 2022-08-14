@@ -7,10 +7,18 @@
 #include "lib/opengl.hpp"
 #include "renderable.hpp"
 #include "camera/camera.hpp"
+#include "window/event.hpp"
 
 struct RenderOptions {
     bool render_shadows = true;
     bool cull_faces = true;
+};
+
+class Renderer;
+struct RendererHandlers {
+    static void framebuffer_resize_event_handler(const EventFramebufferResize& e);
+    FunctionEventQueue<EventFramebufferResize> framebuffer_resize_event_queue = \
+        FunctionEventQueue<EventFramebufferResize>(RendererHandlers::framebuffer_resize_event_handler);
 };
 
 class Renderer {
@@ -37,4 +45,6 @@ private:
     static inline GLuint shadow_map_fbo, shadow_map;
 
     static glm::mat4 render_shadows();
+
+    static inline RendererHandlers handlers;
 };

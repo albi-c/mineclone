@@ -134,8 +134,7 @@ void Window::_callback_framebuffer_resize(int width, int height) {
     this->width = width;
     this->height = height;
 
-    Renderer::resize(width, height);
-    Camera::resize(width, height);
+    // Camera::resize(width, height);
 
     EventManager::fire(EventFramebufferResize{width, height});
 }
@@ -148,12 +147,10 @@ void Window::_callback_mouse_move(double x, double y) {
     double dx = x - mouseX;
     double dy = mouseY - y;
 
-    Camera::rotate(dx, dy);
-
     mouseX = x;
     mouseY = y;
 
-    EventManager::fire(EventMouseMove{x, y});
+    EventManager::fire(EventMouseMove{dx, dy});
 }
 
 void Window::callback_mouse_click(GLFWwindow* glfw_window, int button, int action, int mods) {

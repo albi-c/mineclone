@@ -2,9 +2,15 @@
 
 #define SHADOW_SIZE 4096
 
+void RendererHandlers::framebuffer_resize_event_handler(const EventFramebufferResize& e) {
+    Renderer::resize(e.width, e.height);
+}
+
 void Renderer::init(int width, int height) {
     resize(width, height);
     set_sky_color(glm::vec3());
+
+    EventManager::listen(handlers.framebuffer_resize_event_queue);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -31,6 +37,8 @@ void Renderer::init(int width, int height) {
 }
 
 void Renderer::render_start() {
+    handlers.framebuffer_resize_event_queue.process();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 void Renderer::render(std::shared_ptr<Renderable> obj, const RenderOptions& flags) {

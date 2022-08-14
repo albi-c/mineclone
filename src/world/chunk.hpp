@@ -29,6 +29,10 @@ struct ChunkPosition {
     ChunkPosition() {}
     ChunkPosition(int x, int z)
         : x(x), z(z){}
+    
+    operator std::pair<int, int>() const {
+        return {x, z};
+    }
 };
 
 class Chunk {
