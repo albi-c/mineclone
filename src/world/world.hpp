@@ -16,7 +16,7 @@ public:
 
     void update();
     void update_loaded();
-    void generate();
+    void generate(const TextureArray& texture_array);
 
     void move(int x, int z);
 

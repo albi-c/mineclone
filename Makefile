@@ -16,12 +16,12 @@ endif
 
 CXX       = g++
 CXXSTD    = c++20
-CXXOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src -I./lib/imgui `pkg-config --cflags freetype2`
+CXXOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG)  -I. -I./src -I./lib/imgui `pkg-config --cflags freetype2`
 CXXFLAGS := $(CXXOPT) -std=$(CXXSTD)
 
 CC       = gcc
 CCSTD    = c2x
-CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG) -I./src -I./lib/imgui `pkg-config --cflags freetype2`
+CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG)  -I. -I./src -I./lib/imgui `pkg-config --cflags freetype2`
 CCFLAGS := $(CCOPT) -std=$(CCSTD)
 
 LFLAGS = $(CXXOPT) -lGL -lglfw -ldl -lGLEW -pthread -lm -lstdc++ -lfreetype

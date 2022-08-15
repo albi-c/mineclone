@@ -28,10 +28,11 @@ void SceneOptions::render() {
         if (ImGui::ButtonCentered("back", BUTTON_SIZE))
             EventManager::fire(EventSceneChange{"main_menu"});
 
-        ImGui::Checkbox("shadows", &Options::shadows);
+        auto shadows = Option<bool>("shadows");
+        ImGui::Checkbox("shadows", &shadows);
 
-        if (ImGui::SliderInt("render distance", &Options::render_distance, 4, 32))
-            std::cout << Options::render_distance << "\n";
+        auto render_distance = Option("render_distance");
+        ImGui::SliderInt("render distance", &render_distance, 4, 32);
 
         ImGui::TextScalePop();
     }

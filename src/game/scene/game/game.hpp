@@ -30,19 +30,10 @@
 #include "graphics/gui/imgui.hpp"
 
 namespace game {
-    struct SceneGameChunk {
-        std::shared_ptr<Chunk> chunk;
-        std::shared_ptr<Mesh> mesh;
-
-        SceneGameChunk(SceneGameChunk* other)
-            : chunk(other->chunk), mesh(other->mesh) {}
-        SceneGameChunk(std::shared_ptr<Chunk> chunk, std::shared_ptr<Mesh> mesh = nullptr)
-            : chunk(chunk), mesh(mesh) {}
-    };
     struct SceneGameData {
         Player player;
 
-        std::map<std::pair<int, int>, std::shared_ptr<SceneGameChunk>> chunks;
+        std::map<std::pair<int, int>, std::shared_ptr<Mesh>> chunk_meshes;
 
         std::map<std::string, std::shared_ptr<Mesh>> gui_meshes;
     };

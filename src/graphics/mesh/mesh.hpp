@@ -18,6 +18,8 @@ struct MeshData {
     MeshData() {}
     MeshData(std::vector<int> part_sizes, std::vector<float> data)
         : part_sizes(part_sizes), data(data) {}
+    MeshData(MeshData* other)
+        : part_sizes(other->part_sizes), data(other->data) {}
 };
 
 class Mesh : public Renderable {

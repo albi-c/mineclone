@@ -79,7 +79,7 @@ public:
 
     void update();
 
-    MeshData mesh(const TextureArray& tex);
+    std::shared_ptr<MeshData> mesh(const TextureArray& tex);
 
     bool has_neighbor(ChunkNeighbor neighbor);
     std::shared_ptr<Chunk> get_neighbor(ChunkNeighbor neighbor);

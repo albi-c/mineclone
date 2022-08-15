@@ -263,7 +263,7 @@ void Chunk::update() {
         Chunk::blocks_to_set.erase({cx, cz});
 }
 
-MeshData Chunk::mesh(const TextureArray& tex) {
+std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
     std::vector<float> vertices;
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
@@ -359,7 +359,7 @@ MeshData Chunk::mesh(const TextureArray& tex) {
         }
     }
 
-    return MeshData({3, 3, 3}, vertices);
+    return std::make_shared<MeshData>(new MeshData({3, 3, 3}, vertices));
 }
 
 bool Chunk::has_neighbor(ChunkNeighbor neighbor) {

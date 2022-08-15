@@ -5,19 +5,19 @@ namespace game {
         handlers.game = this;
         handlers.listen();
 
-        d.chunks[{0, 0}] = std::make_shared<SceneGameChunk>(new SceneGameChunk(
-            std::make_shared<Chunk>(new Chunk(
-                4,
-                0, 0
-            ))
-        ));
-        MeshData mesh_data = d.chunks[{0, 0}]->chunk->mesh(*r.block_textures);
-        d.chunks[{0, 0}]->mesh = std::make_shared<Mesh>(new Mesh(
-            mesh_data,
-            r.block_shader,
-            r.block_textures_map,
-            glm::vec3(0.5f, 0.0f, 0.0f)
-        ));
+        // d.chunks[{0, 0}] = std::make_shared<SceneGameChunk>(new SceneGameChunk(
+        //     std::make_shared<Chunk>(new Chunk(
+        //         4,
+        //         0, 0
+        //     ))
+        // ));
+        // auto mesh_data = d.chunks[{0, 0}]->chunk->mesh(*r.block_textures);
+        // d.chunks[{0, 0}]->mesh = std::make_shared<Mesh>(new Mesh(
+        //     *mesh_data,
+        //     r.block_shader,
+        //     r.block_textures_map,
+        //     glm::vec3(0.5f, 0.0f, 0.0f)
+        // ));
     }
 
     void SceneGame::enable() {
@@ -48,9 +48,9 @@ namespace game {
     void SceneGame::render() {
         Renderer::set_sky_color({0.47, 0.65, 1.0});
 
-        for (auto& [pos, chunk] : d.chunks) {
-            if (chunk->mesh)
-                Renderer::render(chunk->mesh);
+        for (auto& [pos, mesh] : d.chunk_meshes) {
+            if (mesh)
+                Renderer::render(mesh);
         }
 
         for (auto& [name, mesh] : d.gui_meshes) {

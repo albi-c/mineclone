@@ -5,12 +5,16 @@
 void RendererHandlers::framebuffer_resize_event_handler(const EventFramebufferResize& e) {
     Renderer::resize(e.width, e.height);
 }
+void RendererHandlers::option_change_event_handler(const EventOptionChange& e) {
+    Renderer::shadows_enabled = e.value;
+}
 
 void Renderer::init(int width, int height) {
     resize(width, height);
     set_sky_color(glm::vec3());
 
     EventManager::listen(handlers.framebuffer_resize_event_queue);
+    EventManager::listen(handlers.option_change_event_queue);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -38,6 +42,7 @@ void Renderer::init(int width, int height) {
 
 void Renderer::render_start() {
     handlers.framebuffer_resize_event_queue.process();
+    handlers.option_change_event_queue.process();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -105,7 +110,7 @@ void Renderer::set_sky_color(const glm::vec3& color) {
 }
 
 glm::mat4 Renderer::render_shadows() {
-    if (SHADOW_SIZE == 0)
+    if (SHADOW_SIZE == 0 && shadows_enabled)
         return glm::mat4();
     
     glViewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);

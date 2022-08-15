@@ -35,14 +35,14 @@ void World::update_loaded() {
         EventManager::fire(EventChunkUnload{pos.first, pos.second});
     }
 }
-void World::generate() {
+void World::generate(const TextureArray& texture_array) {
     if (!required_chunks.empty()) {
         auto pos = *required_chunks.end();
         required_chunks.erase(pos);
 
         chunks[pos] = std::make_shared<Chunk>(new Chunk(seed, pos.first, pos.second));
 
-        EventManager::fire(EventChunkLoad{chunks[pos], pos.first, pos.second});
+        EventManager::fire(EventChunkLoad{chunks[pos], chunks[pos]->mesh(texture_array), pos.first, pos.second});
     }
 }
 
