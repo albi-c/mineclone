@@ -22,7 +22,7 @@ public:
 private:
     static inline std::map<std::string, int> options = {
         {"shadows", true},
-        {"render_distance", 8}
+        {"render_distance", 2}
     };
 };
 

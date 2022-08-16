@@ -5,6 +5,8 @@ namespace game {
         handlers.game = this;
         handlers.listen();
 
+        d.world = std::make_shared<World>(new World(4, Options::get("render_distance")));
+
         // d.chunks[{0, 0}] = std::make_shared<SceneGameChunk>(new SceneGameChunk(
         //     std::make_shared<Chunk>(new Chunk(
         //         4,
@@ -28,6 +30,9 @@ namespace game {
         handlers.process();
 
         d.player.update(dt);
+
+        d.world->update();
+        d.world->generate(*r.block_textures);
     }
     void SceneGame::update_keyboard(float dt, const bool* pressed) {
         char movement = 0;
@@ -47,6 +52,9 @@ namespace game {
     }
     void SceneGame::render() {
         Renderer::set_sky_color({0.47, 0.65, 1.0});
+
+        handlers.chunk_load_event_queue.process();
+        handlers.chunk_unload_event_queue.process();
 
         for (auto& [pos, mesh] : d.chunk_meshes) {
             if (mesh)
@@ -72,5 +80,20 @@ namespace game {
     void SceneGame::on_key_press(const EventKeyPress& e) {
         if (e.key == GLFW_KEY_ESCAPE && e.action == GLFW_PRESS)
             EventManager::fire(EventSceneChange{"game:paused"});
+    }
+    void SceneGame::on_option_change(const EventOptionChange& e) {
+        if (e.name == "render_distance" && d.world)
+            d.world->set_render_distance(e.value);
+    }
+    void SceneGame::on_chunk_load(const EventChunkLoad& e) {
+        d.chunk_meshes[{e.cx, e.cz}] = std::make_shared<Mesh>(new Mesh(
+            *e.mesh_data,
+            r.block_shader,
+            r.block_textures_map,
+            {e.cx * CHUNK_SIZE + 0.5f, 0.0f, e.cz * CHUNK_SIZE + 0.5f}
+        ));
+    }
+    void SceneGame::on_chunk_unload(const EventChunkUnload& e) {
+        d.chunk_meshes.erase({e.cx, e.cz});
     }
 };

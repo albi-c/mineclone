@@ -15,7 +15,7 @@ template <class T>
 class EventHandler {
 public:
     inline virtual void event_(const Event& event) {
-        dynamic_cast<EventHandler<T>*>(this)->event(static_cast<const T&>(event));
+        dynamic_cast<EventHandler<T>*>(this)->event(dynamic_cast<const T&>(event));
     }
     virtual void event(const T& event) =0;
 };
@@ -44,7 +44,7 @@ public:
 
     inline T pop() {
         std::lock_guard<std::mutex> lock(mutex);
-        T& value = queue.front();
+        T value = queue.front();
         queue.pop();
         return value;
     }

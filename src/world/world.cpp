@@ -1,5 +1,7 @@
 #include "world.hpp"
 
+World::World(World* other)
+    : seed(other->seed), x(other->x), z(other->z), required_chunks(other->required_chunks), chunks(other->chunks) {}
 World::World(int seed, unsigned int render_distance, int x, int z)
     : seed(seed), render_distance(render_distance), x(x), z(z) {
     
@@ -37,7 +39,7 @@ void World::update_loaded() {
 }
 void World::generate(const TextureArray& texture_array) {
     if (!required_chunks.empty()) {
-        auto pos = *required_chunks.end();
+        auto pos = *(--required_chunks.end());
         required_chunks.erase(pos);
 
         chunks[pos] = std::make_shared<Chunk>(new Chunk(seed, pos.first, pos.second));

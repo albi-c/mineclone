@@ -33,6 +33,8 @@ namespace game {
     struct SceneGameData {
         Player player;
 
+        std::shared_ptr<World> world;
+
         std::map<std::pair<int, int>, std::shared_ptr<Mesh>> chunk_meshes;
 
         std::map<std::string, std::shared_ptr<Mesh>> gui_meshes;
@@ -67,12 +69,20 @@ namespace game {
         static void event_mouse_move_handler(const EventMouseMove& e);
         static void event_mouse_click_handler(const EventMouseClick& e);
         static void event_key_press_handler(const EventKeyPress& e);
+        static void event_option_change_handler(const EventOptionChange& e);
+        static void event_chunk_load_handler(const EventChunkLoad& e);
+        static void event_chunk_unload_handler(const EventChunkUnload& e);
 
         FunctionEventQueue<EventFramebufferResize> window_resize_event_handler = \
             FunctionEventQueue<EventFramebufferResize>(SceneGameHandlers::event_window_resize_handler);
         FunctionEventQueue<EventMouseMove> mouse_move_event_queue = FunctionEventQueue<EventMouseMove>(SceneGameHandlers::event_mouse_move_handler);
         FunctionEventQueue<EventMouseClick> mouse_click_event_queue = FunctionEventQueue<EventMouseClick>(SceneGameHandlers::event_mouse_click_handler);
         FunctionEventQueue<EventKeyPress> key_press_event_queue = FunctionEventQueue<EventKeyPress>(SceneGameHandlers::event_key_press_handler);
+        FunctionEventQueue<EventOptionChange> option_change_event_queue = \
+            FunctionEventQueue<EventOptionChange>(SceneGameHandlers::event_option_change_handler);
+        FunctionEventQueue<EventChunkLoad> chunk_load_event_queue = FunctionEventQueue<EventChunkLoad>(SceneGameHandlers::event_chunk_load_handler);
+        FunctionEventQueue<EventChunkUnload> chunk_unload_event_queue = \
+            FunctionEventQueue<EventChunkUnload>(SceneGameHandlers::event_chunk_unload_handler);
     };
 
     class SceneGame : public Scene {
@@ -100,6 +110,9 @@ namespace game {
         void on_mouse_move(const EventMouseMove& e);
         void on_mouse_click(const EventMouseClick& e);
         void on_key_press(const EventKeyPress& e);
+        void on_option_change(const EventOptionChange& e);
+        void on_chunk_load(const EventChunkLoad& e);
+        void on_chunk_unload(const EventChunkUnload& e);
     };
 };
 

@@ -8,10 +8,11 @@
 #include "chunk.hpp"
 #include "block.hpp"
 #include "event.hpp"
-#include "util.hpp"
+#include "util/world.hpp"
 
 class World {
 public:
+    World(World* other);
     World(int seed, unsigned int render_distance = 1, int x = 0, int z = 0);
 
     void update();

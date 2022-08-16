@@ -1,16 +1,15 @@
 #include "mesh.hpp"
 
 Mesh::Mesh(Mesh* other) {
-    // shader = other->shader;
-    // VAO = other->VAO;
-    // VBO = other->VBO;
-    // for (auto& [name, tex] : other->textures) {
-    //     textures[name] = tex;
-    // }
-    // vertices = other->vertices;
-    // translation_ = other->translation_;
-    // aabb = other->aabb;
-    *this = *other;
+    shader = other->shader;
+    VAO = other->VAO;
+    VBO = other->VBO;
+    for (auto& [name, tex] : other->textures) {
+        textures[name] = tex;
+    }
+    vertices = other->vertices;
+    translation_ = other->translation_;
+    aabb = other->aabb;
 }
 Mesh::Mesh(
         const MeshData& data,
@@ -23,6 +22,12 @@ Mesh::Mesh(
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+
+    GLenum error;
+    while ((error = glGetError())) {
+        std::cout << "ERROR: " << error << "\n";
+        asm("int $3");
+    }
 
     rebuild(data);
 }
