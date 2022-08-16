@@ -7,7 +7,8 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aTex;
 layout (location = 2) in vec3 aNormal;
 
-out vec3 TexCoord;
+out vec2 TexCoord;
+flat out int TexLayer;
 out vec3 Normal;
 out vec3 FragPos;
 out vec4 ShadowCoord;
@@ -21,13 +22,15 @@ void main() {
 
     ShadowCoord = shadow_transform * vec4(aPos, 1.0);
 
-    TexCoord = aTex;
+    TexCoord = aTex.xy;
+    highp int TexLayer = int(aTex.z);
     Normal = aNormal;
     FragPos = vec3(model * vec4(aPos, 1.0));
 }
 )", R"(
 #version 330 core
-in vec3 TexCoord;
+in vec2 TexCoord;
+flat in int TexLayer;
 in vec3 Normal;
 in vec3 FragPos;
 in vec4 ShadowCoord;
@@ -50,7 +53,7 @@ uniform light_t light;
 float shadow();
 
 void main() {
-    vec4 color = texture(textureArray, TexCoord);
+    vec4 color = texture(textureArray, vec3(TexCoord, TexLayer));
     if (color.a == 0.0)
         discard;
 
@@ -68,6 +71,9 @@ void main() {
     color /= vec4(color.rgb + 1.0, 1.0);
     
     FragColor = vec4(pow(color.rgb, vec3(1.0 / 2.2)), 1.0);
+
+    // DEBUGGING
+    FragColor = vec4(TexCoord.xy, color.r + color.g + color.b, 1.0);
 }
 
 float shadow() {
@@ -225,7 +231,7 @@ void Shader::init(const std::string& vertex_code, const std::string& fragment_co
 
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
-        glGetShaderInfoLog(program, 512, NULL, infoLog);
+        glGetProgramInfoLog(program, 512, NULL, infoLog);
         raiseError("Couldn't link shaders | " + std::string(infoLog));
     }
 
