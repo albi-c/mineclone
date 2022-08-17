@@ -211,13 +211,17 @@ void Chunk::generate() {
 
     generate_biomes(biomes);
 
+    srand(seed + cx * cx & 0xf + cz * cz & 0xf);
+
     auto heightmap = new float[CHUNK_SIZE][CHUNK_SIZE];
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
             heightmap[x][z] = glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 128.0f, (cz * CHUNK_SIZE + z) / 128.0f, seed)) \
                 + glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 32.0f, (cz * CHUNK_SIZE + z) / 32.0f, seed)) / 4.0f \
-                + glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 16.0f, (cz * CHUNK_SIZE + z) / 16.0f, seed)) / 16.0f;
+                + glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 16.0f, (cz * CHUNK_SIZE + z) / 16.0f, seed)) / 16.0f \
+                + glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 256.0f, (cz * CHUNK_SIZE + z) / 256.0f, seed)) * 2.0f;
+            heightmap[x][z] = std::clamp(heightmap[x][z], -2.0f, 10.0f);
         }
     }
 
@@ -241,6 +245,14 @@ void Chunk::generate() {
                     int treeh = stone_h + 7 + glm::linearRand<int>(3, 6);
                     fill(x-2, stone_h+10, z-2, x+2, treeh+1, z+2, Material::LEAVES);
                     fill(x, stone_h + 7, z, x, treeh, z, Material::LOG);
+                }
+            } else if (biome == (Biome)Biome::MOUNTAINS) {
+                int height = std::clamp(std::pow(heightmap[x][z] * 10, 2.0f), 6.0f, 100.0f);
+                if (height < 70)
+                    fill(x, stone_h, z, x, stone_h + height, z, Material::STONE);
+                else {
+                    fill(x, stone_h, z, x, stone_h + height, z, Material::STONE);
+                    fill(x, stone_h + 70 - heightmap[x][z] * 2, z, x, stone_h + height, z, Material::SNOW);
                 }
             } else if (biome == (Biome)Biome::DESERT) {
                 fill(x, stone_h+1, z, x, stone_h+6, z, Material::SAND);

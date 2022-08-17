@@ -2,5 +2,5 @@ mineclone
 .vscode/
 *.o
 build/
-res/minecraft/*.png
+res/textures/minecraft/*.png
 imgui.ini

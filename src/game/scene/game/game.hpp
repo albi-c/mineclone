@@ -34,6 +34,7 @@ namespace game {
         Player player;
 
         std::shared_ptr<World> world;
+        int world_seed;
 
         std::map<std::pair<int, int>, std::shared_ptr<Mesh>> chunk_meshes;
 

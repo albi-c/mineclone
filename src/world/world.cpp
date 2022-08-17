@@ -29,6 +29,7 @@ void World::update() {
 }
 void World::update_loaded() {
     required_chunks.clear();
+    required_chunk_meshes.clear();
 
     auto cpos = wu::chunk_pos(x, z);
     int cx = cpos.first;
@@ -49,8 +50,6 @@ void World::update_loaded() {
         chunks.erase(pos);
         EventManager::fire(EventChunkUnload{pos.first, pos.second});
     }
-
-    required_chunk_meshes = required_chunks;
 }
 void World::generate(const TextureArray& texture_array) {
     if (!required_chunks.empty()) {
@@ -61,6 +60,8 @@ void World::generate(const TextureArray& texture_array) {
         chunks[pos] = chunk;
 
         update_neighbors(pos);
+
+        EventManager::fire(EventChunkLoad{chunk, chunk->mesh(texture_array), pos.first, pos.second});
 
         return;
     }

@@ -10,6 +10,7 @@
 BETTER_ENUM(Biome, int,
     FOREST = 0,
     PLAINS,
+    MOUNTAINS,
     DESERT
 );
 BETTER_ENUMS_DECLARE_STD_HASH(Biome);

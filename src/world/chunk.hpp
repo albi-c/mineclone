@@ -8,6 +8,7 @@
 #include <array>
 #include <map>
 #include <memory>
+#include <algorithm>
 
 #include "world/block.hpp"
 #include "world/biome.hpp"

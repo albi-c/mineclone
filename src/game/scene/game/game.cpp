@@ -4,22 +4,12 @@ namespace game {
     void SceneGame::init() {
         handlers.game = this;
         handlers.listen();
+        
+        srand(time(0));
 
-        d.world = std::make_shared<World>(new World(4, Options::get("render_distance")));
+        d.world_seed = glm::linearRand(-(1<<16), 1>>16);
 
-        // d.chunks[{0, 0}] = std::make_shared<SceneGameChunk>(new SceneGameChunk(
-        //     std::make_shared<Chunk>(new Chunk(
-        //         4,
-        //         0, 0
-        //     ))
-        // ));
-        // auto mesh_data = d.chunks[{0, 0}]->chunk->mesh(*r.block_textures);
-        // d.chunks[{0, 0}]->mesh = std::make_shared<Mesh>(new Mesh(
-        //     *mesh_data,
-        //     r.block_shader,
-        //     r.block_textures_map,
-        //     glm::vec3(0.5f, 0.0f, 0.0f)
-        // ));
+        d.world = std::make_shared<World>(new World(d.world_seed, Options::get("render_distance")));
     }
 
     void SceneGame::enable() {
@@ -68,7 +58,7 @@ namespace game {
         r.block_shader->uniform("light.diffuse", glm::vec3(0.7f));
         r.block_shader->uniform("light.diffuse_dir", glm::vec3(1.0f, -1.0f, 1.0f));
 
-        r.block_shader->uniform("light.sun", glm::vec3(1.5f, 1.5f, 1.1f));
+        r.block_shader->uniform("light.sun", glm::vec3(1.8f, 1.8f, 1.4f));
 
         handlers.option_change_event_queue.process();
         handlers.chunk_load_event_queue.process();

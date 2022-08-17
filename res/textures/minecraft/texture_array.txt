@@ -11,3 +11,4 @@ planks
 sand
 stone
 glass
+snow

@@ -1,7 +1,7 @@
 from zipfile import ZipFile
 import os, json
 
-RES_DIR = "res/minecraft"
+RES_DIR = "res/textures/minecraft"
 
 names = []
 
