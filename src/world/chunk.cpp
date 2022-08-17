@@ -217,10 +217,10 @@ void Chunk::generate() {
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            heightmap[x][z] = glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 128.0f, (cz * CHUNK_SIZE + z) / 128.0f, seed)) \
-                + glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 32.0f, (cz * CHUNK_SIZE + z) / 32.0f, seed)) / 4.0f \
-                + glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 16.0f, (cz * CHUNK_SIZE + z) / 16.0f, seed)) / 16.0f \
-                + glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 256.0f, (cz * CHUNK_SIZE + z) / 256.0f, seed)) * 2.0f;
+            heightmap[x][z] = glm::perlin(glm::vec3((cx * CHUNK_SIZE + x) / 128.0f, (cz * CHUNK_SIZE + z) / 128.0f, seed)) \
+                + glm::perlin(glm::vec3((cx * CHUNK_SIZE + x) / 32.0f, (cz * CHUNK_SIZE + z) / 32.0f, seed)) / 4.0f \
+                + glm::perlin(glm::vec3((cx * CHUNK_SIZE + x) / 16.0f, (cz * CHUNK_SIZE + z) / 16.0f, seed)) / 16.0f \
+                + glm::perlin(glm::vec3((cx * CHUNK_SIZE + x) / 256.0f, (cz * CHUNK_SIZE + z) / 256.0f, seed)) * 2.0f;
             heightmap[x][z] = std::clamp(heightmap[x][z], -2.0f, 10.0f);
         }
     }
@@ -238,7 +238,7 @@ void Chunk::generate() {
                 if (glm::linearRand(0.0f, 1.0f) >= 0.995f) {
                     set(x, stone_h+7, z, Material::FLOWER);
                 }
-                if (glm::linearRand(0.0f, 1.0f) >= 0.99f) {
+                if (glm::linearRand(0.0f, 1.0f) >= 0.98f) {
                     set(x, stone_h+7, z, Material::GRASS);
                 }
                 if (biomes[x][z] == (Biome)Biome::FOREST && glm::linearRand(0.0f, 1.0f) > 0.98f) {
@@ -247,7 +247,7 @@ void Chunk::generate() {
                     fill(x, stone_h + 7, z, x, treeh, z, Material::LOG);
                 }
             } else if (biome == (Biome)Biome::MOUNTAINS) {
-                int height = std::clamp(std::pow(heightmap[x][z] * 10, 2.0f), 6.0f, 100.0f);
+                int height = std::clamp(std::pow(std::max(heightmap[x][z], 0.0f) * 10, 2.0f), 6.0f, 100.0f);
                 if (height < 70)
                     fill(x, stone_h, z, x, stone_h + height, z, Material::STONE);
                 else {

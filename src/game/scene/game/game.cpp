@@ -25,23 +25,21 @@ namespace game {
         d.world->generate(*r.block_textures);
     }
     void SceneGame::update_keyboard(float dt, const bool* pressed) {
-        int old_px = d.player.pos.x;
-        int old_pz = d.player.pos.z;
         auto old_chunk_pos = wu::chunk_pos({d.player.pos.x, d.player.pos.z});
 
         char movement = 0;
         if (pressed[GLFW_KEY_W])
-            movement |= (int)CameraMoveDirection::FORWARD;
+            movement |= (int)PlayerMoveDirection::FORWARD;
         if (pressed[GLFW_KEY_S])
-            movement |= (int)CameraMoveDirection::BACKWARD;
+            movement |= (int)PlayerMoveDirection::BACKWARD;
         if (pressed[GLFW_KEY_A])
-            movement |= (int)CameraMoveDirection::LEFT;
+            movement |= (int)PlayerMoveDirection::LEFT;
         if (pressed[GLFW_KEY_D])
-            movement |= (int)CameraMoveDirection::RIGHT;
+            movement |= (int)PlayerMoveDirection::RIGHT;
         if (pressed[GLFW_KEY_SPACE])
-            movement |= (int)CameraMoveDirection::UP;
+            movement |= (int)PlayerMoveDirection::UP;
         if (pressed[GLFW_KEY_LEFT_SHIFT])
-            movement |= (int)CameraMoveDirection::DOWN;
+            movement |= (int)PlayerMoveDirection::DOWN;
         d.player.move(movement, dt * 40);
 
         auto chunk_pos = wu::chunk_pos({d.player.pos.x, d.player.pos.z});
@@ -58,7 +56,7 @@ namespace game {
         r.block_shader->uniform("light.diffuse", glm::vec3(0.7f));
         r.block_shader->uniform("light.diffuse_dir", glm::vec3(1.0f, -1.0f, 1.0f));
 
-        r.block_shader->uniform("light.sun", glm::vec3(1.8f, 1.8f, 1.4f));
+        r.block_shader->uniform("light.sun", glm::vec3(2.8f, 2.8f, 2.4f));
 
         handlers.option_change_event_queue.process();
         handlers.chunk_load_event_queue.process();
