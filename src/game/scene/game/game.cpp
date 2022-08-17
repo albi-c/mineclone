@@ -53,6 +53,13 @@ namespace game {
     void SceneGame::render() {
         Renderer::set_sky_color({0.47, 0.65, 1.0});
 
+        r.block_shader->uniform("light.ambient", glm::vec3(0.3f));
+
+        r.block_shader->uniform("light.diffuse", glm::vec3(0.7f));
+        r.block_shader->uniform("light.diffuse_dir", glm::vec3(1.0f, -1.0f, 1.0f));
+
+        r.block_shader->uniform("light.sun", glm::vec3(1.5f, 1.5f, 1.1f));
+
         handlers.chunk_load_event_queue.process();
         handlers.chunk_unload_event_queue.process();
 

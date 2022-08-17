@@ -58,6 +58,7 @@ void Mesh::render(const RenderData& data) {
     shader->uniform("shadow_transform", data.shadow_transform);
     shader->uniform("ortho", data.ortho);
     shader->uniform("shadowMap", data.shadow_map);
+    shader->uniform("shadowMapEnabled", data.shadow_map_enabled);
 
     shader->use();
     glBindVertexArray(VAO);

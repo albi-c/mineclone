@@ -88,7 +88,8 @@ void Renderer::render_end() {
                     glm::translate(glm::mat4(), obj->translation()),
                     bias_matrix * glm::translate(shadow_transform, obj->translation()),
                     ortho,
-                    15
+                    15,
+                    SHADOW_SIZE != 0 && shadows_enabled
                 });
             }
         }
@@ -110,7 +111,7 @@ void Renderer::set_sky_color(const glm::vec3& color) {
 }
 
 glm::mat4 Renderer::render_shadows() {
-    if (SHADOW_SIZE == 0 && shadows_enabled)
+    if (SHADOW_SIZE == 0 && !shadows_enabled)
         return glm::mat4();
     
     glViewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
@@ -136,7 +137,8 @@ glm::mat4 Renderer::render_shadows() {
                 glm::translate(glm::mat4(), obj->translation()),
                 glm::mat4(),
                 ortho,
-                0
+                0,
+                false
             });
         }
     }

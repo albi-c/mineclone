@@ -14,6 +14,7 @@ struct RenderData {
     glm::mat4 ortho;
 
     GLuint shadow_map;
+    bool shadow_map_enabled;
 };
 
 class Renderable {

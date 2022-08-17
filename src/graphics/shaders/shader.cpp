@@ -7,8 +7,7 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aTex;
 layout (location = 2) in vec3 aNormal;
 
-out vec2 TexCoord;
-flat out int TexLayer;
+out vec3 TexCoord;
 out vec3 Normal;
 out vec3 FragPos;
 out vec4 ShadowCoord;
@@ -22,15 +21,13 @@ void main() {
 
     ShadowCoord = shadow_transform * vec4(aPos, 1.0);
 
-    TexCoord = aTex.xy;
-    highp int TexLayer = int(aTex.z);
+    TexCoord = aTex;
     Normal = aNormal;
     FragPos = vec3(model * vec4(aPos, 1.0));
 }
 )", R"(
 #version 330 core
-in vec2 TexCoord;
-flat in int TexLayer;
+in vec3 TexCoord;
 in vec3 Normal;
 in vec3 FragPos;
 in vec4 ShadowCoord;
@@ -39,12 +36,14 @@ out vec4 FragColor;
 
 uniform sampler2DArray textureArray;
 uniform sampler2D shadowMap;
+uniform bool shadowMapEnabled;
 
 struct light_t {
     vec3 ambient;
 
     vec3 diffuse;
     vec3 diffuse_pos;
+    vec3 diffuse_dir;
 
     vec3 sun;
 };
@@ -53,30 +52,32 @@ uniform light_t light;
 float shadow();
 
 void main() {
-    vec4 color = texture(textureArray, vec3(TexCoord, TexLayer));
+    vec4 color = texture(textureArray, vec3(TexCoord));
     if (color.a == 0.0)
         discard;
 
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(light.diffuse_pos - FragPos);
+    lightDir = normalize(light.diffuse_dir);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = light.diffuse * diff;
 
     vec3 ambient = light.ambient;
     
     vec3 light = (diffuse + ambient) * shadow() * light.sun;
+    // light = vec3(shadow());
 
     color *= vec4(light, 1.0);
 
     color /= vec4(color.rgb + 1.0, 1.0);
     
     FragColor = vec4(pow(color.rgb, vec3(1.0 / 2.2)), 1.0);
-
-    // DEBUGGING
-    FragColor = vec4(TexCoord.xy, color.r + color.g + color.b, 1.0);
 }
 
 float shadow() {
+    // if (!shadowMapEnabled)
+    //     return 1.0;
+    
     float visibility = 1.0;
     float bias = 0.0003;
 
