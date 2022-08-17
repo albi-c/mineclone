@@ -5,16 +5,12 @@
 void RendererHandlers::framebuffer_resize_event_handler(const EventFramebufferResize& e) {
     Renderer::resize(e.width, e.height);
 }
-void RendererHandlers::option_change_event_handler(const EventOptionChange& e) {
-    Renderer::shadows_enabled = e.value;
-}
 
 void Renderer::init(int width, int height) {
     resize(width, height);
     set_sky_color(glm::vec3());
 
     EventManager::listen(handlers.framebuffer_resize_event_queue);
-    EventManager::listen(handlers.option_change_event_queue);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -42,7 +38,6 @@ void Renderer::init(int width, int height) {
 
 void Renderer::render_start() {
     handlers.framebuffer_resize_event_queue.process();
-    handlers.option_change_event_queue.process();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -74,6 +69,7 @@ void Renderer::render_end() {
 
     glm::mat4 ortho = Camera::ortho_matrix();
 
+    bool shadows = shadows_enabled();
 
     for (auto& [object, flags] : render_queue) {
         if (flags.cull_faces)
@@ -89,7 +85,7 @@ void Renderer::render_end() {
                     bias_matrix * glm::translate(shadow_transform, obj->translation()),
                     ortho,
                     15,
-                    SHADOW_SIZE != 0 && shadows_enabled
+                    shadows
                 });
             }
         }
@@ -110,8 +106,12 @@ void Renderer::set_sky_color(const glm::vec3& color) {
     glClearColor(sky_color.r, sky_color.g, sky_color.b, 1.0f);
 }
 
+bool Renderer::shadows_enabled() {
+    return (SHADOW_SIZE != 0) && Options::get("shadows");
+}
+
 glm::mat4 Renderer::render_shadows() {
-    if (SHADOW_SIZE == 0 && !shadows_enabled)
+    if (!shadows_enabled())
         return glm::mat4();
     
     glViewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
@@ -119,7 +119,7 @@ glm::mat4 Renderer::render_shadows() {
     glClear(GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 view = glm::lookAt(glm::vec3(50.0f, 120.0f, 2.0f), glm::vec3(100.0f, 50.0f, 100.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 projection = glm::ortho(-190.0f, 190.0f, -110.0f, 105.0f, 30.0f, 500.0f);
+    glm::mat4 projection = glm::ortho(-190.0f, 190.0f, -110.0f, 105.0f, 0.0f, 500.0f);
     
     glm::mat4 transform = projection * view;
 

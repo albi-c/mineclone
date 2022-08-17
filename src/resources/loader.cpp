@@ -24,3 +24,7 @@ std::shared_ptr<TextureArray> ResourceLoader::texture_array(const std::string& n
     tex_arr->generate();
     return tex_arr;
 }
+
+std::shared_ptr<Shader> ResourceLoader::shader(const std::string& name) {
+    return std::make_shared<Shader>(string("shaders/" + name + ".vert"), string("shaders/" + name + ".frag"), name != "shadow");
+}

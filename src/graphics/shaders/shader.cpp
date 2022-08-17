@@ -1,5 +1,7 @@
 #include "shader.hpp"
 
+#include "resources/loader.hpp"
+
 static const std::map<BuiltinShader, std::pair<std::string, std::string>> BUILTIN_SHADERS = {
 {BuiltinShader::BLOCK, {R"(
 #version 330 core
@@ -65,30 +67,44 @@ void main() {
     vec3 ambient = light.ambient;
     
     vec3 light = (diffuse + ambient) * shadow() * light.sun;
-    // light = vec3(shadow());
 
     color *= vec4(light, 1.0);
 
     color /= vec4(color.rgb + 1.0, 1.0);
     
-    FragColor = vec4(pow(color.rgb, vec3(1.0 / 2.2)), 1.0);
+    FragColor = vec4(pow(color.rgb, vec3(1.0 / 1.8)), 1.0);
 }
 
 float shadow() {
-    // if (!shadowMapEnabled)
-    //     return 1.0;
+    if (!shadowMapEnabled)
+        return 1.0;
     
-    float visibility = 1.0;
-    float bias = 0.0003;
+    // float visibility = 1.0;
+    // float bias = 0.0003;
 
-    float shadowValue = texture(shadowMap, ShadowCoord.xy).x * 0.5;
-    for (int x = -2; x <= 2; x++) {
-        for (int y = -2; y <= 2; y++) {
-            shadowValue += texture(shadowMap, ShadowCoord.xy + vec2(x / 128, y / 128)).x * 0.02;
+    // float shadowValue = texture(shadowMap, ShadowCoord.xy).x * 0.5;
+    // for (int x = -2; x <= 2; x++) {
+    //     for (int y = -2; y <= 2; y++) {
+    //         shadowValue += texture(shadowMap, ShadowCoord.xy + vec2(x / 128, y / 128)).x * 0.02;
+    //     }
+    // }
+    // if (shadowValue < ShadowCoord.z - bias)
+    //     visibility *= 0.1;
+
+    const int range = 3;
+    const int float = (range * 2.0 + 1.0) * (range * 2.0 + 1.0);
+    vec2 texelSize = vec2(1.0) / textureSize(shadowMap).xy;
+    float visibility = 0.0;
+    float bias = 0.0002;
+
+    for (int x = -range; x <= range; x++) {
+        for (int y = -range; y <= range; y++) {
+            if (texture(shadowMap, ShadowCoord.xy + texelSize * vec2(x, y)) > ShadowCoord.z - bias)
+                visibility += 1.0;
         }
     }
-    if (shadowValue < ShadowCoord.z - bias)
-        visibility *= 0.1;
+
+    visibility /= count;
     
     return visibility;
 }
@@ -144,19 +160,14 @@ void main() {
 )"}}
 };
 
-Shader::Shader(Shader* other)
-    : shadow(other->shadow) {
-    
+Shader::Shader(Shader* other) {
+    shadow = other->shadow;
     program = other->program;
 }
-Shader::Shader(const std::string& vertex_code, const std::string& fragment_code) {
-    shadow = new Shader(BuiltinShader::DEPTH);
+Shader::Shader(const std::string& vertex_code, const std::string& fragment_code, bool load_shadow) {
+    if (load_shadow)
+        shadow = ResourceLoader::shader("shadow");
     init(vertex_code, fragment_code);
-}
-Shader::Shader(BuiltinShader shader) {
-    if (shader != BuiltinShader::DEPTH)
-        shadow = new Shader(BuiltinShader::DEPTH);
-    init(BUILTIN_SHADERS.at(shader).first, BUILTIN_SHADERS.at(shader).second);
 }
 
 void Shader::use() {

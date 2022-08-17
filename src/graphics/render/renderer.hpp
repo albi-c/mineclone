@@ -9,6 +9,7 @@
 #include "camera/camera.hpp"
 #include "window/event.hpp"
 #include "game/event.hpp"
+#include "game/options.hpp"
 
 struct RenderOptions {
     bool render_shadows = true;
@@ -18,12 +19,9 @@ struct RenderOptions {
 class Renderer;
 struct RendererHandlers {
     static void framebuffer_resize_event_handler(const EventFramebufferResize& e);
-    static void option_change_event_handler(const EventOptionChange& e);
 
     FunctionEventQueue<EventFramebufferResize> framebuffer_resize_event_queue = \
         FunctionEventQueue<EventFramebufferResize>(RendererHandlers::framebuffer_resize_event_handler);
-    FunctionEventQueue<EventOptionChange> option_change_event_queue = \
-        FunctionEventQueue<EventOptionChange>(RendererHandlers::option_change_event_handler);
 };
 
 class Renderer {
@@ -52,7 +50,7 @@ private:
     friend struct RendererHandlers;
     static inline RendererHandlers handlers;
 
-    static inline bool shadows_enabled;
+    static bool shadows_enabled();
 
     static glm::mat4 render_shadows();
 };

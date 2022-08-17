@@ -3,6 +3,7 @@
 #include <map>
 #include <utility>
 #include <string>
+#include <memory>
 
 #include "lib/opengl.hpp"
 
@@ -12,11 +13,10 @@ enum class BuiltinShader {
 
 class Shader {
 public:
-    Shader* shadow;
+    std::shared_ptr<Shader> shadow;
 
     Shader(Shader* other);
-    Shader(const std::string& vertex_code, const std::string& fragment_code);
-    Shader(BuiltinShader shader);
+    Shader(const std::string& vertex_code, const std::string& fragment_code, bool load_shadow = true);
 
     void use();
 

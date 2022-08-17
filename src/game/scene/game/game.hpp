@@ -44,15 +44,11 @@ namespace game {
         std::shared_ptr<TextureArray> block_textures;
         std::map<std::string, std::shared_ptr<Texture>> block_textures_map;
         std::shared_ptr<Shader> block_shader;
-
-        std::shared_ptr<Shader> gui_shader;
-
+        
         SceneGameResources()
             : block_textures(ResourceLoader::texture_array("minecraft", true)),
               block_textures_map({{"textureArray", block_textures}}),
-              block_shader(new Shader(BuiltinShader::BLOCK)),
-
-              gui_shader(new Shader(BuiltinShader::GUI))
+              block_shader(ResourceLoader::shader("block"))
         {
             block_textures->generate();
         }
