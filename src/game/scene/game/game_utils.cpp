@@ -8,14 +8,13 @@ namespace game {
         EventManager::listen(key_press_event_queue);
         EventManager::listen(option_change_event_queue);
         EventManager::listen(chunk_load_event_queue);
+        EventManager::listen(chunk_unload_event_queue);
     }
     void SceneGameHandlers::process() {
         window_resize_event_handler.process();
         mouse_move_event_queue.process();
         mouse_click_event_queue.process();
         key_press_event_queue.process();
-        // option_change_event_queue.process();
-        // chunk_load_event_queue.process();
     }
     void SceneGameHandlers::clear() {
         mouse_move_event_queue.clear();

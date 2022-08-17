@@ -10,6 +10,15 @@
 #include "event.hpp"
 #include "util/world.hpp"
 
+class World;
+struct WorldHandlers {
+    static inline World* world;
+
+    static void chunk_redraw_event_handler(const EventChunkRedraw& e);
+
+    FunctionEventQueue<EventChunkRedraw> chunk_redraw_event_queue = FunctionEventQueue<EventChunkRedraw>(WorldHandlers::chunk_redraw_event_handler);
+};
+
 class World {
 public:
     World(World* other);
@@ -63,8 +72,19 @@ public:
     }
 
     std::shared_ptr<Chunk> chunk(int x, int z);
-    inline std::shared_ptr<Chunk> chunk(ChunkPosition pos) {
+    inline std::shared_ptr<Chunk> chunk(const ChunkPosition& pos) {
         return chunk(pos.x, pos.z);
+    }
+    inline std::shared_ptr<Chunk> chunk(const std::pair<int, int>& pos) {
+        return chunk(pos.first, pos.second);
+    }
+
+    bool chunk_exists(int x, int z);
+    inline bool chunk_exists(const ChunkPosition& pos) {
+        return chunk_exists(pos.x, pos.z);
+    }
+    inline bool chunk_exists(const std::pair<int, int>& pos) {
+        return chunk_exists(pos.first, pos.second);
     }
 
 private:
@@ -74,5 +94,11 @@ private:
     unsigned int render_distance = 1;
 
     std::set<std::pair<int, int>> required_chunks;
+    std::set<std::pair<int, int>> required_chunk_meshes;
     std::map<std::pair<int, int>, std::shared_ptr<Chunk>> chunks;
+
+    friend struct WorldHandlers;
+    WorldHandlers handlers;
+
+    void update_neighbors(const std::pair<int, int>& pos);
 };

@@ -16,7 +16,6 @@ struct RenderOptions {
     bool cull_faces = true;
 };
 
-class Renderer;
 struct RendererHandlers {
     static void framebuffer_resize_event_handler(const EventFramebufferResize& e);
 

@@ -370,6 +370,7 @@ std::shared_ptr<Chunk> Chunk::get_neighbor(ChunkNeighbor neighbor) {
 }
 void Chunk::set_neighbor(ChunkNeighbor neighbor, std::shared_ptr<Chunk> chunk) {
     neighbors[(int)neighbor] = chunk;
+    EventManager::fire(EventChunkRedraw{cx, cz});
 }
 
 void Chunk::generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]) {

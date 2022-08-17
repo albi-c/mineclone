@@ -35,6 +35,10 @@ namespace game {
         d.world->generate(*r.block_textures);
     }
     void SceneGame::update_keyboard(float dt, const bool* pressed) {
+        int old_px = d.player.pos.x;
+        int old_pz = d.player.pos.z;
+        auto old_chunk_pos = wu::chunk_pos({d.player.pos.x, d.player.pos.z});
+
         char movement = 0;
         if (pressed[GLFW_KEY_W])
             movement |= (int)CameraMoveDirection::FORWARD;
@@ -49,6 +53,12 @@ namespace game {
         if (pressed[GLFW_KEY_LEFT_SHIFT])
             movement |= (int)CameraMoveDirection::DOWN;
         d.player.move(movement, dt * 40);
+
+        auto chunk_pos = wu::chunk_pos({d.player.pos.x, d.player.pos.z});
+
+        if (old_chunk_pos != chunk_pos) {
+            d.world->move(d.player.pos.x, d.player.pos.z);
+        }
     }
     void SceneGame::render() {
         Renderer::set_sky_color({0.47, 0.65, 1.0});
@@ -60,6 +70,7 @@ namespace game {
 
         r.block_shader->uniform("light.sun", glm::vec3(1.5f, 1.5f, 1.1f));
 
+        handlers.option_change_event_queue.process();
         handlers.chunk_load_event_queue.process();
         handlers.chunk_unload_event_queue.process();
 

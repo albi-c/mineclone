@@ -99,6 +99,8 @@ private:
     static std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> blocks_to_set;
 
     void generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]);
+
+    void redraw();
 };
 
 struct EventChunkRedraw : Event {

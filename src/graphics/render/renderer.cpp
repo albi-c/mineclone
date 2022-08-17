@@ -118,7 +118,11 @@ glm::mat4 Renderer::render_shadows() {
     glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 view = glm::lookAt(glm::vec3(50.0f, 120.0f, 2.0f), glm::vec3(100.0f, 50.0f, 100.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::lookAt(
+        glm::vec3(50.0f, 120.0f, 2.0f) + glm::vec3(Camera::pos.x, 0.0f, Camera::pos.z),
+        glm::vec3(100.0f, 50.0f, 100.0f) + glm::vec3(Camera::pos.x, 0.0f, Camera::pos.z),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+        );
     glm::mat4 projection = glm::ortho(-190.0f, 190.0f, -110.0f, 105.0f, 0.0f, 500.0f);
     
     glm::mat4 transform = projection * view;

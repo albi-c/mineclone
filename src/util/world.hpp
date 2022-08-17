@@ -7,8 +7,8 @@
 namespace wu {
     inline std::pair<int, int> chunk_pos(int x, int z) {
         return {
-            x < 0 ? -(x & 0xf) : x & 0xf,
-            z < 0 ? -(z & 0xf) : z & 0xf
+            x < 0 ? -(::abs(x) >> 4) : x >> 4,
+            z < 0 ? -(::abs(z) >> 4) : z >> 4
         };
     }
     inline std::pair<int, int> chunk_pos(const std::pair<int, int>& block_pos) {
