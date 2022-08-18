@@ -31,6 +31,7 @@ public:
 
 private:
     GLFWwindow* window;
+    bool fullscreen = false, fullscreen_set = false;
     int width = 1, height = 1;
     double mouseX = 0.0, mouseY = 0.0;
     double dt = 0.0, last_time = 0.0;

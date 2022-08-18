@@ -38,7 +38,7 @@ public:
     static void add_scene(const std::string& name);
 
 private:
-    static inline std::shared_ptr<Window> window;
+    static inline Window* window;
 
     static inline std::map<std::string, Scene*> scenes;
     static inline Scene* scene;

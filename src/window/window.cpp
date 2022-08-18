@@ -3,7 +3,6 @@
 #include "gl_debug.inl"
 
 Window::Window() {
-    
     Camera::init(45.0f);
 
     glfwInit();
@@ -57,6 +56,8 @@ Window::Window() {
 }
 Window::Window(Window* other) {
     window = other->window;
+    fullscreen = other->fullscreen;
+    fullscreen_set = other->fullscreen_set;
     width = other->width;
     height = other->height;
     mouseX = other->mouseX;
@@ -85,6 +86,23 @@ bool Window::update(double& dt) {
     return update();
 }
 void Window::render_start() {
+    if (fullscreen_set) {
+        if (fullscreen) {
+            glfwSetWindowMonitor(window, NULL, 0, 50, width, height - 100, 0);
+
+            fullscreen = false;
+        } else {
+            GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+
+            const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+            glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+
+            fullscreen = true;
+        }
+        fullscreen_set = false;
+    }
+    
     Renderer::render_start();
 }
 void Window::render_end() {
@@ -156,4 +174,8 @@ void Window::callback_key_press(GLFWwindow* glfw_window, int key, int scancode, 
 }
 void Window::_callback_key_press(int key, int scancode, int action, int mods) {
     EventManager::fire(EventKeyPress{key, scancode, action, mods});
+
+    if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
+        fullscreen_set = true;
+    }
 }

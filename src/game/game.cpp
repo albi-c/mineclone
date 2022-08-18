@@ -1,7 +1,7 @@
 #include "game.hpp"
 
 void Game::init() {
-    window = std::make_shared<Window>(new Window());
+    window = new Window();
 
     EventManager::listen(game_stop_event_queue);
     EventManager::listen(scene_change_event_queue);
