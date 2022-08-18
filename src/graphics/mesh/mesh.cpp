@@ -61,8 +61,8 @@ void Mesh::render(const RenderData& data) {
     shader->uniform("shadowMapEnabled", data.shadow_map_enabled);
 
     shader->use();
-    glBindVertexArray(VAO);
 
+    glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices);
 }
 void Mesh::render_shadows(const RenderData& data) {

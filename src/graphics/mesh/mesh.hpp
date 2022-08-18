@@ -7,7 +7,6 @@
 #include "lib/opengl.hpp"
 #include "graphics/shaders/shader.hpp"
 #include "graphics/textures/texture.hpp"
-#include "graphics/textures/texture_array.hpp"
 #include "graphics/render/renderable.hpp"
 #include "camera/frustum.hpp"
 
@@ -22,10 +21,9 @@ struct MeshData {
         : part_sizes(other->part_sizes), data(other->data) {}
 };
 
+class MeshGroup;
 class Mesh : public Renderable {
 public:
-    std::shared_ptr<Shader> shader;
-
     Mesh(Mesh* other);
     Mesh(
         const MeshData& data,
@@ -48,8 +46,11 @@ public:
 
 private:
     GLuint VAO, VBO;
+    std::shared_ptr<Shader> shader;
     std::map<std::string, std::shared_ptr<Texture>> textures;
     int vertices;
     glm::vec3 translation_;
     frustum::AABB aabb;
+
+    friend class MeshGroup;
 };
