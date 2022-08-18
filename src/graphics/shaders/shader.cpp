@@ -30,7 +30,7 @@ void Shader::uniform(const std::string& name, float value) {
 }
 void Shader::uniform(const std::string& name, double value) {
     prepare_set_uniform();
-    glUniform1f(glGetUniformLocation(program, name.c_str()), value);
+    glUniform1f(glGetUniformLocation(program, name.c_str()), (float)value);
 }
 
 void Shader::uniform(const std::string& name, const glm::vec2& value) {

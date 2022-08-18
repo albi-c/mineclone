@@ -88,6 +88,14 @@ namespace game {
 
         r.block_shader->uniform("light.sun", glm::vec3(2.8f, 2.8f, 2.4f));
 
+        r.block_shader->uniform("block_properties.plant", (int)MaterialProperty::PLANT);
+        r.block_shader->uniform("block_properties.waving", (int)MaterialProperty::WAVING);
+        for (int block = 0; block < Material::_size(); block++) {
+            r.block_shader->uniform("block_properties.b[" + std::to_string(block) + "]", MATERIAL_PROPERTIES[block]);
+        }
+
+        r.block_shader->uniform("time", glfwGetTime());
+
         handlers.window_resize_event_handler.process();
         handlers.option_change_event_queue.process();
         handlers.chunk_load_event_queue.process();

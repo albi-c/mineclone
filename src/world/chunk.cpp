@@ -288,7 +288,7 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
                     continue;
                 
                 if (block.plant()) {
-                    #define PLANT_PART_SIZE 9
+                    #define PLANT_PART_SIZE 10
 
                     #define ADD_PLANT_PART(texture, block, data, face, part, x, y, z) \
                         data[PLANT_PART_SIZE * part + 0] = plant_faces[face][5 * part + 0] + x; \
@@ -299,7 +299,8 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
                         data[PLANT_PART_SIZE * part + 5] = tex.position(block.face_texture(face)); \
                         data[PLANT_PART_SIZE * part + 6] = plant_normals[face][0]; \
                         data[PLANT_PART_SIZE * part + 7] = plant_normals[face][1]; \
-                        data[PLANT_PART_SIZE * part + 8] = plant_normals[face][2]
+                        data[PLANT_PART_SIZE * part + 8] = plant_normals[face][2]; \
+                        data[PLANT_PART_SIZE * part + 9] = (float)block.material
                     
                     #define ADD_PLANT(vertices, texture, block, data, face, x, y, z) \
                         ADD_PLANT_PART(texture, block, data, face, 0, x, y, z); \
@@ -320,7 +321,7 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
                     continue;
                 }
                 
-                #define FACE_PART_SIZE 9
+                #define FACE_PART_SIZE 10
 
                 #define ADD_FACE_PART(texture, block, data, face, part, x, y, z) \
                     data[FACE_PART_SIZE * part + 0] = block_faces[face][5 * part + 0] + x; \
@@ -331,7 +332,8 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
                     data[FACE_PART_SIZE * part + 5] = tex.position(block.face_texture(face)); \
                     data[FACE_PART_SIZE * part + 6] = block_normals[face][0]; \
                     data[FACE_PART_SIZE * part + 7] = block_normals[face][1]; \
-                    data[FACE_PART_SIZE * part + 8] = block_normals[face][2]
+                    data[FACE_PART_SIZE * part + 8] = block_normals[face][2]; \
+                    data[FACE_PART_SIZE * part + 9] = (float)block.material
 
                 #define ADD_FACE(vertices, texture, block, data, face, x, y, z) \
                     ADD_FACE_PART(texture, block, face_data, face, 0, x, y, z); \
@@ -371,7 +373,7 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
         }
     }
 
-    return std::make_shared<MeshData>(new MeshData({3, 3, 3}, vertices));
+    return std::make_shared<MeshData>(new MeshData({3, 3, 3, 1}, vertices));
 }
 
 bool Chunk::has_neighbor(ChunkNeighbor neighbor) {

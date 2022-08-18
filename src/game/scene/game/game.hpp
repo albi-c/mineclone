@@ -19,6 +19,7 @@
 #include "util/string.hpp"
 
 #include "world/world.hpp"
+#include "world/material.hpp"
 
 #include "entity/player.hpp"
 

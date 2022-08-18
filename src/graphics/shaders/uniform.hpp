@@ -54,7 +54,7 @@ struct Uniform {
                 shader.uniform(name, v_float);
                 break;
             case UniformType::DOUBLE:
-                shader.uniform(name, v_double);
+                shader.uniform(name, (float)v_double);
                 break;
             case UniformType::VEC2:
                 shader.uniform(name, v_vec2);
