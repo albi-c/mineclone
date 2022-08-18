@@ -47,6 +47,7 @@ public:
 
 private:
     GLuint VAO, VBO;
+    bool buffers_initialized = false;
     std::shared_ptr<Shader> shader;
     std::map<std::string, std::shared_ptr<Texture>> textures;
     int vertices;

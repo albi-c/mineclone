@@ -4,6 +4,7 @@ Mesh::Mesh(Mesh* other) {
     shader = other->shader;
     VAO = other->VAO;
     VBO = other->VBO;
+    buffers_initialized = other->buffers_initialized;
     for (auto& [name, tex] : other->textures) {
         textures[name] = tex;
     }
@@ -20,15 +21,6 @@ Mesh::Mesh(
     )
     : shader(shader), textures(textures), translation_(translation), aabb(aabb) {
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    GLenum error;
-    while ((error = glGetError())) {
-        std::cout << "ERROR: " << error << "\n";
-        asm("int $3");
-    }
-
     rebuild(data);
 }
 
@@ -36,6 +28,7 @@ Mesh& Mesh::operator=(const Mesh& other) {
     shader = other.shader;
     VAO = other.VAO;
     VBO = other.VBO;
+    buffers_initialized = other.buffers_initialized;
     for (auto& [name, tex] : other.textures) {
         textures[name] = tex;
     }
@@ -94,6 +87,14 @@ bool Mesh::in_frustum(const frustum::Frustum& frustum) {
 }
 
 void Mesh::rebuild(const MeshData& data) {
+    if (buffers_initialized) {
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+    }
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);

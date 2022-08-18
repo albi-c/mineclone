@@ -15,6 +15,25 @@ namespace game {
             r.block_shader,
             r.block_textures_map
         ));
+
+        // int hw = 960;
+        // int hh = 470;
+
+        // d.gui_meshes["crosshair"] = std::make_shared<Mesh>(new Mesh(
+        //     {
+        //         {2, 2},
+        //         {
+        //             hw - 10.0f, hh - 10.0f,  0.0f, 0.0f,
+        //             hw - 10.0f, hh + 10.0f,  0.0f, 1.0f,
+        //             hw + 10.0f, hh + 10.0f,  1.0f, 1.0f,
+        //             hw - 10.0f, hh - 10.0f,  0.0f, 0.0f,
+        //             hw + 10.0f, hh + 10.0f,  1.0f, 1.0f,
+        //             hw + 10.0f, hh - 10.0f,  1.0f, 0.0f
+        //         }
+        //     },
+        //     r.crosshair_shader,
+        //     r.crosshair_textures_map
+        // ));
     }
 
     void SceneGame::enable() {
@@ -69,6 +88,7 @@ namespace game {
 
         r.block_shader->uniform("light.sun", glm::vec3(2.8f, 2.8f, 2.4f));
 
+        handlers.window_resize_event_handler.process();
         handlers.option_change_event_queue.process();
         handlers.chunk_load_event_queue.process();
         handlers.chunk_unload_event_queue.process();
@@ -85,6 +105,24 @@ namespace game {
     }
 
     void SceneGame::on_window_resize(const EventFramebufferResize& e) {
+        float hw = e.width / 2;
+        float hh = e.height / 2;
+
+        d.gui_meshes["crosshair"] = std::make_shared<Mesh>(new Mesh(
+            {
+                {2, 2},
+                {
+                    hw - 10.0f, hh - 10.0f,  0.0f, 0.0f,
+                    hw - 10.0f, hh + 10.0f,  0.0f, 1.0f,
+                    hw + 10.0f, hh + 10.0f,  1.0f, 1.0f,
+                    hw - 10.0f, hh - 10.0f,  0.0f, 0.0f,
+                    hw + 10.0f, hh + 10.0f,  1.0f, 1.0f,
+                    hw + 10.0f, hh - 10.0f,  1.0f, 0.0f
+                }
+            },
+            r.crosshair_shader,
+            r.crosshair_textures_map
+        ));
     }
     void SceneGame::on_mouse_move(const EventMouseMove& e) {
         d.player.rotate(e.x, e.y);

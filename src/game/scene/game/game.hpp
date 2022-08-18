@@ -48,11 +48,19 @@ namespace game {
         std::shared_ptr<TextureArray> block_textures;
         std::map<std::string, std::shared_ptr<Texture>> block_textures_map;
         std::shared_ptr<Shader> block_shader;
+
+        std::shared_ptr<Texture> crosshair_texture;
+        std::map<std::string, std::shared_ptr<Texture>> crosshair_textures_map;
+        std::shared_ptr<Shader> crosshair_shader;
         
         SceneGameResources()
             : block_textures(ResourceLoader::texture_array("minecraft", true)),
               block_textures_map({{"textureArray", block_textures}}),
-              block_shader(ResourceLoader::shader("block"))
+              block_shader(ResourceLoader::shader("block")),
+
+              crosshair_texture(ResourceLoader::texture("crosshair")),
+              crosshair_textures_map({{"texture0", crosshair_texture}}),
+              crosshair_shader(ResourceLoader::shader("gui"))
         {
             block_textures->generate();
         }

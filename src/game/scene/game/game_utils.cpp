@@ -11,7 +11,6 @@ namespace game {
         EventManager::listen(chunk_unload_event_queue);
     }
     void SceneGameHandlers::process() {
-        window_resize_event_handler.process();
         mouse_move_event_queue.process();
         mouse_click_event_queue.process();
         key_press_event_queue.process();
