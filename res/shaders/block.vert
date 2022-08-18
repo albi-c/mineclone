@@ -12,7 +12,15 @@ uniform mat4 transform;
 uniform mat4 model;
 uniform mat4 shadow_transform;
 
+uniform float time;
+
+struct block_ids_t {
+    float plants[2];
+};
+uniform block_ids_t block_ids;
+
 void main() {
+
     gl_Position = transform * vec4(aPos, 1.0);
 
     ShadowCoord = shadow_transform * vec4(aPos, 1.0);

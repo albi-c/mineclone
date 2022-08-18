@@ -96,7 +96,11 @@ namespace game {
             *e.mesh_data,
             r.block_shader,
             r.block_textures_map,
-            {e.cx * CHUNK_SIZE + 0.5f, 0.0f, e.cz * CHUNK_SIZE + 0.5f}
+            {e.cx * CHUNK_SIZE + 0.5f, 0.0f, e.cz * CHUNK_SIZE + 0.5f},
+            {
+                {e.cx * CHUNK_SIZE + 0.5f, 0.0f, e.cz * CHUNK_SIZE + 0.5f},
+                {e.cx * CHUNK_SIZE + CHUNK_SIZE + 0.5f, CHUNK_HEIGHT, e.cz * CHUNK_SIZE + CHUNK_SIZE + 0.5f}
+            }
         ));
     }
     void SceneGame::on_chunk_unload(const EventChunkUnload& e) {
