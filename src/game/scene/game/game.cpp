@@ -10,6 +10,11 @@ namespace game {
         d.world_seed = glm::linearRand(-(1<<16), 1>>16);
 
         d.world = std::make_shared<World>(new World(d.world_seed, Options::get("render_distance")));
+
+        d.chunk_mesh_group = std::make_shared<MeshGroup<std::pair<int, int>>>(new MeshGroup<std::pair<int, int>>(
+            r.block_shader,
+            r.block_textures_map
+        ));
     }
 
     void SceneGame::enable() {
@@ -49,6 +54,12 @@ namespace game {
         }
     }
     void SceneGame::render() {
+        static double last_time = 0.0;
+
+        double time = glfwGetTime();
+        double fps = 1.0 / (time - last_time);
+        last_time = time;
+
         Renderer::set_sky_color({0.47, 0.65, 1.0});
 
         r.block_shader->uniform("light.ambient", glm::vec3(0.3f));
@@ -62,10 +73,7 @@ namespace game {
         handlers.chunk_load_event_queue.process();
         handlers.chunk_unload_event_queue.process();
 
-        for (auto& [pos, mesh] : d.chunk_meshes) {
-            if (mesh)
-                Renderer::render(mesh);
-        }
+        Renderer::render(d.chunk_mesh_group);
 
         for (auto& [name, mesh] : d.gui_meshes) {
             Renderer::render(mesh, {false, false});
@@ -92,7 +100,7 @@ namespace game {
             d.world->set_render_distance(e.value);
     }
     void SceneGame::on_chunk_load(const EventChunkLoad& e) {
-        d.chunk_meshes[{e.cx, e.cz}] = std::make_shared<Mesh>(new Mesh(
+        (*d.chunk_mesh_group)[{e.cx, e.cz}] = std::make_shared<Mesh>(new Mesh(
             *e.mesh_data,
             r.block_shader,
             r.block_textures_map,
@@ -104,6 +112,6 @@ namespace game {
         ));
     }
     void SceneGame::on_chunk_unload(const EventChunkUnload& e) {
-        d.chunk_meshes.erase({e.cx, e.cz});
+        d.chunk_mesh_group->erase({e.cx, e.cz});
     }
 };

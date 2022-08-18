@@ -62,8 +62,7 @@ void Mesh::render(const RenderData& data) {
 
     shader->use();
 
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, vertices);
+    render_basic();
 }
 void Mesh::render_shadows(const RenderData& data) {
     int i = 0;
@@ -77,8 +76,12 @@ void Mesh::render_shadows(const RenderData& data) {
     shader->shadow->uniform("model", data.model);
 
     shader->shadow->use();
-    glBindVertexArray(VAO);
+    
+    render_basic();
+}
 
+void Mesh::render_basic() {
+    glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices);
 }
 
@@ -86,7 +89,7 @@ glm::vec3 Mesh::translation() const {
     return translation_;
 }
 
-bool Mesh::in_frustum(const frustum::Frustum& frustum) const {
+bool Mesh::in_frustum(const frustum::Frustum& frustum) {
     return aabb.in_frustum(frustum);
 }
 

@@ -26,7 +26,11 @@ public:
         return glm::vec3(0.0f);
     }
 
-    inline virtual bool in_frustum(const frustum::Frustum& frustum) const {
+    inline virtual bool in_frustum(const frustum::Frustum& frustum) {
         return true;
+    }
+
+    inline virtual bool basic_render() const {
+        return false;
     }
 };

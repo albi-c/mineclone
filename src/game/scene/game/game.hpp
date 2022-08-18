@@ -23,6 +23,7 @@
 #include "entity/player.hpp"
 
 #include "graphics/render/renderer.hpp"
+#include "graphics/mesh/mesh_group.hpp"
 
 #include "game/options.hpp"
 #include "game/event.hpp"
@@ -36,9 +37,11 @@ namespace game {
         std::shared_ptr<World> world;
         int world_seed;
 
-        std::map<std::pair<int, int>, std::shared_ptr<Mesh>> chunk_meshes;
+        std::shared_ptr<MeshGroup<std::pair<int, int>>> chunk_mesh_group;
 
         std::map<std::string, std::shared_ptr<Mesh>> gui_meshes;
+
+        SceneGameData() {}
     };
 
     struct SceneGameResources {

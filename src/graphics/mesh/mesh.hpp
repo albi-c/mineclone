@@ -21,7 +21,6 @@ struct MeshData {
         : part_sizes(other->part_sizes), data(other->data) {}
 };
 
-class MeshGroup;
 class Mesh : public Renderable {
 public:
     Mesh(Mesh* other);
@@ -38,9 +37,11 @@ public:
     void render(const RenderData& data) override;
     void render_shadows(const RenderData& data) override;
 
+    void render_basic();
+
     glm::vec3 translation() const override;
 
-    bool in_frustum(const frustum::Frustum& frustum) const override;
+    bool in_frustum(const frustum::Frustum& frustum) override;
 
     void rebuild(const MeshData& data);
 
@@ -51,6 +52,4 @@ private:
     int vertices;
     glm::vec3 translation_;
     frustum::AABB aabb;
-
-    friend class MeshGroup;
 };

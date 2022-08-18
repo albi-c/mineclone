@@ -79,14 +79,25 @@ void Renderer::render_end() {
         
         if (auto obj = object.lock()) {
             if (obj->in_frustum(frustum)) {
-                obj->render({
-                    glm::translate(transform, obj->translation()),
-                    glm::translate(glm::mat4(), obj->translation()),
-                    bias_matrix * glm::translate(shadow_transform, obj->translation()),
-                    ortho,
-                    15,
-                    shadows
-                });
+                if (obj->basic_render()) {
+                    obj->render({
+                        transform,
+                        glm::mat4(1.0f),
+                        shadow_transform,
+                        ortho,
+                        15,
+                        shadows
+                    });
+                } else {
+                    obj->render({
+                        glm::translate(transform, obj->translation()),
+                        glm::translate(glm::mat4(), obj->translation()),
+                        bias_matrix * glm::translate(shadow_transform, obj->translation()),
+                        ortho,
+                        15,
+                        shadows
+                    });
+                }
             }
         }
     }
@@ -127,8 +138,6 @@ glm::mat4 Renderer::render_shadows() {
     
     glm::mat4 transform = projection * view;
 
-    glm::mat4 ortho = camera->ortho_matrix();
-
     glEnable(GL_CULL_FACE);
 
     for (auto& [object, flags] : render_queue) {
@@ -136,14 +145,16 @@ glm::mat4 Renderer::render_shadows() {
             continue;
         
         if (auto obj = object.lock()) {
-            obj->render_shadows({
-                glm::translate(transform, obj->translation()),
-                glm::translate(glm::mat4(), obj->translation()),
-                glm::mat4(),
-                ortho,
-                0,
-                false
-            });
+            if (obj->basic_render()) {
+                obj->render_shadows({
+                    transform
+                });
+            } else {
+                obj->render_shadows({
+                    glm::translate(transform, obj->translation()),
+                    glm::translate(glm::mat4(), obj->translation())
+                });
+            }
         }
     }
 
