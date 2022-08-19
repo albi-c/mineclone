@@ -215,10 +215,9 @@ void Chunk::generate() {
 
     auto heightmap_r = new float[CHUNK_SIZE][CHUNK_SIZE];
 
-    // new noise: IQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/DwADAAAAAAAAQP//AQAAAAAAPwAAAAAAARwAAQcAAAAAoEA=
-    FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("IQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/DwADAAAAAAAAQP//AQAAAAAAPwAAAAAAARwAAQcAAAAAoEA=");
+    FastNoise::SmartNode<> height_generator = FastNoise::NewFromEncodedNodeTree("IQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/DwADAAAAAAAAQP//AQAAAAAAPwAAAAAAARwAAQcAAAAAoEA=");
 
-    fnGenerator->GenUniformGrid2D(&heightmap_r[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.005f, seed);
+    height_generator->GenUniformGrid2D(&heightmap_r[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.005f, seed);
 
     auto heightmap = new float[CHUNK_SIZE][CHUNK_SIZE];
     for (int x = 0; x < CHUNK_SIZE; x++) {
@@ -226,16 +225,6 @@ void Chunk::generate() {
             heightmap[x][z] = heightmap_r[z][x];
         }
     }
-
-    // for (int x = 0; x < CHUNK_SIZE; x++) {
-    //     for (int z = 0; z < CHUNK_SIZE; z++) {
-    //         heightmap[x][z] = glm::perlin(glm::vec3((cx * CHUNK_SIZE + x) / 128.0f, (cz * CHUNK_SIZE + z) / 128.0f, seed)) \
-    //             + glm::perlin(glm::vec3((cx * CHUNK_SIZE + x) / 32.0f, (cz * CHUNK_SIZE + z) / 32.0f, seed)) / 4.0f \
-    //             + glm::perlin(glm::vec3((cx * CHUNK_SIZE + x) / 16.0f, (cz * CHUNK_SIZE + z) / 16.0f, seed)) / 16.0f \
-    //             + glm::perlin(glm::vec3((cx * CHUNK_SIZE + x) / 256.0f, (cz * CHUNK_SIZE + z) / 256.0f, seed)) * 2.0f;
-    //         heightmap[x][z] = std::clamp(heightmap[x][z], -2.0f, 10.0f);
-    //     }
-    // }
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {

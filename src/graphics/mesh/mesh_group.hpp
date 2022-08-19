@@ -85,6 +85,7 @@ public:
 
         for (auto& [id, mesh] : meshes) {
             shader->shadow->uniform("transform", glm::translate(data.transform, mesh->translation()));
+            shader->shadow->uniform("model", glm::translate(data.model, mesh->translation()));
             mesh->render_basic();
         }
     }

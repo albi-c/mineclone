@@ -15,11 +15,6 @@ uniform mat4 shadow_transform;
 
 uniform float time;
 
-struct block_ids_t {
-    float leaves;
-    float grass;
-};
-uniform block_ids_t block_ids;
 struct block_properties_t {
     int plant;
     int waving;
