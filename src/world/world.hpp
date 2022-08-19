@@ -9,6 +9,7 @@
 #include "block.hpp"
 #include "event.hpp"
 #include "util/world.hpp"
+#include "task/task.hpp"
 
 class World;
 struct WorldHandlers {
@@ -22,7 +23,7 @@ struct WorldHandlers {
 class World {
 public:
     World(World* other);
-    World(int seed, unsigned int render_distance = 1, int x = 0, int z = 0);
+    World(int seed, std::shared_ptr<TextureArray> texture_array, unsigned int render_distance = 1, int x = 0, int z = 0);
 
     void update();
     void update_loaded();
@@ -90,6 +91,8 @@ public:
 private:
     int seed;
     int x, z;
+
+    std::shared_ptr<TextureArray> texture_array;
 
     unsigned int render_distance = 1;
 

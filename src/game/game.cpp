@@ -3,6 +3,8 @@
 void Game::init() {
     window = new Window();
 
+    TaskScheduler::init(2);
+
     EventManager::listen(game_stop_event_queue);
     EventManager::listen(scene_change_event_queue);
 
@@ -42,6 +44,27 @@ void Game::run() {
         
         window->render_end();
     }
+
+    // while (window->update(dt)) {
+    //     // UPDATE
+    //     if (scene) {
+    //         scene->update(dt);
+    //         window->pressed_keys(pressed_keys);
+    //         scene->update_keyboard(dt, pressed_keys);
+    //     }
+
+    //     game_stop_event_queue.process();
+    //     scene_change_event_queue.process();
+
+    //     // RENDER
+    //     window->render_start();
+
+    //     if (scene) {
+    //         scene->render();
+    //     }
+        
+    //     window->render_end();
+    // }
 
     update_thread.join();
 }

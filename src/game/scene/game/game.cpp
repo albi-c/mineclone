@@ -9,7 +9,7 @@ namespace game {
 
         d.world_seed = glm::linearRand(-(1<<16), 1>>16);
 
-        d.world = std::make_shared<World>(new World(d.world_seed, Options::get("render_distance")));
+        d.world = std::make_shared<World>(new World(d.world_seed, r.block_textures, Options::get("render_distance")));
 
         d.chunk_mesh_group = std::make_shared<MeshGroup<std::pair<int, int>>>(new MeshGroup<std::pair<int, int>>(
             r.block_shader,
@@ -98,8 +98,9 @@ namespace game {
 
         handlers.window_resize_event_handler.process();
         handlers.option_change_event_queue.process();
-        handlers.chunk_load_event_queue.process();
-        handlers.chunk_unload_event_queue.process();
+        handlers.chunk_load_event_queue.process_one();
+        if (handlers.chunk_load_event_queue.empty())
+            handlers.chunk_unload_event_queue.process();
 
         Renderer::render(d.chunk_mesh_group);
 

@@ -6,13 +6,13 @@ void WorldHandlers::chunk_redraw_event_handler(const EventChunkRedraw& e) {
 }
 
 World::World(World* other)
-    : seed(other->seed), x(other->x), z(other->z), render_distance(other->render_distance), required_chunks(other->required_chunks), chunks(other->chunks) {
+    : seed(other->seed), x(other->x), z(other->z), render_distance(other->render_distance), required_chunks(other->required_chunks), chunks(other->chunks), texture_array(other->texture_array) {
     
     WorldHandlers::world = this;
     EventManager::listen(handlers.chunk_redraw_event_queue);
 }
-World::World(int seed, unsigned int render_distance, int x, int z)
-    : seed(seed), render_distance(render_distance), x(x), z(z) {
+World::World(int seed, std::shared_ptr<TextureArray> texture_array, unsigned int render_distance, int x, int z)
+    : seed(seed), texture_array(texture_array), render_distance(render_distance), x(x), z(z) {
     
     WorldHandlers::world = this;
     EventManager::listen(handlers.chunk_redraw_event_queue);
@@ -50,21 +50,16 @@ void World::update_loaded() {
         chunks.erase(pos);
         EventManager::fire(EventChunkUnload{pos.first, pos.second});
     }
-}
-void World::generate(const TextureArray& texture_array) {
-    if (!required_chunks.empty()) {
-        auto pos = *(--required_chunks.end());
-        required_chunks.erase(pos);
-
+    for (auto& pos : required_chunks) {
         auto chunk = std::make_shared<Chunk>(new Chunk(seed, pos.first, pos.second));
         chunks[pos] = chunk;
 
         update_neighbors(pos);
 
-        EventManager::fire(EventChunkLoad{chunk, chunk->mesh(texture_array), pos.first, pos.second});
-
-        return;
+        EventManager::fire(EventChunkLoad{chunk, chunk->mesh(*texture_array), pos.first, pos.second});
     }
+}
+void World::generate(const TextureArray& texture_array) {
     if (!required_chunk_meshes.empty()) {
         auto pos = *(--required_chunk_meshes.end());
         required_chunk_meshes.erase(pos);

@@ -20,6 +20,8 @@
 
 #include "event.hpp"
 
+#include "task/task.hpp"
+
 #include "scene/scene.hpp"
 #include "scene/main_menu.hpp"
 #include "scene/options.hpp"

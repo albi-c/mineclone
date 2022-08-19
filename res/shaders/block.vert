@@ -65,9 +65,9 @@ void main() {
 
     if ((block_properties.b[int(aBlock)] & block_properties.waving) != 0)
         if ((block_properties.b[int(aBlock)] & block_properties.plant) != 0)
-            pos += vec3(sin(time + random(FragPos.z) * time), 0.0, cos(time + random(FragPos.z) * time)) * 0.1 * aTex.y;
+            pos += vec3(sin(time + random(random(FragPos.z)) * time), 0.0, cos(time + random(random(FragPos.z)) * time)) * 0.1 * aTex.y;
         else
-            pos += vec3(sin(time + random(FragPos.z) * time), 0.0, cos(time + random(FragPos.z) * time)) * 0.05;
+            pos += vec3(sin(time + random(random(FragPos.z)) * time), 0.0, cos(time + random(random(FragPos.z)) * time)) * 0.04;
 
     gl_Position = transform * vec4(pos, 1.0);
 

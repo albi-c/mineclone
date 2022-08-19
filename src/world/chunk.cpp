@@ -215,6 +215,8 @@ void Chunk::generate() {
 
     auto heightmap = new float[CHUNK_SIZE][CHUNK_SIZE];
 
+    // new noise: IQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/DwADAAAAAAAAQP//AQAAAAAAPwAAAAAAARwAAQcAAAAAoEA=
+
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
             heightmap[x][z] = glm::perlin(glm::vec3((cx * CHUNK_SIZE + x) / 128.0f, (cz * CHUNK_SIZE + z) / 128.0f, seed)) \
