@@ -66,6 +66,11 @@ namespace game {
             movement |= (int)PlayerMoveDirection::DOWN;
         d.player.move(movement, dt * 40);
 
+        if (pressed[GLFW_KEY_C])
+            Camera::fov = 19.0f;
+        else
+            Camera::fov = 20.5f;
+
         auto chunk_pos = wu::chunk_pos({d.player.pos.x, d.player.pos.z});
 
         if (old_chunk_pos != chunk_pos) {
