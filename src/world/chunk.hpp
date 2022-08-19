@@ -16,6 +16,7 @@
 #include "graphics/mesh/mesh.hpp"
 #include "lib/opengl.hpp"
 #include "graphics/textures/texture_array.hpp"
+#include "FastNoise/FastNoise.h"
 
 enum class ChunkNeighbor {
     PX = 0,
