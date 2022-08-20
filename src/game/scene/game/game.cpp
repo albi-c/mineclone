@@ -104,6 +104,9 @@ namespace game {
 
         r.block_shader->uniform("time", glfwGetTime());
 
+        r.block_shader->uniform("camera_pos", Camera::pos);
+
+
         r.block_shader->shadow->uniform("block_properties.plant", (int)MaterialProperty::PLANT);
         r.block_shader->shadow->uniform("block_properties.waving", (int)MaterialProperty::WAVING);
         for (int block = 0; block < Material::_size(); block++) {
