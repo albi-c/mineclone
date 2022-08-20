@@ -138,17 +138,29 @@ Chunk::~Chunk() {
 Block Chunk::get(int x, int y, int z) {
     if (x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1) {
         if (x > -CHUNK_SIZE && z > -CHUNK_SIZE && x < CHUNK_SIZE * 2 - 1 && z < CHUNK_SIZE * 2 - 1) {
-            if (x < 0 && has_neighbor(ChunkNeighbor::NX))
-                return get_neighbor(ChunkNeighbor::NX)->get(x + CHUNK_SIZE, y, z);
+            if (x < 0 && has_neighbor(ChunkNeighbor::NX)) {
+                auto neighbor = get_neighbor(ChunkNeighbor::NX);
+                if (neighbor)
+                    return neighbor->get(x + CHUNK_SIZE, y, z);
+            }
             
-            if (x > CHUNK_SIZE - 1 && has_neighbor(ChunkNeighbor::PX))
-                return get_neighbor(ChunkNeighbor::PX)->get(x - CHUNK_SIZE, y, z);
+            if (x > CHUNK_SIZE - 1 && has_neighbor(ChunkNeighbor::PX)) {
+                auto neighbor = get_neighbor(ChunkNeighbor::PX);
+                if (neighbor)
+                    return neighbor->get(x - CHUNK_SIZE, y, z);
+            }
             
-            if (z < 0 && has_neighbor(ChunkNeighbor::NZ))
-                return get_neighbor(ChunkNeighbor::NZ)->get(x, y, z + CHUNK_SIZE);
+            if (z < 0 && has_neighbor(ChunkNeighbor::NZ)) {
+                auto neighbor = get_neighbor(ChunkNeighbor::NZ);
+                if (neighbor)
+                    return neighbor->get(x, y, z + CHUNK_SIZE);
+            }
             
-            if (z > CHUNK_SIZE - 1 && has_neighbor(ChunkNeighbor::PZ))
-                return get_neighbor(ChunkNeighbor::PZ)->get(x, y, z - CHUNK_SIZE);
+            if (z > CHUNK_SIZE - 1 && has_neighbor(ChunkNeighbor::PZ)) {
+                auto neighbor = get_neighbor(ChunkNeighbor::PZ);
+                if (neighbor)
+                    return neighbor->get(x, y, z - CHUNK_SIZE);
+            }
         }
         return Block();
     }

@@ -35,6 +35,14 @@ void Game::run() {
         }
     });
 
+    std::thread worker_thread([&]() {
+        while (running) {
+            if (scene) {
+                scene->update_worker();
+            }
+        }
+    });
+
     while (running) {
         window->render_start();
 
@@ -67,6 +75,7 @@ void Game::run() {
     // }
 
     update_thread.join();
+    worker_thread.join();
 }
 void Game::stop() {
     window->close();

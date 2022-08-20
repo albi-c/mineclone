@@ -1,12 +1,18 @@
 #include "world.hpp"
 
 void WorldHandlers::chunk_redraw_event_handler(const EventChunkRedraw& e) {
-    if (world->chunks.find({e.cx, e.cz}) != world->chunks.end())
+    if (world->chunks.find({e.cx, e.cz}) != world->chunks.end()) {
         world->required_chunk_meshes.insert({e.cx, e.cz});
+    }
 }
 
 World::World(World* other)
-    : seed(other->seed), x(other->x), z(other->z), render_distance(other->render_distance), required_chunks(other->required_chunks), chunks(other->chunks), texture_array(other->texture_array) {
+    : seed(other->seed),
+    x(other->x), z(other->z),
+    render_distance(other->render_distance),
+    required_chunks(other->required_chunks),
+    chunks(other->chunks),
+    texture_array(other->texture_array) {
     
     WorldHandlers::world = this;
     EventManager::listen(handlers.chunk_redraw_event_queue);
@@ -25,6 +31,7 @@ void World::update() {
         chunk->update();
     }
 
+    std::lock_guard<std::mutex> lock(required_chunk_meshes_mutex);
     handlers.chunk_redraw_event_queue.process();
 }
 void World::update_loaded() {
@@ -54,20 +61,26 @@ void World::update_loaded() {
         auto chunk = std::make_shared<Chunk>(new Chunk(seed, pos.first, pos.second));
         chunks[pos] = chunk;
 
-        update_neighbors(pos);
+        update_neighbors({pos.first, pos.second});
 
-        EventManager::fire(EventChunkLoad{chunk, chunk->mesh(*texture_array), pos.first, pos.second});
+        std::lock_guard<std::mutex> lock(required_chunk_meshes_mutex);
+        required_chunk_meshes.insert(pos);
     }
 }
 void World::generate(const TextureArray& texture_array) {
+    required_chunk_meshes_mutex.lock();
     if (!required_chunk_meshes.empty()) {
         auto pos = *(--required_chunk_meshes.end());
         required_chunk_meshes.erase(pos);
 
-        auto c = chunk(pos);
+        required_chunk_meshes_mutex.unlock();
+
+        auto c = chunk(glm::ivec2{pos.first, pos.second});
         if (c) {
             EventManager::fire(EventChunkLoad{c, c->mesh(texture_array), pos.first, pos.second});
         }
+    } else {
+        required_chunk_meshes_mutex.unlock();
     }
 }
 
@@ -125,30 +138,34 @@ bool World::chunk_exists(int x, int z) {
     return chunks.find({x, z}) != chunks.end();
 }
 
-void World::update_neighbors(const std::pair<int, int>& pos) {
+void World::update_neighbors(const glm::ivec2& pos) {
     auto c = chunk(pos);
     
-    auto c_nx = chunk(pos.first - 1, pos.second);
+    auto c_nx = chunk(pos.x - 1, pos.y);
     if (c_nx) {
         c_nx->set_neighbor(ChunkNeighbor::PX, c);
         c->set_neighbor(ChunkNeighbor::NX, c_nx);
     }
 
-    auto c_px = chunk(pos.first + 1, pos.second);
+    auto c_px = chunk(pos.x + 1, pos.y);
     if (c_px) {
         c_px->set_neighbor(ChunkNeighbor::NX, c);
         c->set_neighbor(ChunkNeighbor::PX, c_px);
     }
 
-    auto c_nz = chunk(pos.first, pos.second - 1);
+    auto c_nz = chunk(pos.x, pos.y - 1);
     if (c_nz) {
         c_nz->set_neighbor(ChunkNeighbor::PZ, c);
         c->set_neighbor(ChunkNeighbor::NZ, c_nz);
     }
     
-    auto c_pz = chunk(pos.first, pos.second + 1);
+    auto c_pz = chunk(pos.x, pos.y + 1);
     if (c_pz) {
         c_pz->set_neighbor(ChunkNeighbor::NZ, c);
         c->set_neighbor(ChunkNeighbor::PZ, c_pz);
     }
+}
+
+bool World::loaded(int x, int z) {
+    return chunks.find({x, z}) != chunks.end();
 }

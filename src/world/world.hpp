@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <mutex>
 
 #include "chunk.hpp"
 #include "block.hpp"
@@ -28,6 +29,9 @@ public:
     void update();
     void update_loaded();
     void generate(const TextureArray& texture_array);
+
+    void generate_chunk(const glm::ivec2& pos);
+    void generate_mesh(const glm::ivec2& pos);
 
     void move(int x, int z);
 
@@ -76,17 +80,19 @@ public:
     inline std::shared_ptr<Chunk> chunk(const ChunkPosition& pos) {
         return chunk(pos.x, pos.z);
     }
-    inline std::shared_ptr<Chunk> chunk(const std::pair<int, int>& pos) {
-        return chunk(pos.first, pos.second);
+    inline std::shared_ptr<Chunk> chunk(const glm::ivec2& pos) {
+        return chunk(pos.x, pos.y);
     }
 
     bool chunk_exists(int x, int z);
     inline bool chunk_exists(const ChunkPosition& pos) {
         return chunk_exists(pos.x, pos.z);
     }
-    inline bool chunk_exists(const std::pair<int, int>& pos) {
-        return chunk_exists(pos.first, pos.second);
+    inline bool chunk_exists(const glm::ivec2& pos) {
+        return chunk_exists(pos.x, pos.y);
     }
+
+    bool loaded(int x, int z);
 
 private:
     int seed;
@@ -97,11 +103,12 @@ private:
     unsigned int render_distance = 1;
 
     std::set<std::pair<int, int>> required_chunks;
+    std::mutex required_chunk_meshes_mutex;
     std::set<std::pair<int, int>> required_chunk_meshes;
     std::map<std::pair<int, int>, std::shared_ptr<Chunk>> chunks;
 
     friend struct WorldHandlers;
     WorldHandlers handlers;
 
-    void update_neighbors(const std::pair<int, int>& pos);
+    void update_neighbors(const glm::ivec2& pos);
 };

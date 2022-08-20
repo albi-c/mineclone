@@ -104,6 +104,7 @@ namespace game {
         void enable();
 
         void update(float dt);
+        void update_worker();
         void update_keyboard(float dt, const bool* pressed);
         void render();
 

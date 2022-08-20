@@ -7,6 +7,8 @@
 #include <queue>
 #include <functional>
 
+#include "lib/opengl.hpp"
+
 struct Event {
     virtual ~Event() {}
 };
@@ -15,7 +17,7 @@ template <class T>
 class EventHandler {
 public:
     inline virtual void event_(const Event& event) {
-        dynamic_cast<EventHandler<T>*>(this)->event(dynamic_cast<const T&>(event));
+        static_cast<EventHandler<T>*>(this)->event(static_cast<const T&>(event));
     }
     virtual void event(const T& event) =0;
 };

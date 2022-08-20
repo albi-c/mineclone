@@ -11,6 +11,8 @@ namespace game {
 
         d.world = std::make_shared<World>(new World(d.world_seed, r.block_textures, Options::get("render_distance")));
 
+        d.world->update_loaded();
+
         d.chunk_mesh_group = std::make_shared<MeshGroup<std::pair<int, int>>>(new MeshGroup<std::pair<int, int>>(
             r.block_shader,
             r.block_textures_map
@@ -44,7 +46,8 @@ namespace game {
         handlers.process();
 
         d.player.update(dt);
-
+    }
+    void SceneGame::update_worker() {
         d.world->update();
         d.world->generate(*r.block_textures);
     }
@@ -160,16 +163,18 @@ namespace game {
             d.world->set_render_distance(e.value);
     }
     void SceneGame::on_chunk_load(const EventChunkLoad& e) {
-        (*d.chunk_mesh_group)[{e.cx, e.cz}] = std::make_shared<Mesh>(new Mesh(
-            *e.mesh_data,
-            r.block_shader,
-            r.block_textures_map,
-            {e.cx * CHUNK_SIZE + 0.5f, 0.0f, e.cz * CHUNK_SIZE + 0.5f},
-            {
+        if (d.world->loaded(e.cx, e.cz)) {
+            (*d.chunk_mesh_group)[{e.cx, e.cz}] = std::make_shared<Mesh>(new Mesh(
+                *e.mesh_data,
+                r.block_shader,
+                r.block_textures_map,
                 {e.cx * CHUNK_SIZE + 0.5f, 0.0f, e.cz * CHUNK_SIZE + 0.5f},
-                {e.cx * CHUNK_SIZE + CHUNK_SIZE + 0.5f, CHUNK_HEIGHT, e.cz * CHUNK_SIZE + CHUNK_SIZE + 0.5f}
-            }
-        ));
+                {
+                    {e.cx * CHUNK_SIZE + 0.5f, 0.0f, e.cz * CHUNK_SIZE + 0.5f},
+                    {e.cx * CHUNK_SIZE + CHUNK_SIZE + 0.5f, CHUNK_HEIGHT, e.cz * CHUNK_SIZE + CHUNK_SIZE + 0.5f}
+                }
+            ));
+        }
     }
     void SceneGame::on_chunk_unload(const EventChunkUnload& e) {
         d.chunk_mesh_group->erase({e.cx, e.cz});

@@ -16,7 +16,7 @@ public:
     inline static void init(int threads) {
         for (int i = 0; i < threads; i++) {
             running = true;
-            TaskScheduler::threads[i] = new std::thread([]() {
+            TaskScheduler::threads[i] = new std::thread([&]() {
                 while (running) {
                     mutex.lock();
                     if (!tasks.empty()) {
@@ -27,7 +27,7 @@ public:
                         task();
                     } else {
                         mutex.unlock();
-                        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                        std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     }
                 }
             });
@@ -56,8 +56,17 @@ private:
 template <class R>
 class Task {
 public:
+    inline Task(Task<R>* other) {
+        task = other->task;
+        mutex = other->mutex;
+        mutex_f = other->mutex_f;
+        result_ = other->result_;
+        finished_ = other->finished_;
+    }
     inline Task(std::function<R()> task)
         : task(task) {
+
+        mutex_f.lock();
         
         TaskScheduler::execute([&]() {
             execute();
@@ -65,13 +74,22 @@ public:
     }
     
     inline void execute() {
-        std::lock_guard<std::mutex> lock(mutex);
-        result_ = task();
+        R r = task();
+        mutex.lock();
+        result_ = r;
+        finished_ = true;
+        mutex.unlock();
+        mutex_f.unlock();
     }
 
     inline bool finished() {
         std::lock_guard<std::mutex> lock(mutex);
         return finished_;
+    }
+
+    inline void wait() {
+        while (!mutex_f.try_lock()) {}
+        return;
     }
 
     inline R result() {
@@ -82,6 +100,7 @@ public:
 private:
     std::function<R()> task;
     std::mutex mutex;
+    std::mutex mutex_f;
     R result_;
     bool finished_;
 };

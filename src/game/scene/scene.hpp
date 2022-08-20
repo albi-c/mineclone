@@ -14,6 +14,7 @@ public:
     virtual void disable() {}
 
     virtual void update(float dt) {}
+    virtual void update_worker() {}
     virtual void update_keyboard(float dt, const bool* pressed) {}
     virtual void render() {}
 
