@@ -111,6 +111,7 @@ const std::array<std::array<float, 30>, 4> plant_faces = {{
     }
 }};
 
+std::mutex Chunk::blocks_to_set_mutex;
 std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> Chunk::blocks_to_set;
 
 Chunk::Chunk()
@@ -173,6 +174,8 @@ Block Chunk::get(const BlockPosition& pos) {
 
 void Chunk::set(int x, int y, int z, const Block& block) {
     if (x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1) {
+        std::lock_guard<std::mutex> lock(blocks_to_set_mutex);
+        
         if (x < 0) {
             Chunk::blocks_to_set[{cx - 1, cz}].push_back({{x + CHUNK_SIZE, y, z}, block});
         } else if (z < 0) {
@@ -281,6 +284,8 @@ void Chunk::generate() {
 }
 
 void Chunk::update() {
+    std::lock_guard<std::mutex> lock(blocks_to_set_mutex);
+
     for (auto& [pos, block] : Chunk::blocks_to_set[{cx, cz}]) {
         set(pos, block);
     }

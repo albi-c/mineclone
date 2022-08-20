@@ -11,6 +11,7 @@
 #include "event.hpp"
 #include "util/world.hpp"
 #include "task/task.hpp"
+#include "util/ray.hpp"
 
 class World;
 struct WorldHandlers {
@@ -37,13 +38,21 @@ public:
 
     void set_render_distance(unsigned int distance);
 
+    Block raycast(Ray& ray, float range);
+
     Block get(int x, int y, int z);
     inline Block get(const BlockPosition& pos) {
+        return get(pos.x, pos.y, pos.z);
+    }
+    inline Block get(const glm::vec3& pos) {
         return get(pos.x, pos.y, pos.z);
     }
     
     void set(int x, int y, int z, const Block& block);
     inline void set(const BlockPosition& pos, const Block& block) {
+        set(pos.x, pos.y, pos.z, block);
+    }
+    inline void set(const glm::vec3& pos, const Block& block) {
         set(pos.x, pos.y, pos.z, block);
     }
     inline void set(int x, int y, int z, const Material& mat) {
@@ -52,10 +61,16 @@ public:
     inline void set(const BlockPosition& pos, const Material& mat) {
         set(pos.x, pos.y, pos.z, Block(mat));
     }
+    inline void set(const glm::vec3& pos, const Material& mat) {
+        set(pos.x, pos.y, pos.z, Block(mat));
+    }
     inline void set(int x, int y, int z, const Material::_enumerated& mat) {
         set(x, y, z, Block(mat));
     }
     inline void set(const BlockPosition& pos, const Material::_enumerated& mat) {
+        set(pos.x, pos.y, pos.z, Block(mat));
+    }
+    inline void set(const glm::vec3& pos, const Material::_enumerated& mat) {
         set(pos.x, pos.y, pos.z, Block(mat));
     }
 
@@ -102,9 +117,11 @@ private:
 
     unsigned int render_distance = 1;
 
+    std::mutex required_chunks_mutex;
     std::set<std::pair<int, int>> required_chunks;
     std::mutex required_chunk_meshes_mutex;
     std::set<std::pair<int, int>> required_chunk_meshes;
+    std::mutex chunks_mutex;
     std::map<std::pair<int, int>, std::shared_ptr<Chunk>> chunks;
 
     friend struct WorldHandlers;

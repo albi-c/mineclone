@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <algorithm>
+#include <mutex>
 
 #include "world/block.hpp"
 #include "world/biome.hpp"
@@ -98,6 +99,7 @@ private:
 
     std::weak_ptr<Chunk> neighbors[4];
 
+    static std::mutex blocks_to_set_mutex;
     static std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> blocks_to_set;
 
     void generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]);

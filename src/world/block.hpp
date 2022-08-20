@@ -31,6 +31,10 @@ struct Block {
         return material;
     }
 
+    operator bool() const {
+        return material != (Material)Material::AIR;
+    }
+
     Block& operator=(const Block& other) {
         material = other.material;
         state = other.state;
@@ -40,6 +44,10 @@ struct Block {
         material = mat;
         state = 0;
         return *this;
+    }
+
+    bool operator==(const Block& other) const {
+        return material == other.material && state == other.state;
     }
 
     bool transparent() const {

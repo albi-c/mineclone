@@ -6,6 +6,7 @@ Ray::Ray(const glm::vec3& pos, const glm::vec3& dir)
 
 void Ray::step(float amount) {
     pos += dir * amount;
+    dist += amount;
 }
 glm::vec3 Ray::position() {
     return pos;

@@ -153,6 +153,17 @@ namespace game {
         d.player.rotate(e.x, e.y);
     }
     void SceneGame::on_mouse_click(const EventMouseClick& e) {
+        if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS) {
+            Ray ray(Camera::pos, glm::normalize(Camera::front));
+            d.world->raycast(ray, 5.0f);
+            d.world->set(ray.position(), Material::AIR);
+        } else if (e.button == GLFW_MOUSE_BUTTON_RIGHT && e.action == GLFW_PRESS) {
+            Ray ray(Camera::pos, glm::normalize(Camera::front));
+            if (d.world->raycast(ray, 5.0f) != Material::AIR) {
+                ray.step(-0.03f);
+                d.world->set(ray.position(), Material::GLASS);
+            }
+        }
     }
     void SceneGame::on_key_press(const EventKeyPress& e) {
         if (e.key == GLFW_KEY_ESCAPE && e.action == GLFW_PRESS)

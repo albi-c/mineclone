@@ -27,16 +27,21 @@ World::World(int seed, std::shared_ptr<TextureArray> texture_array, unsigned int
 }
 
 void World::update() {
+    chunks_mutex.lock();
     for (auto& [pos, chunk] : chunks) {
         chunk->update();
     }
+    chunks_mutex.unlock();
 
     std::lock_guard<std::mutex> lock(required_chunk_meshes_mutex);
     handlers.chunk_redraw_event_queue.process();
 }
 void World::update_loaded() {
+    std::lock_guard<std::mutex> lockc(required_chunks_mutex);
+    std::lock_guard<std::mutex> lockm(required_chunk_meshes_mutex);
+
     required_chunks.clear();
-    required_chunk_meshes.clear();
+    // required_chunk_meshes.clear();
 
     auto cpos = wu::chunk_pos(x, z);
     int cx = cpos.first;
@@ -57,17 +62,49 @@ void World::update_loaded() {
         chunks.erase(pos);
         EventManager::fire(EventChunkUnload{pos.first, pos.second});
     }
+    for (auto& [pos, chunk] : chunks) {
+        if (required_chunks.contains(pos))
+            required_chunks.erase(pos);
+    }
     for (auto& pos : required_chunks) {
+        // auto chunk = std::make_shared<Chunk>(new Chunk(seed, pos.first, pos.second));
+
+        // chunks_mutex.lock();
+        // chunks[pos] = chunk;
+        // chunks_mutex.unlock();
+
+        // update_neighbors({pos.first, pos.second});
+
+        // required_chunk_meshes.insert(pos);
+    }
+}
+void World::generate(const TextureArray& texture_array) {
+    required_chunks_mutex.lock();
+    if (!required_chunks.empty()) {
+        auto pos = *(--required_chunks.end());
+        required_chunks.erase(pos);
+
+        required_chunks_mutex.unlock();
+
         auto chunk = std::make_shared<Chunk>(new Chunk(seed, pos.first, pos.second));
+
+        chunks_mutex.lock();
         chunks[pos] = chunk;
+        chunks_mutex.unlock();
 
         update_neighbors({pos.first, pos.second});
 
         std::lock_guard<std::mutex> lock(required_chunk_meshes_mutex);
         required_chunk_meshes.insert(pos);
+
+        // auto c = chunk(glm::ivec2{pos.first, pos.second});
+        // if (c) {
+        //     EventManager::fire(EventChunkLoad{c, c->mesh(texture_array), pos.first, pos.second});
+        // }
+    } else {
+        required_chunks_mutex.unlock();
     }
-}
-void World::generate(const TextureArray& texture_array) {
+
     required_chunk_meshes_mutex.lock();
     if (!required_chunk_meshes.empty()) {
         auto pos = *(--required_chunk_meshes.end());
@@ -97,12 +134,22 @@ void World::set_render_distance(unsigned int render_distance) {
     update_loaded();
 }
 
+Block World::raycast(Ray& ray, float range) {
+    while (ray.distance() < range) {
+        ray.step(0.01f);
+        Block b = get(ray.position());
+        if (b)
+            return b;
+    }
+    return Block();
+}
+
 Block World::get(int x, int y, int z) {
     auto cpos = wu::chunk_pos(x, z);
     int cx = cpos.first;
     int cz = cpos.second;
     if (chunks.find({cx, cz}) != chunks.end()) {
-        return chunks[{cx, cz}]->get(x, y, z);
+        return chunks[{cx, cz}]->get(x & 0xf, y, z & 0xf);
         // TODO: x and z should be transformed to chunk coordinates
     }
     return Block();
@@ -113,7 +160,8 @@ void World::set(int x, int y, int z, const Block& block) {
     int cx = cpos.first;
     int cz = cpos.second;
     if (chunks.find({cx, cz}) != chunks.end()) {
-        chunks[{cx, cz}]->set(x, y, z, block);
+        chunks[{cx, cz}]->set(x & 0xf, y, z & 0xf, block);
+        // TODO: x and z should be transformed to chunk coordinates
     }
 }
 
