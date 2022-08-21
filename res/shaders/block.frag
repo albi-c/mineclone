@@ -25,6 +25,8 @@ uniform struct light_t {
     vec3 sun;
 } light;
 
+uniform float fog_start;
+
 float shadow();
 
 void main() {
@@ -32,7 +34,7 @@ void main() {
     if (color_a.a == 0.0)
         discard;
     
-    float fog = clamp((length(FragPos.xz - camera_pos.xz) - 20.0) / 100.0, 0.0, 1.0);
+    float fog = clamp((length(FragPos.xz - camera_pos.xz) - fog_start) / 32.0, 0.0, 1.0);
     if (fog > 0.8)
         discard;
     

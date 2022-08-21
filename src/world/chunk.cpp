@@ -241,10 +241,20 @@ void Chunk::generate() {
         }
     }
 
+    FastNoise::SmartNode<> cave_generator = FastNoise::NewFromEncodedNodeTree("EwCamZk+GgABEQACAAAAAADgQBAAAACIQR8AFgABAAAACwADAAAAAgAAAAMAAAAEAAAAAAAAAD8BFAD//wAAAAAAAD8AAAAAPwAAAAA/AAAAAD8BFwAAAIC/AACAPz0KF0BSuB5AEwAAAKBABgAAj8J1PACamZk+AAAAAAAA4XoUPw==");
+
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            int stone_h = 40 + heightmap[x][z] * 10;
-            fill(x, 0, z, x, stone_h, z, Material::STONE);
+            int stone_h = 80 + heightmap[x][z] * 10;
+            // fill(x, 0, z, x, stone_h, z, Material::STONE);
+            std::vector<float> caves(stone_h + 1);
+            cave_generator->GenUniformGrid3D(&caves[0], x + cx * CHUNK_SIZE, 0, z + cz * CHUNK_SIZE, 1, stone_h, 1, 0.005f, seed);
+            for (int y = 0; y <= stone_h; y++) {
+                if (caves[y] < 0.0f)
+                    set(x, y, z, Material::STONE);
+                else
+                    set(x, y, z, Material::AIR);
+            }
 
             Biome biome = biomes[x][z];
             if (biome == (Biome)Biome::PLAINS || biome == (Biome)Biome::FOREST) {
@@ -277,6 +287,8 @@ void Chunk::generate() {
                     set(x, stone_h+7, z, Material::DEAD_BUSH);
                 }
             }
+
+            set(x, 0, z, Material::BEDROCK);
         }
     }
 

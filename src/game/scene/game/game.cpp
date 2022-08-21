@@ -106,6 +106,8 @@ namespace game {
 
         r.block_shader->uniform("camera_pos", Camera::pos);
 
+        r.block_shader->uniform("fog_start", (float)(Options::get("render_distance") * CHUNK_SIZE - CHUNK_SIZE));
+
 
         r.block_shader->shadow->uniform("block_properties.plant", (int)MaterialProperty::PLANT);
         r.block_shader->shadow->uniform("block_properties.waving", (int)MaterialProperty::WAVING);

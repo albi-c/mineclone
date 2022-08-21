@@ -12,3 +12,4 @@ sand
 stone
 glass
 snow
+bedrock

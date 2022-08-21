@@ -20,7 +20,8 @@ BETTER_ENUM(Material, int,
     FLOWER,
     DEAD_BUSH,
     GLASS,
-    SNOW
+    SNOW,
+    BEDROCK
 );
 BETTER_ENUMS_DECLARE_STD_HASH(Material);
 
