@@ -2,7 +2,7 @@
 
 void WorldHandlers::chunk_redraw_event_handler(const EventChunkRedraw& e) {
     if (world->chunks.find({e.cx, e.cz}) != world->chunks.end()) {
-        world->required_chunk_meshes.insert({e.cx, e.cz});
+        // world->required_chunk_meshes.push({e.cx, e.cz});
     }
 }
 
@@ -40,30 +40,36 @@ void World::update() {
 void World::update_loaded() {
     tu::mutex_lock_timeout_exc(required_chunks_mutex);
 
-    required_chunks.clear();
+    required_chunks = std::queue<std::pair<int, int>>();
 
     auto cpos = wu::chunk_pos(x, z);
     int cx = cpos.first;
     int cz = cpos.second;
-    for (int x = cx - (int)render_distance; x <= cx + (int)render_distance; x++) {
-        for (int z = cz - (int)render_distance; z <= cz + (int)render_distance; z++) {
-            required_chunks.insert({x, z});
-        }
-    }
+    auto required_chunks_spiral = wu::spiral(cpos, render_distance);
+    std::vector<std::pair<int, int>> required_chunks_tmp;
     std::set<std::pair<int, int>> unloaded_chunks;
     for (auto& [pos, chunk] : chunks) {
-        if (!required_chunks.contains(pos)) {
-            unloaded_chunks.insert(pos);
-            required_chunks.erase(pos);
+        for (auto& pos_ : required_chunks_spiral) {
+            if (pos_ == pos) {
+                goto is_loaded;
+            }
         }
+        unloaded_chunks.insert(pos);
+        is_loaded:;
     }
     for (auto& pos : unloaded_chunks) {
         chunks.erase(pos);
         EventManager::fire(EventChunkUnload{pos.first, pos.second});
     }
-    for (auto& [pos, chunk] : chunks) {
-        if (required_chunks.contains(pos))
-            required_chunks.erase(pos);
+    for (auto& pos : required_chunks_spiral) {
+        for (auto& [pos_, chunk] : chunks) {
+            if (pos == pos_) {
+                goto already_loaded;
+            }
+        }
+        required_chunks.push(pos);
+        continue;
+        already_loaded:;
     }
 
     required_chunks_mutex.unlock();
@@ -71,29 +77,30 @@ void World::update_loaded() {
 void World::generate(const TextureArray& texture_array) {
     tu::mutex_lock_timeout_exc(required_chunks_mutex);
     if (!required_chunks.empty()) {
-        auto pos = *(--required_chunks.end());
-        required_chunks.erase(pos);
+        auto pos = required_chunks.front();
+        required_chunks.pop();
 
         required_chunks_mutex.unlock();
 
         auto chunk = std::make_shared<Chunk>(new Chunk(seed, pos.first, pos.second));
 
-        chunks_mutex.lock();
+        tu::mutex_lock_timeout_exc(chunks_mutex);
         chunks[pos] = chunk;
         chunks_mutex.unlock();
 
         update_neighbors({pos.first, pos.second});
 
-        std::lock_guard<std::mutex> lock(required_chunk_meshes_mutex);
-        required_chunk_meshes.insert(pos);
+        tu::mutex_lock_timeout_exc(required_chunk_meshes_mutex);
+        required_chunk_meshes.push(pos);
+        required_chunk_meshes_mutex.unlock();
     } else {
         required_chunks_mutex.unlock();
     }
 
     tu::mutex_lock_timeout_exc(required_chunk_meshes_mutex);
     if (!required_chunk_meshes.empty()) {
-        auto pos = *(--required_chunk_meshes.end());
-        required_chunk_meshes.erase(pos);
+        auto pos = required_chunk_meshes.front();
+        required_chunk_meshes.pop();
 
         required_chunk_meshes_mutex.unlock();
 

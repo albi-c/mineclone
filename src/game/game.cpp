@@ -35,7 +35,28 @@ void Game::run() {
         }
     });
 
-    std::thread worker_thread([&]() {
+    std::thread worker_thread1([&]() {
+        while (running) {
+            if (scene) {
+                scene->update_worker();
+            }
+        }
+    });
+    std::thread worker_thread2([&]() {
+        while (running) {
+            if (scene) {
+                scene->update_worker();
+            }
+        }
+    });
+    std::thread worker_thread3([&]() {
+        while (running) {
+            if (scene) {
+                scene->update_worker();
+            }
+        }
+    });
+    std::thread worker_thread4([&]() {
         while (running) {
             if (scene) {
                 scene->update_worker();
@@ -54,7 +75,10 @@ void Game::run() {
     }
 
     update_thread.join();
-    worker_thread.join();
+    worker_thread1.join();
+    worker_thread2.join();
+    worker_thread3.join();
+    worker_thread4.join();
 }
 void Game::stop() {
     window->close();

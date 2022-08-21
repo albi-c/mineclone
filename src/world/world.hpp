@@ -119,9 +119,9 @@ private:
     unsigned int render_distance = 1;
 
     std::mutex required_chunks_mutex;
-    std::set<std::pair<int, int>> required_chunks;
+    std::queue<std::pair<int, int>> required_chunks;
     std::mutex required_chunk_meshes_mutex;
-    std::set<std::pair<int, int>> required_chunk_meshes;
+    std::queue<std::pair<int, int>> required_chunk_meshes;
     std::mutex chunks_mutex;
     std::map<std::pair<int, int>, std::shared_ptr<Chunk>> chunks;
 

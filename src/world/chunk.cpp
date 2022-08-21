@@ -247,7 +247,7 @@ void Chunk::generate() {
         for (int z = 0; z < CHUNK_SIZE; z++) {
             int stone_h = 80 + heightmap[x][z] * 10;
             std::vector<float> caves(stone_h + 1);
-            cave_generator->GenUniformGrid3D(&caves[0], x + cx * CHUNK_SIZE, 0, z + cz * CHUNK_SIZE, 1, stone_h, 1, 0.005f, seed);
+            cave_generator->GenUniformGrid3D(&caves[0], x + cx * CHUNK_SIZE, 0, z + cz * CHUNK_SIZE, 1, stone_h + 1, 1, 0.005f, seed);
             for (int y = 0; y <= stone_h; y++) {
                 if (caves[y] < 0.0f)
                     set(x, y, z, Material::STONE);
