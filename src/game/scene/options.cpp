@@ -32,7 +32,7 @@ void SceneOptions::render() {
         ImGui::Checkbox("shadows", &shadows);
 
         auto render_distance = Option("render_distance");
-        ImGui::SliderInt("render distance", &render_distance, 4, 32);
+        ImGui::SliderInt("render distance", &render_distance, 4, 16);
 
         ImGui::TextScalePop();
     }

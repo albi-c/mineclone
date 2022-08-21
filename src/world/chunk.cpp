@@ -228,22 +228,22 @@ void Chunk::generate() {
 
     generate_biomes(biomes);
 
-    auto heightmap_r = new float[CHUNK_SIZE][CHUNK_SIZE];
+    auto heightmap_r1 = new float[CHUNK_SIZE][CHUNK_SIZE];
+    auto heightmap_r2 = new float[CHUNK_SIZE][CHUNK_SIZE];
 
     FastNoise::SmartNode<> height_generator = FastNoise::NewFromEncodedNodeTree("IQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/DwADAAAAAAAAQP//AQAAAAAAPwAAAAAAARwAAQcAAAAAoEA=");
 
-    height_generator->GenUniformGrid2D(&heightmap_r[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.005f, seed);
+    height_generator->GenUniformGrid2D(&heightmap_r1[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.005f, seed);
+    height_generator->GenUniformGrid2D(&heightmap_r2[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001f, seed);
 
     auto heightmap = new float[CHUNK_SIZE][CHUNK_SIZE];
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            heightmap[x][z] = heightmap_r[z][x];
+            heightmap[x][z] = heightmap_r1[z][x] * 1.0f + heightmap_r2[z][x] * 1.5f;
         }
     }
 
     FastNoise::SmartNode<> cave_generator = FastNoise::NewFromEncodedNodeTree("EwCamZk+GgABEQACAAAAAADgQBAAAACIQR8AFgABAAAACwADAAAAAgAAAAMAAAAEAAAAAAAAAD8BFAD//wAAAAAAAD8AAAAAPwAAAAA/AAAAAD8BFwAAAIC/AACAPz0KF0BSuB5AEwAAAKBABgAAj8J1PACamZk+AAAAAAAA4XoUPw==");
-
-    srand(seed + cx * cx & 0xf + cz * cz & 0xf);
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
@@ -256,6 +256,8 @@ void Chunk::generate() {
                 else
                     set(x, y, z, Material::AIR);
             }
+
+            srand(seed + cx * x + cz * z + x * z);
 
             Biome biome = biomes[x][z];
             if (biome == (Biome)Biome::PLAINS || biome == (Biome)Biome::FOREST) {
@@ -301,7 +303,8 @@ void Chunk::generate() {
     }
 
     delete[] heightmap;
-    delete[] heightmap_r;
+    delete[] heightmap_r1;
+    delete[] heightmap_r2;
 }
 
 void Chunk::update() {
@@ -483,4 +486,5 @@ int Chunk::highest_block(int x, int z) {
         if(get(x, y, z))
             return y;
     }
+    return CHUNK_HEIGHT - 1;
 }
