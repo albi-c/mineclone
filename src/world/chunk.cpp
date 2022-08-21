@@ -246,7 +246,6 @@ void Chunk::generate() {
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
             int stone_h = 80 + heightmap[x][z] * 10;
-            // fill(x, 0, z, x, stone_h, z, Material::STONE);
             std::vector<float> caves(stone_h + 1);
             cave_generator->GenUniformGrid3D(&caves[0], x + cx * CHUNK_SIZE, 0, z + cz * CHUNK_SIZE, 1, stone_h, 1, 0.005f, seed);
             for (int y = 0; y <= stone_h; y++) {
@@ -280,6 +279,13 @@ void Chunk::generate() {
                     fill(x, stone_h, z, x, stone_h + height, z, Material::STONE);
                     fill(x, stone_h + 70 - heightmap[x][z] * 2, z, x, stone_h + height, z, Material::SNOW);
                 }
+            } else if (biome == (Biome)Biome::SNOWY_PLAINS) {
+                fill(x, stone_h+1, z, x, stone_h+5, z, Material::DIRT);
+                set(x, stone_h+6, z, Material::SNOW);
+
+                if (glm::linearRand(0.0f, 1.0f) >= 0.995f) {
+                    set(x, stone_h+7, z, Material::DEAD_BUSH);
+                }
             } else if (biome == (Biome)Biome::DESERT) {
                 fill(x, stone_h+1, z, x, stone_h+6, z, Material::SAND);
 
@@ -293,6 +299,7 @@ void Chunk::generate() {
     }
 
     delete[] heightmap;
+    delete[] heightmap_r;
 }
 
 void Chunk::update() {
@@ -418,11 +425,22 @@ void Chunk::set_neighbor(ChunkNeighbor neighbor, std::shared_ptr<Chunk> chunk) {
 }
 
 void Chunk::generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]) {
+    FastNoise::SmartNode<> temp_generator = FastNoise::NewFromEncodedNodeTree("GgABDQADAAAAAAAAQCEADQADAAAAAAAAQAgAAAAAAD8BBwAJAAEaAAAAAIA/AQgAAAAAAD8AAAAAAAAAAAA/");
+
+    auto temp_map = new float[CHUNK_SIZE][CHUNK_SIZE];
+    temp_generator->GenUniformGrid2D(&temp_map[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001, seed);
+
+    auto hum_map = new float[CHUNK_SIZE][CHUNK_SIZE];
+    temp_generator->GenUniformGrid2D(&hum_map[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001, seed + 5);
+
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            output[x][z] = Biome::_from_integral((glm::simplex(glm::vec3((cx * CHUNK_SIZE + x) / 512.0f, (cz * CHUNK_SIZE + z) / 512.0f, seed)) + 1.0f) / 2.0f * (Biome::_size()));
+            output[x][z] = BiomeTable::get((temp_map[z][x] + 1.0f) / 2.0f, (hum_map[z][x] + 1.0f) / 2.0f);
         }
     }
+
+    delete[] temp_map;
+    delete[] hum_map;
 }
 
 ChunkPosition Chunk::position() {

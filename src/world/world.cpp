@@ -27,21 +27,20 @@ World::World(int seed, std::shared_ptr<TextureArray> texture_array, unsigned int
 }
 
 void World::update() {
-    chunks_mutex.lock();
+    tu::mutex_lock_timeout_exc(chunks_mutex);
     for (auto& [pos, chunk] : chunks) {
         chunk->update();
     }
     chunks_mutex.unlock();
 
-    std::lock_guard<std::mutex> lock(required_chunk_meshes_mutex);
+    tu::mutex_lock_timeout_exc(required_chunk_meshes_mutex);
     handlers.chunk_redraw_event_queue.process();
+    required_chunk_meshes_mutex.unlock();
 }
 void World::update_loaded() {
-    std::lock_guard<std::mutex> lockc(required_chunks_mutex);
-    std::lock_guard<std::mutex> lockm(required_chunk_meshes_mutex);
+    tu::mutex_lock_timeout_exc(required_chunks_mutex);
 
     required_chunks.clear();
-    // required_chunk_meshes.clear();
 
     auto cpos = wu::chunk_pos(x, z);
     int cx = cpos.first;
@@ -66,20 +65,11 @@ void World::update_loaded() {
         if (required_chunks.contains(pos))
             required_chunks.erase(pos);
     }
-    for (auto& pos : required_chunks) {
-        // auto chunk = std::make_shared<Chunk>(new Chunk(seed, pos.first, pos.second));
 
-        // chunks_mutex.lock();
-        // chunks[pos] = chunk;
-        // chunks_mutex.unlock();
-
-        // update_neighbors({pos.first, pos.second});
-
-        // required_chunk_meshes.insert(pos);
-    }
+    required_chunks_mutex.unlock();
 }
 void World::generate(const TextureArray& texture_array) {
-    required_chunks_mutex.lock();
+    tu::mutex_lock_timeout_exc(required_chunks_mutex);
     if (!required_chunks.empty()) {
         auto pos = *(--required_chunks.end());
         required_chunks.erase(pos);
@@ -96,16 +86,11 @@ void World::generate(const TextureArray& texture_array) {
 
         std::lock_guard<std::mutex> lock(required_chunk_meshes_mutex);
         required_chunk_meshes.insert(pos);
-
-        // auto c = chunk(glm::ivec2{pos.first, pos.second});
-        // if (c) {
-        //     EventManager::fire(EventChunkLoad{c, c->mesh(texture_array), pos.first, pos.second});
-        // }
     } else {
         required_chunks_mutex.unlock();
     }
 
-    required_chunk_meshes_mutex.lock();
+    tu::mutex_lock_timeout_exc(required_chunk_meshes_mutex);
     if (!required_chunk_meshes.empty()) {
         auto pos = *(--required_chunk_meshes.end());
         required_chunk_meshes.erase(pos);
@@ -150,7 +135,6 @@ Block World::get(int x, int y, int z) {
     int cz = cpos.second;
     if (chunks.find({cx, cz}) != chunks.end()) {
         return chunks[{cx, cz}]->get(x & 0xf, y, z & 0xf);
-        // TODO: x and z should be transformed to chunk coordinates
     }
     return Block();
 }
@@ -161,7 +145,6 @@ void World::set(int x, int y, int z, const Block& block) {
     int cz = cpos.second;
     if (chunks.find({cx, cz}) != chunks.end()) {
         chunks[{cx, cz}]->set(x & 0xf, y, z & 0xf, block);
-        // TODO: x and z should be transformed to chunk coordinates
     }
 }
 

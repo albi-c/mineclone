@@ -12,6 +12,7 @@
 #include "util/world.hpp"
 #include "task/task.hpp"
 #include "util/ray.hpp"
+#include "util/thread.hpp"
 
 class World;
 struct WorldHandlers {
