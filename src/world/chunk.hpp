@@ -17,6 +17,7 @@
 #include "graphics/mesh/mesh.hpp"
 #include "lib/opengl.hpp"
 #include "graphics/textures/texture_array.hpp"
+#include "util/thread.hpp"
 #include "FastNoise/FastNoise.h"
 
 enum class ChunkNeighbor {
@@ -90,6 +91,8 @@ public:
 
     ChunkPosition position();
 
+    int highest_block(int x, int z);
+
 private:
     int cx, cz;
     int seed;
@@ -105,6 +108,8 @@ private:
     void generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]);
 
     void redraw();
+
+    void set_nolock(int x, int y, int z, Block block);
 };
 
 struct EventChunkRedraw : Event {

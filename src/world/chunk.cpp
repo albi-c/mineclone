@@ -174,7 +174,7 @@ Block Chunk::get(const BlockPosition& pos) {
 
 void Chunk::set(int x, int y, int z, const Block& block) {
     if (x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1) {
-        std::lock_guard<std::mutex> lock(blocks_to_set_mutex);
+        tu::mutex_lock_timeout_exc(blocks_to_set_mutex);
         
         if (x < 0) {
             Chunk::blocks_to_set[{cx - 1, cz}].push_back({{x + CHUNK_SIZE, y, z}, block});
@@ -185,6 +185,8 @@ void Chunk::set(int x, int y, int z, const Block& block) {
         } else if (z > CHUNK_SIZE - 1) {
             Chunk::blocks_to_set[{cx, cz + 1}].push_back({{x, y, z - CHUNK_SIZE}, block});
         }
+
+        blocks_to_set_mutex.unlock();
     } else {
         blocks[BP(x, y, z)] = block;
 
@@ -226,8 +228,6 @@ void Chunk::generate() {
 
     generate_biomes(biomes);
 
-    srand(seed + cx * cx & 0xf + cz * cz & 0xf);
-
     auto heightmap_r = new float[CHUNK_SIZE][CHUNK_SIZE];
 
     FastNoise::SmartNode<> height_generator = FastNoise::NewFromEncodedNodeTree("IQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/DwADAAAAAAAAQP//AQAAAAAAPwAAAAAAARwAAQcAAAAAoEA=");
@@ -242,6 +242,8 @@ void Chunk::generate() {
     }
 
     FastNoise::SmartNode<> cave_generator = FastNoise::NewFromEncodedNodeTree("EwCamZk+GgABEQACAAAAAADgQBAAAACIQR8AFgABAAAACwADAAAAAgAAAAMAAAAEAAAAAAAAAD8BFAD//wAAAAAAAD8AAAAAPwAAAAA/AAAAAD8BFwAAAIC/AACAPz0KF0BSuB5AEwAAAKBABgAAj8J1PACamZk+AAAAAAAA4XoUPw==");
+
+    srand(seed + cx * cx & 0xf + cz * cz & 0xf);
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
@@ -303,13 +305,15 @@ void Chunk::generate() {
 }
 
 void Chunk::update() {
-    std::lock_guard<std::mutex> lock(blocks_to_set_mutex);
+    tu::mutex_lock_timeout_exc(blocks_to_set_mutex);
 
     for (auto& [pos, block] : Chunk::blocks_to_set[{cx, cz}]) {
-        set(pos, block);
+        set_nolock(pos.x, pos.y, pos.z, block);
     }
     if (blocks_to_set.find({cx, cz}) != blocks_to_set.end())
         Chunk::blocks_to_set.erase({cx, cz});
+    
+    blocks_to_set_mutex.unlock();
 }
 
 std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
@@ -445,4 +449,38 @@ void Chunk::generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]) {
 
 ChunkPosition Chunk::position() {
     return {cx, cz};
+}
+
+void Chunk::set_nolock(int x, int y, int z, Block block) {
+    if (x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1) {
+        if (x < 0) {
+            Chunk::blocks_to_set[{cx - 1, cz}].push_back({{x + CHUNK_SIZE, y, z}, block});
+        } else if (z < 0) {
+            Chunk::blocks_to_set[{cx, cz - 1}].push_back({{x, y, z + CHUNK_SIZE}, block});
+        } else if (x > CHUNK_SIZE - 1) {
+            Chunk::blocks_to_set[{cx + 1, cz}].push_back({{x - CHUNK_SIZE, y, z}, block});
+        } else if (z > CHUNK_SIZE - 1) {
+            Chunk::blocks_to_set[{cx, cz + 1}].push_back({{x, y, z - CHUNK_SIZE}, block});
+        }
+    } else {
+        blocks[BP(x, y, z)] = block;
+
+        if (x == 0)
+            EventManager::fire(EventChunkRedraw{cx - 1, cz});
+        if (x == CHUNK_SIZE - 1)
+            EventManager::fire(EventChunkRedraw{cx + 1, cz});
+        if (z == 0)
+            EventManager::fire(EventChunkRedraw{cx, cz - 1});
+        if (z == CHUNK_SIZE - 1)
+            EventManager::fire(EventChunkRedraw{cx, cz + 1});
+
+        EventManager::fire(EventChunkRedraw{cx, cz});
+    }
+}
+
+int Chunk::highest_block(int x, int z) {
+    for (int y = CHUNK_HEIGHT; y > 0; y--) {
+        if(get(x, y, z))
+            return y;
+    }
 }

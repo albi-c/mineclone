@@ -1,5 +1,7 @@
 #include "game.hpp"
 
+#define WORKER_THREADS 8
+
 void Game::init() {
     window = new Window();
 
@@ -20,7 +22,7 @@ void Game::init() {
 void Game::run() {
     static double dt;
     static bool pressed_keys[GLFW_KEY_LAST + 1];
-    static bool running = true;
+    running = true;
 
     std::thread update_thread([&]() {
         while ((running = window->update(dt))) {
@@ -35,34 +37,10 @@ void Game::run() {
         }
     });
 
-    std::thread worker_thread1([&]() {
-        while (running) {
-            if (scene) {
-                scene->update_worker();
-            }
-        }
-    });
-    std::thread worker_thread2([&]() {
-        while (running) {
-            if (scene) {
-                scene->update_worker();
-            }
-        }
-    });
-    std::thread worker_thread3([&]() {
-        while (running) {
-            if (scene) {
-                scene->update_worker();
-            }
-        }
-    });
-    std::thread worker_thread4([&]() {
-        while (running) {
-            if (scene) {
-                scene->update_worker();
-            }
-        }
-    });
+    std::thread* worker_threads[WORKER_THREADS];
+    for (int i = 0; i < WORKER_THREADS; i++) {
+        worker_threads[i] = create_worker_thread();
+    }
 
     while (running) {
         window->render_start();
@@ -75,10 +53,11 @@ void Game::run() {
     }
 
     update_thread.join();
-    worker_thread1.join();
-    worker_thread2.join();
-    worker_thread3.join();
-    worker_thread4.join();
+
+    for (int i = 0; i < WORKER_THREADS; i++) {
+        worker_threads[i]->join();
+        delete worker_threads[i];
+    }
 }
 void Game::stop() {
     window->close();
@@ -101,4 +80,14 @@ template <class T>
 void Game::add_scene(const std::string& name) {
     scenes[name] = new T();
     scenes[name]->init();
+}
+
+std::thread* Game::create_worker_thread() {
+    return new std::thread([&]() {
+        while (running) {
+            if (scene) {
+                scene->update_worker();
+            }
+        }
+    });
 }

@@ -2,7 +2,7 @@
 
 void WorldHandlers::chunk_redraw_event_handler(const EventChunkRedraw& e) {
     if (world->chunks.find({e.cx, e.cz}) != world->chunks.end()) {
-        // world->required_chunk_meshes.push({e.cx, e.cz});
+        world->required_chunk_meshes_lp.insert({e.cx, e.cz});
     }
 }
 
@@ -110,6 +110,21 @@ void World::generate(const TextureArray& texture_array) {
         }
     } else {
         required_chunk_meshes_mutex.unlock();
+
+        tu::mutex_lock_timeout_exc(required_chunk_meshes_lp_mutex);
+        if (!required_chunk_meshes_lp.empty()) {
+            auto pos = *(--required_chunk_meshes_lp.end());
+            required_chunk_meshes_lp.erase(pos);
+
+            required_chunk_meshes_lp_mutex.unlock();
+
+            auto c = chunk(glm::ivec2{pos.first, pos.second});
+            if (c) {
+                EventManager::fire(EventChunkLoad{c, c->mesh(texture_array), pos.first, pos.second});
+            }
+        } else {
+            required_chunk_meshes_lp_mutex.unlock();
+        }
     }
 }
 
@@ -206,4 +221,15 @@ void World::update_neighbors(const glm::ivec2& pos) {
 
 bool World::loaded(int x, int z) {
     return chunks.find({x, z}) != chunks.end();
+}
+
+int World::highest_block(int x, int z) {
+    auto cpos = wu::chunk_pos(x, z);
+    int cx = cpos.first;
+    int cz = cpos.second;
+    auto c = chunk(cx, cz);
+    if (c) {
+        return c->highest_block(x, z);
+    }
+    return CHUNK_HEIGHT - 1;
 }

@@ -109,6 +109,8 @@ public:
     }
 
     bool loaded(int x, int z);
+    
+    int highest_block(int x, int z);
 
 private:
     int seed;
@@ -122,6 +124,8 @@ private:
     std::queue<std::pair<int, int>> required_chunks;
     std::mutex required_chunk_meshes_mutex;
     std::queue<std::pair<int, int>> required_chunk_meshes;
+    std::mutex required_chunk_meshes_lp_mutex;
+    std::set<std::pair<int, int>> required_chunk_meshes_lp;
     std::mutex chunks_mutex;
     std::map<std::pair<int, int>, std::shared_ptr<Chunk>> chunks;
 

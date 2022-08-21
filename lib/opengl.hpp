@@ -5,11 +5,8 @@
 #include "glad/glad.h"
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/string_cast.hpp>
-#include <glm/gtc/noise.hpp>
-#include <glm/gtc/random.hpp>
+
+#include "glm.hpp"
 
 #include <iostream>
 

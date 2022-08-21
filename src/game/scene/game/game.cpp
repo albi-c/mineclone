@@ -1,5 +1,7 @@
 #include "game.hpp"
 
+#define CROSSHAIR_SIZE 8.0f
+
 namespace game {
     void SceneGame::init() {
         handlers.game = this;
@@ -13,39 +15,28 @@ namespace game {
 
         d.world->update_loaded();
 
+        d.world->generate(*r.block_textures);
+
+        d.player.pos = glm::vec3(0.0f, (float)(d.world->highest_block(0, 0) + 2), 0.0f);
+
         d.chunk_mesh_group = std::make_shared<MeshGroup<std::pair<int, int>>>(new MeshGroup<std::pair<int, int>>(
             r.block_shader,
             r.block_textures_map
         ));
-
-        // int hw = 960;
-        // int hh = 470;
-
-        // d.gui_meshes["crosshair"] = std::make_shared<Mesh>(new Mesh(
-        //     {
-        //         {2, 2},
-        //         {
-        //             hw - 10.0f, hh - 10.0f,  0.0f, 0.0f,
-        //             hw - 10.0f, hh + 10.0f,  0.0f, 1.0f,
-        //             hw + 10.0f, hh + 10.0f,  1.0f, 1.0f,
-        //             hw - 10.0f, hh - 10.0f,  0.0f, 0.0f,
-        //             hw + 10.0f, hh + 10.0f,  1.0f, 1.0f,
-        //             hw + 10.0f, hh - 10.0f,  1.0f, 0.0f
-        //         }
-        //     },
-        //     r.crosshair_shader,
-        //     r.crosshair_textures_map
-        // ));
     }
 
     void SceneGame::enable() {
         handlers.clear();
+
+        d.world->move(d.player.pos.x, d.player.pos.z);
     }
 
     void SceneGame::update(float dt) {
         handlers.process();
 
         d.player.update(dt);
+
+        Camera::pos = d.player.pos;
     }
     void SceneGame::update_worker() {
         d.world->update();
@@ -142,12 +133,12 @@ namespace game {
             {
                 {2, 2},
                 {
-                    hw - 10.0f, hh - 10.0f,  0.0f, 0.0f,
-                    hw - 10.0f, hh + 10.0f,  0.0f, 1.0f,
-                    hw + 10.0f, hh + 10.0f,  1.0f, 1.0f,
-                    hw - 10.0f, hh - 10.0f,  0.0f, 0.0f,
-                    hw + 10.0f, hh + 10.0f,  1.0f, 1.0f,
-                    hw + 10.0f, hh - 10.0f,  1.0f, 0.0f
+                    hw - CROSSHAIR_SIZE, hh - CROSSHAIR_SIZE,  0.0f, 0.0f,
+                    hw - CROSSHAIR_SIZE, hh + CROSSHAIR_SIZE,  0.0f, 1.0f,
+                    hw + CROSSHAIR_SIZE, hh + CROSSHAIR_SIZE,  1.0f, 1.0f,
+                    hw - CROSSHAIR_SIZE, hh - CROSSHAIR_SIZE,  0.0f, 0.0f,
+                    hw + CROSSHAIR_SIZE, hh + CROSSHAIR_SIZE,  1.0f, 1.0f,
+                    hw + CROSSHAIR_SIZE, hh - CROSSHAIR_SIZE,  1.0f, 0.0f
                 }
             },
             r.crosshair_shader,

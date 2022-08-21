@@ -45,6 +45,10 @@ private:
     static inline std::map<std::string, Scene*> scenes;
     static inline Scene* scene;
 
+    static inline bool running;
+
+    static std::thread* create_worker_thread();
+
     static inline FunctionEventQueue<EventGameStop> game_stop_event_queue = FunctionEventQueue<EventGameStop>([](const EventGameStop& e) {
         Game::stop();
     });
