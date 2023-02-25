@@ -1,6 +1,6 @@
 #include "material.hpp"
 
-int MATERIAL_PROPERTIES[Material::_size()];
+unsigned char MATERIAL_PROPERTIES[Material::_size()];
 
 static const MaterialPropertiesInitializer material_properties_initializer;
 

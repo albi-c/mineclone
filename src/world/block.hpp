@@ -34,17 +34,15 @@ struct Block {
 
     Block& operator=(const Block& other) {
         material = other.material;
-        // state = other.state;
         return *this;
     }
     Block& operator=(Material mat) {
         material = mat;
-        // state = 0;
         return *this;
     }
 
     bool operator==(const Block& other) const {
-        return material == other.material; // && state == other.state;
+        return material == other.material;
     }
 
     bool transparent() const {

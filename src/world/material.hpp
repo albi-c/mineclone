@@ -7,7 +7,7 @@
 #endif
 #include "lib/enum.h"
 
-BETTER_ENUM(Material, char,
+BETTER_ENUM(Material, unsigned char,
     AIR = 0,
     STONE,
     DIRT,
@@ -25,13 +25,13 @@ BETTER_ENUM(Material, char,
 );
 BETTER_ENUMS_DECLARE_STD_HASH(Material);
 
-BETTER_ENUM(MaterialProperty, int,
+BETTER_ENUM(MaterialProperty, unsigned char,
     TRANSPARENT = 0x1,
     PLANT = 0x2,
     WAVING = 0x4
 );
 
-extern int MATERIAL_PROPERTIES[Material::_size()];
+extern unsigned char MATERIAL_PROPERTIES[Material::_size()];
 
 class MaterialPropertiesInitializer {
 public:

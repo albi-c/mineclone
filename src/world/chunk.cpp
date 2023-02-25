@@ -310,7 +310,6 @@ void Chunk::update() {
     for (auto& [pos, block] : Chunk::blocks_to_set[{cx, cz}]) {
         set_nolock(pos.x, pos.y, pos.z, block);
     }
-    // if (blocks_to_set.contains({cx, cz}))
     Chunk::blocks_to_set.erase({cx, cz});
     
     blocks_to_set_mutex.unlock();
@@ -322,8 +321,8 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
     std::vector<float> vertices;
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int y = 0; y < CHUNK_HEIGHT; y++) {
-            for (int z = 0; z < CHUNK_SIZE; z++) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            for (int y = 0; y < CHUNK_HEIGHT; y++) {
                 int i = BP(x, y, z);
                 Block& block = blocks[i];
 
@@ -366,7 +365,7 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
                 
                 #define FACE_PART_SIZE 10
 
-                #define ADD_FACE_PART(texture, block, data, face, part, x, y, z) \
+                #define ADD_FACE_PART(face, part) \
                     data[FACE_PART_SIZE * part + 0] = block_faces[face][5 * part + 0] + x; \
                     data[FACE_PART_SIZE * part + 1] = block_faces[face][5 * part + 1] + y; \
                     data[FACE_PART_SIZE * part + 2] = block_faces[face][5 * part + 2] + z; \
@@ -377,40 +376,37 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
                     data[FACE_PART_SIZE * part + 7] = block_normals[face][1]; \
                     data[FACE_PART_SIZE * part + 8] = block_normals[face][2]; \
                     data[FACE_PART_SIZE * part + 9] = (float)block.material
-
-                #define ADD_FACE(vertices, texture, block, data, face, x, y, z) \
-                    ADD_FACE_PART(texture, block, face_data, face, 0, x, y, z); \
-                    ADD_FACE_PART(texture, block, face_data, face, 1, x, y, z); \
-                    ADD_FACE_PART(texture, block, face_data, face, 2, x, y, z); \
-                    ADD_FACE_PART(texture, block, face_data, face, 3, x, y, z); \
-                    ADD_FACE_PART(texture, block, face_data, face, 4, x, y, z); \
-                    ADD_FACE_PART(texture, block, face_data, face, 5, x, y, z); \
+                
+                #define ADD_FACE(face) \
+                    for (int i = 0; i < 6; i++) { \
+                        ADD_FACE_PART(face, i); \
+                    } \
                     vertices.insert(vertices.end(), &data[0], &data[FACE_PART_SIZE * 6])
                 
                 #define TRANSPARENT_CHECK(xo, yo, zo) \
                     (block.transparent() ? get(x + xo, y + yo, z + zo) != block : get(x + xo, y + yo, z + zo).transparent())
 
-                float face_data[FACE_PART_SIZE * 6];
+                float data[FACE_PART_SIZE * 6];
 
                 if (TRANSPARENT_CHECK(-1, 0, 0)) {
-                    ADD_FACE(vertices, tex, block, face_data, 2, x, y, z);
+                    ADD_FACE(2);
                 }
                 if (TRANSPARENT_CHECK(1, 0, 0)) {
-                    ADD_FACE(vertices, tex, block, face_data, 3, x, y, z);
+                    ADD_FACE(3);
                 }
 
                 if (TRANSPARENT_CHECK(0, 0, -1)) {
-                    ADD_FACE(vertices, tex, block, face_data, 0, x, y, z);
+                    ADD_FACE(0);
                 }
                 if (TRANSPARENT_CHECK(0, 0, 1)) {
-                    ADD_FACE(vertices, tex, block, face_data, 1, x, y, z);
+                    ADD_FACE(1);
                 }
 
                 if (y <= 0 || TRANSPARENT_CHECK(0, -1, 0)) {
-                    ADD_FACE(vertices, tex, block, face_data, 4, x, y, z);
+                    ADD_FACE(4);
                 }
                 if (y + 2 > CHUNK_HEIGHT || TRANSPARENT_CHECK(0, 1, 0)) {
-                    ADD_FACE(vertices, tex, block, face_data, 5, x, y, z);
+                    ADD_FACE(5);
                 }
             }
         }
