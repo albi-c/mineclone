@@ -13,7 +13,6 @@
 class Texture {
 public:
     Texture();
-    Texture(Texture* other);
     Texture(const std::string& filename);
     Texture(const unsigned char* data, int width, int height);
 

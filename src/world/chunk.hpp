@@ -42,7 +42,6 @@ struct ChunkPosition {
 class Chunk {
 public:
     Chunk();
-    Chunk(Chunk* other);
     Chunk(int seed, int cx, int cz);
     ~Chunk();
 
@@ -88,6 +87,7 @@ public:
     bool has_neighbor(ChunkNeighbor neighbor);
     std::shared_ptr<Chunk> get_neighbor(ChunkNeighbor neighbor);
     void set_neighbor(ChunkNeighbor neighbor, std::shared_ptr<Chunk> chunk);
+    bool has_all_neighbors();
 
     ChunkPosition position();
 
@@ -109,7 +109,13 @@ private:
 
     void redraw();
 
-    void set_nolock(int x, int y, int z, Block block);
+    void set_nolock(int x, int y, int z, const Block& block);
+
+    void set_unchecked(int x, int y, int z, const Block& block);
+    void set_unchecked(int x, int y, int z, Material material);
+
+    void fill_unchecked(int x1, int y1, int z1, int x2, int y2, int z2, const Block& block);
+    void fill_unchecked(int x1, int y1, int z1, int x2, int y2, int z2, Material material);
 };
 
 struct EventChunkRedraw : Event {

@@ -1,4 +1,13 @@
 #include "game.hpp"
+#include "camera/frustum.hpp"
+#include "game/options.hpp"
+#include "graphics/gui/imgui.hpp"
+#include "graphics/mesh/mesh.hpp"
+#include "util/time.hpp"
+#include <GLFW/glfw3.h>
+#include <memory>
+#include <sstream>
+#include <string>
 
 #define CROSSHAIR_SIZE 8.0f
 
@@ -11,7 +20,7 @@ namespace game {
 
         d.world_seed = glm::linearRand(-(1<<16), 1>>16);
 
-        d.world = std::make_shared<World>(new World(d.world_seed, r.block_textures, Options::get("render_distance")));
+        d.world = std::make_shared<World>(d.world_seed, r.block_textures, Options::get("render_distance"));
 
         d.world->update_loaded();
 
@@ -19,10 +28,7 @@ namespace game {
 
         d.player.pos = glm::vec3(0.0f, (float)(d.world->highest_block(0, 0) + 2), 0.0f);
 
-        d.chunk_mesh_group = std::make_shared<MeshGroup<std::pair<int, int>>>(new MeshGroup<std::pair<int, int>>(
-            r.block_shader,
-            r.block_textures_map
-        ));
+        d.chunk_mesh_group = std::make_shared<MeshGroup<std::pair<int, int>>>(r.block_shader, r.block_textures_map);
     }
 
     void SceneGame::enable() {
@@ -110,15 +116,51 @@ namespace game {
 
         handlers.window_resize_event_handler.process();
         handlers.option_change_event_queue.process();
-        handlers.chunk_load_event_queue.process_one();
-        if (handlers.chunk_load_event_queue.empty())
-            handlers.chunk_unload_event_queue.process();
+
+        handlers.chunk_load_event_queue.process(Options::get("chunk_updates"));
+        handlers.chunk_unload_event_queue.process();
 
         Renderer::render(d.chunk_mesh_group);
 
         for (auto& [name, mesh] : d.gui_meshes) {
             Renderer::render(mesh, {false, false});
         }
+
+        d.fps_history[d.fps_history_ptr++] = fps;
+        if (d.fps_history_ptr >= FPS_HISTORY_LENGTH) {
+            d.fps_history_ptr = 0;
+        }
+
+        int average_fps;
+        for (int i = 0; i < FPS_HISTORY_LENGTH; i++) {
+            average_fps += d.fps_history[i];
+        }
+        average_fps /= FPS_HISTORY_LENGTH;
+
+        // Debug GUI
+
+        imgui::frame_start();
+
+        {
+            ImGui::Begin(
+                "Debug",
+                NULL,
+                ImGuiWindowFlags_NoDecoration |
+                ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoSavedSettings
+            );
+
+            std::stringstream debug_text;
+
+            debug_text << "FPS: " << average_fps << "\n";
+            debug_text << "Loaded chunks: " << d.chunk_mesh_group->num_meshes() << "\n";
+            debug_text << "Generate queue: " << d.world->queued_chunks_generate() << "\n";
+            debug_text << "Mesh queue: " << d.world->queued_chunks_mesh() << "\n";
+
+            ImGui::TextScaled(debug_text.str(), 2);
+        }
+
+        imgui::frame_end();
     }
 
     SceneFlags SceneGame::get_options() {
@@ -126,11 +168,11 @@ namespace game {
     }
 
     void SceneGame::on_window_resize(const EventFramebufferResize& e) {
-        float hw = e.width / 2;
-        float hh = e.height / 2;
+        float hw = e.width / 2.0f;
+        float hh = e.height / 2.0f;
 
-        d.gui_meshes["crosshair"] = std::make_shared<Mesh>(new Mesh(
-            {
+        d.gui_meshes["crosshair"] = std::make_shared<Mesh>(
+            MeshData(
                 {2, 2},
                 {
                     hw - CROSSHAIR_SIZE, hh - CROSSHAIR_SIZE,  0.0f, 0.0f,
@@ -140,10 +182,10 @@ namespace game {
                     hw + CROSSHAIR_SIZE, hh + CROSSHAIR_SIZE,  1.0f, 1.0f,
                     hw + CROSSHAIR_SIZE, hh - CROSSHAIR_SIZE,  1.0f, 0.0f
                 }
-            },
+            ),
             r.crosshair_shader,
             r.crosshair_textures_map
-        ));
+        );
     }
     void SceneGame::on_mouse_move(const EventMouseMove& e) {
         d.player.rotate(e.x, e.y);
@@ -171,16 +213,18 @@ namespace game {
     }
     void SceneGame::on_chunk_load(const EventChunkLoad& e) {
         if (d.world->loaded(e.cx, e.cz)) {
-            (*d.chunk_mesh_group)[{e.cx, e.cz}] = std::make_shared<Mesh>(new Mesh(
+            auto mesh = std::make_shared<Mesh>(
                 *e.mesh_data,
                 r.block_shader,
                 r.block_textures_map,
-                {e.cx * CHUNK_SIZE + 0.5f, 0.0f, e.cz * CHUNK_SIZE + 0.5f},
-                {
+                glm::vec3(e.cx * CHUNK_SIZE + 0.5f, 0.0f, e.cz * CHUNK_SIZE + 0.5f),
+                frustum::AABB(
                     {e.cx * CHUNK_SIZE + 0.5f, 0.0f, e.cz * CHUNK_SIZE + 0.5f},
                     {e.cx * CHUNK_SIZE + CHUNK_SIZE + 0.5f, CHUNK_HEIGHT, e.cz * CHUNK_SIZE + CHUNK_SIZE + 0.5f}
-                }
-            ));
+                )
+            );
+
+            (*d.chunk_mesh_group)[{e.cx, e.cz}] = mesh;
         }
     }
     void SceneGame::on_chunk_unload(const EventChunkUnload& e) {

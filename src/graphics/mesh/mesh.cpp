@@ -1,17 +1,5 @@
 #include "mesh.hpp"
 
-Mesh::Mesh(Mesh* other) {
-    shader = other->shader;
-    VAO = other->VAO;
-    VBO = other->VBO;
-    buffers_initialized = other->buffers_initialized;
-    for (auto& [name, tex] : other->textures) {
-        textures[name] = tex;
-    }
-    vertices = other->vertices;
-    translation_ = other->translation_;
-    aabb = other->aabb;
-}
 Mesh::Mesh(
         const MeshData& data,
         std::shared_ptr<Shader> shader,

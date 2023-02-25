@@ -1,4 +1,6 @@
 #include "options.hpp"
+#include "game/options.hpp"
+#include "imgui.h"
 
 void SceneOptions::render() {
     imgui::frame_start();
@@ -33,6 +35,9 @@ void SceneOptions::render() {
 
         auto render_distance = Option("render_distance");
         ImGui::SliderInt("render distance", &render_distance, 4, 16);
+
+        auto chunk_updates = Option("chunk_updates");
+        ImGui::SliderInt("chunk updates", &chunk_updates, 1, 32);
 
         ImGui::TextScalePop();
     }

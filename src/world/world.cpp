@@ -1,22 +1,15 @@
 #include "world.hpp"
+#include "chunk.hpp"
+#include "event/event.hpp"
+#include "graphics/textures/texture_array.hpp"
+#include "util/thread.hpp"
 
 void WorldHandlers::chunk_redraw_event_handler(const EventChunkRedraw& e) {
-    if (world->chunks.find({e.cx, e.cz}) != world->chunks.end()) {
+    if (world->chunks.contains({e.cx, e.cz})) {
         world->required_chunk_meshes_lp.insert({e.cx, e.cz});
     }
 }
 
-World::World(World* other)
-    : seed(other->seed),
-    x(other->x), z(other->z),
-    render_distance(other->render_distance),
-    required_chunks(other->required_chunks),
-    chunks(other->chunks),
-    texture_array(other->texture_array) {
-    
-    WorldHandlers::world = this;
-    EventManager::listen(handlers.chunk_redraw_event_queue);
-}
 World::World(int seed, std::shared_ptr<TextureArray> texture_array, unsigned int render_distance, int x, int z)
     : seed(seed), texture_array(texture_array), render_distance(render_distance), x(x), z(z) {
     
@@ -28,6 +21,7 @@ World::World(int seed, std::shared_ptr<TextureArray> texture_array, unsigned int
 
 void World::update() {
     tu::mutex_lock_timeout_exc(chunks_mutex);
+    
     for (auto& [pos, chunk] : chunks) {
         chunk->update();
     }
@@ -74,6 +68,11 @@ void World::update_loaded() {
 
     required_chunks_mutex.unlock();
 }
+
+static void redrawChunk(std::shared_ptr<Chunk> chunk, const TextureArray& texArray, const std::pair<int, int>& pos) {
+    EventManager::fire(EventChunkLoad{chunk, chunk->mesh(texArray), pos.first, pos.second});
+}
+
 void World::generate(const TextureArray& texture_array) {
     tu::mutex_lock_timeout_exc(required_chunks_mutex);
     if (!required_chunks.empty()) {
@@ -82,7 +81,7 @@ void World::generate(const TextureArray& texture_array) {
 
         required_chunks_mutex.unlock();
 
-        auto chunk = std::make_shared<Chunk>(new Chunk(seed, pos.first, pos.second));
+        auto chunk = std::make_shared<Chunk>(seed, pos.first, pos.second);
 
         tu::mutex_lock_timeout_exc(chunks_mutex);
         chunks[pos] = chunk;
@@ -90,9 +89,13 @@ void World::generate(const TextureArray& texture_array) {
 
         update_neighbors({pos.first, pos.second});
 
-        tu::mutex_lock_timeout_exc(required_chunk_meshes_mutex);
-        required_chunk_meshes.push(pos);
-        required_chunk_meshes_mutex.unlock();
+        if (chunk->has_all_neighbors()) {
+            redrawChunk(chunk, texture_array, pos);
+        } else {
+            tu::mutex_lock_timeout_exc(required_chunk_meshes_mutex);
+            required_chunk_meshes.push(pos);
+            required_chunk_meshes_mutex.unlock();
+        }
     } else {
         required_chunks_mutex.unlock();
     }
@@ -100,13 +103,14 @@ void World::generate(const TextureArray& texture_array) {
     tu::mutex_lock_timeout_exc(required_chunk_meshes_mutex);
     if (!required_chunk_meshes.empty()) {
         auto pos = required_chunk_meshes.front();
+
         required_chunk_meshes.pop();
 
         required_chunk_meshes_mutex.unlock();
 
         auto c = chunk(glm::ivec2{pos.first, pos.second});
         if (c) {
-            EventManager::fire(EventChunkLoad{c, c->mesh(texture_array), pos.first, pos.second});
+            redrawChunk(c, texture_array, pos);
         }
     } else {
         required_chunk_meshes_mutex.unlock();
@@ -120,7 +124,7 @@ void World::generate(const TextureArray& texture_array) {
 
             auto c = chunk(glm::ivec2{pos.first, pos.second});
             if (c) {
-                EventManager::fire(EventChunkLoad{c, c->mesh(texture_array), pos.first, pos.second});
+                redrawChunk(c, texture_array, pos);
             }
         } else {
             required_chunk_meshes_lp_mutex.unlock();
@@ -155,7 +159,7 @@ Block World::get(int x, int y, int z) {
     auto cpos = wu::chunk_pos(x, z);
     int cx = cpos.first;
     int cz = cpos.second;
-    if (chunks.find({cx, cz}) != chunks.end()) {
+    if (chunks.contains({cx, cz})) {
         return chunks[{cx, cz}]->get(x & 0xf, y, z & 0xf);
     }
     return Block();
@@ -165,7 +169,7 @@ void World::set(int x, int y, int z, const Block& block) {
     auto cpos = wu::chunk_pos(x, z);
     int cx = cpos.first;
     int cz = cpos.second;
-    if (chunks.find({cx, cz}) != chunks.end()) {
+    if (chunks.contains({cx, cz})) {
         chunks[{cx, cz}]->set(x & 0xf, y, z & 0xf, block);
     }
 }
@@ -181,14 +185,14 @@ void World::fill(int x1, int y1, int z1, int x2, int y2, int z2, const Block& bl
 }
 
 std::shared_ptr<Chunk> World::chunk(int x, int z) {
-    if (chunks.find({x, z}) != chunks.end()) {
+    if (chunks.contains({x, z})) {
         return chunks[{x, z}];
     }
     return nullptr;
 }
 
 bool World::chunk_exists(int x, int z) {
-    return chunks.find({x, z}) != chunks.end();
+    return chunks.contains({x, z});
 }
 
 void World::update_neighbors(const glm::ivec2& pos) {
@@ -220,7 +224,7 @@ void World::update_neighbors(const glm::ivec2& pos) {
 }
 
 bool World::loaded(int x, int z) {
-    return chunks.find({x, z}) != chunks.end();
+    return chunks.contains({x, z});
 }
 
 int World::highest_block(int x, int z) {

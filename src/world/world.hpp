@@ -25,7 +25,6 @@ struct WorldHandlers {
 
 class World {
 public:
-    World(World* other);
     World(int seed, std::shared_ptr<TextureArray> texture_array, unsigned int render_distance = 1, int x = 0, int z = 0);
 
     void update();
@@ -111,6 +110,13 @@ public:
     bool loaded(int x, int z);
     
     int highest_block(int x, int z);
+
+    inline size_t queued_chunks_generate() {
+        return required_chunks.size();
+    }
+    inline size_t queued_chunks_mesh() {
+        return required_chunk_meshes.size() + required_chunk_meshes_lp.size();
+    }
 
 private:
     int seed;

@@ -11,8 +11,6 @@
 template <class T>
 class MeshGroup : public Renderable {
 public:
-    inline MeshGroup(MeshGroup* other)
-        : meshes(other->meshes), shader(other->shader), textures(other->textures) {}
     inline MeshGroup(
         std::shared_ptr<Shader> shader,
         const std::map<std::string, std::shared_ptr<Texture>>& textures
@@ -26,7 +24,7 @@ public:
         meshes.erase(id);
     }
     inline bool contains(const T& id) {
-        return meshes.find(id) != meshes.end();
+        return meshes.contains(id);
     }
 
     inline glm::vec3 translation() const override {
@@ -88,6 +86,10 @@ public:
             shader->shadow->uniform("model", glm::translate(data.model, mesh->translation()));
             mesh->render_basic();
         }
+    }
+
+    inline size_t num_meshes() {
+        return meshes.size();
     }
 
 private:

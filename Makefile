@@ -1,30 +1,30 @@
 EXEC     = mineclone
 EXECOPTS = 
 
-DEBUG = true
+DEBUG = false
 
 ifeq ($(DEBUG), true)
-	OPTIM_FLAG =
+	OPTIM_FLAGS =
 	DEBUG_FLAG = -g
 	OBJDIR = build/debug
 endif
 ifneq ($(DEBUG), true)
-	OPTIM_FLAG = -O3
+	OPTIM_FLAGS = -O3 -flto=auto
 	DEBUG_FLAG =
 	OBJDIR = build/release
 endif
 
 CXX       = g++
 CXXSTD    = c++20
-CXXOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG)  -I. -I./lib -I./src -I./lib/imgui `pkg-config --cflags freetype2`
+CXXOPT   := $(OPTIM_FLAGS) $(DEBUG_FLAG) -I. -I./lib -I./src -I./lib/imgui `pkg-config --cflags freetype2`
 CXXFLAGS := $(CXXOPT) -std=$(CXXSTD)
 
 CC       = gcc
 CCSTD    = c2x
-CCOPT   := $(OPTIM_FLAG) $(DEBUG_FLAG)  -I. -I./lib -I./src -I./lib/imgui `pkg-config --cflags freetype2`
+CCOPT   := $(OPTIM_FLAGS) $(DEBUG_FLAG) -I. -I./lib -I./src -I./lib/imgui `pkg-config --cflags freetype2`
 CCFLAGS := $(CCOPT) -std=$(CCSTD)
 
-LFLAGS = $(CXXOPT) -lGL -lglfw -ldl -lGLEW -pthread -lm -lstdc++ -lfreetype
+LFLAGS = $(CXXFLAGS) -lGL -lglfw -ldl -lGLEW -pthread -lm -lstdc++ -lfreetype
 
 SOURCES  := $(shell find src/ -type f -name '*.cpp')
 OBJECTS  := $(patsubst src/%.cpp, $(OBJDIR)/src/%.o, $(SOURCES))

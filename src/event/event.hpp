@@ -76,6 +76,17 @@ public:
             callback(this->pop());
     }
 
+    inline int process(int max) {
+        for (int i = 0; i < max; i++) {
+            if (!this->empty()) {
+                callback(this->pop());
+            } else {
+                return i;
+            }
+        }
+        return max;
+    }
+
     inline void process_one() {
         if (!this->empty())
             callback(this->pop());

@@ -5,7 +5,6 @@
 class TextureArray : public Texture {
 public:
     TextureArray();
-    TextureArray(TextureArray* other);
 
     inline void bind(int texture_unit) override {
         glActiveTexture(GL_TEXTURE0 + texture_unit);

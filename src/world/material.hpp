@@ -7,7 +7,7 @@
 #endif
 #include "lib/enum.h"
 
-BETTER_ENUM(Material, int,
+BETTER_ENUM(Material, char,
     AIR = 0,
     STONE,
     DIRT,

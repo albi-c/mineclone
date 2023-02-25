@@ -1,6 +1,8 @@
 #include "game.hpp"
+#include <chrono>
+#include <thread>
 
-#define WORKER_THREADS 8
+#define WORKER_THREADS 4
 
 void Game::init() {
     window = new Window();
@@ -87,6 +89,8 @@ std::thread* Game::create_worker_thread() {
         while (running) {
             if (scene) {
                 scene->update_worker();
+            } else {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
         }
     });

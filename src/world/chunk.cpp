@@ -1,4 +1,8 @@
 #include "chunk.hpp"
+#include "material.hpp"
+#include "util/time.hpp"
+#include <cstdlib>
+#include <math.h>
 
 // xyz to block index
 #define BP(x, y, z) ((x) | ((z) << 4) | ((y) << 8))
@@ -116,15 +120,6 @@ std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> Chun
 
 Chunk::Chunk()
     : blocks(NULL) {}
-Chunk::Chunk(Chunk* other) {
-    cx = other->cx;
-    cz = other->cz;
-    seed = other->seed;
-    blocks = other->blocks;
-    for (int i = 0; i < 4; i++) {
-        neighbors[i] = other->neighbors[i];
-    }
-}
 Chunk::Chunk(int seed, int cx, int cz)
     : seed(seed), cx(cx), cz(cz), blocks(new Block[CHUNK_LENGTH]()) {
     
@@ -220,6 +215,8 @@ void Chunk::fill(const BlockPosition& pos1, const BlockPosition& pos2, const Blo
 }
 
 void Chunk::generate() {
+    Timer timer("Chunk Generation");
+
     #define DEFAULT_BIOME {Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS}
     #define DEFAULT_BIOME_ROW DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME
     Biome biomes[CHUNK_SIZE][CHUNK_SIZE] = {
@@ -243,58 +240,58 @@ void Chunk::generate() {
         }
     }
 
-    FastNoise::SmartNode<> cave_generator = FastNoise::NewFromEncodedNodeTree("EwCamZk+GgABEQACAAAAAADgQBAAAACIQR8AFgABAAAACwADAAAAAgAAAAMAAAAEAAAAAAAAAD8BFAD//wAAAAAAAD8AAAAAPwAAAAA/AAAAAD8BFwAAAIC/AACAPz0KF0BSuB5AEwAAAKBABgAAj8J1PACamZk+AAAAAAAA4XoUPw==");
-
+    struct drand48_data rand_data;
+    srand48_r(seed * cx + cz, &rand_data);
+    
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
             int stone_h = 80 + heightmap[x][z] * 10;
-            std::vector<float> caves(stone_h + 1);
-            cave_generator->GenUniformGrid3D(&caves[0], x + cx * CHUNK_SIZE, 0, z + cz * CHUNK_SIZE, 1, stone_h + 1, 1, 0.005f, seed);
-            for (int y = 0; y <= stone_h; y++) {
-                if (caves[y] < 0.0f)
-                    set(x, y, z, Material::STONE);
-                else
-                    set(x, y, z, Material::AIR);
-            }
 
-            srand(seed + cx * x + cz * z + x * z);
+            fill_unchecked(x, 0, z, x, stone_h, z, Material::STONE);
+
+            double random;
 
             Biome biome = biomes[x][z];
             if (biome == (Biome)Biome::PLAINS || biome == (Biome)Biome::FOREST) {
-                fill(x, stone_h+1, z, x, stone_h+5, z, Material::DIRT);
-                set(x, stone_h+6, z, Material::GRASS_BLOCK);
-
-                if (glm::linearRand(0.0f, 1.0f) >= 0.995f) {
-                    set(x, stone_h+7, z, Material::FLOWER);
+                fill_unchecked(x, stone_h+1, z, x, stone_h+5, z, Material::DIRT);
+                set_unchecked(x, stone_h+6, z, Material::GRASS_BLOCK);
+                
+                drand48_r(&rand_data, &random);
+                if (random >= 0.995f) {
+                    set_unchecked(x, stone_h+7, z, Material::FLOWER);
                 }
-                if (glm::linearRand(0.0f, 1.0f) >= 0.98f) {
-                    set(x, stone_h+7, z, Material::GRASS);
+                drand48_r(&rand_data, &random);
+                if (random >= 0.98f) {
+                    set_unchecked(x, stone_h+7, z, Material::GRASS);
                 }
-                if (biomes[x][z] == (Biome)Biome::FOREST && glm::linearRand(0.0f, 1.0f) > 0.98f) {
+                drand48_r(&rand_data, &random);
+                if (biomes[x][z] == (Biome)Biome::FOREST && random > 0.98f) {
                     int treeh = stone_h + 7 + glm::linearRand<int>(3, 6);
                     fill(x-2, stone_h+10, z-2, x+2, treeh+1, z+2, Material::LEAVES);
-                    fill(x, stone_h + 7, z, x, treeh, z, Material::LOG);
+                    fill_unchecked(x, stone_h + 7, z, x, treeh, z, Material::LOG);
                 }
             } else if (biome == (Biome)Biome::MOUNTAINS) {
                 int height = std::clamp(std::pow(std::max(heightmap[x][z], 0.0f) * 10, 2.0f), 6.0f, 100.0f);
                 if (height < 70)
-                    fill(x, stone_h, z, x, stone_h + height, z, Material::STONE);
+                    fill_unchecked(x, stone_h, z, x, stone_h + height, z, Material::STONE);
                 else {
-                    fill(x, stone_h, z, x, stone_h + height, z, Material::STONE);
-                    fill(x, stone_h + 70 - heightmap[x][z] * 2, z, x, stone_h + height, z, Material::SNOW);
+                    fill_unchecked(x, stone_h, z, x, stone_h + height, z, Material::STONE);
+                    fill_unchecked(x, stone_h + 70 - heightmap[x][z] * 2, z, x, stone_h + height, z, Material::SNOW);
                 }
             } else if (biome == (Biome)Biome::SNOWY_PLAINS) {
-                fill(x, stone_h+1, z, x, stone_h+5, z, Material::DIRT);
-                set(x, stone_h+6, z, Material::SNOW);
+                fill_unchecked(x, stone_h+1, z, x, stone_h+5, z, Material::DIRT);
+                set_unchecked(x, stone_h+6, z, Material::SNOW);
 
-                if (glm::linearRand(0.0f, 1.0f) >= 0.995f) {
-                    set(x, stone_h+7, z, Material::DEAD_BUSH);
+                drand48_r(&rand_data, &random);
+                if (random >= 0.995f) {
+                    set_unchecked(x, stone_h+7, z, Material::DEAD_BUSH);
                 }
             } else if (biome == (Biome)Biome::DESERT) {
-                fill(x, stone_h+1, z, x, stone_h+6, z, Material::SAND);
+                fill_unchecked(x, stone_h+1, z, x, stone_h+6, z, Material::SAND);
 
-                if (glm::linearRand(0.0f, 1.0f) >= 0.99f) {
-                    set(x, stone_h+7, z, Material::DEAD_BUSH);
+                drand48_r(&rand_data, &random);
+                if (random >= 0.99f) {
+                    set_unchecked(x, stone_h+7, z, Material::DEAD_BUSH);
                 }
             }
 
@@ -313,13 +310,15 @@ void Chunk::update() {
     for (auto& [pos, block] : Chunk::blocks_to_set[{cx, cz}]) {
         set_nolock(pos.x, pos.y, pos.z, block);
     }
-    if (blocks_to_set.find({cx, cz}) != blocks_to_set.end())
-        Chunk::blocks_to_set.erase({cx, cz});
+    // if (blocks_to_set.contains({cx, cz}))
+    Chunk::blocks_to_set.erase({cx, cz});
     
     blocks_to_set_mutex.unlock();
 }
 
 std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
+    Timer timer("Chunk Meshing");
+
     std::vector<float> vertices;
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
@@ -407,7 +406,7 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
                     ADD_FACE(vertices, tex, block, face_data, 1, x, y, z);
                 }
 
-                if (y - 1 < 0 || TRANSPARENT_CHECK(0, -1, 0)) {
+                if (y <= 0 || TRANSPARENT_CHECK(0, -1, 0)) {
                     ADD_FACE(vertices, tex, block, face_data, 4, x, y, z);
                 }
                 if (y + 2 > CHUNK_HEIGHT || TRANSPARENT_CHECK(0, 1, 0)) {
@@ -417,7 +416,7 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
         }
     }
 
-    return std::make_shared<MeshData>(new MeshData({3, 3, 3, 1}, vertices));
+    return std::make_shared<MeshData>(std::vector{3, 3, 3, 1}, vertices);
 }
 
 bool Chunk::has_neighbor(ChunkNeighbor neighbor) {
@@ -429,6 +428,15 @@ std::shared_ptr<Chunk> Chunk::get_neighbor(ChunkNeighbor neighbor) {
 void Chunk::set_neighbor(ChunkNeighbor neighbor, std::shared_ptr<Chunk> chunk) {
     neighbors[(int)neighbor] = chunk;
     EventManager::fire(EventChunkRedraw{cx, cz});
+}
+bool Chunk::has_all_neighbors() {
+    for (int i = 0; i < 0; i++) {
+        if (neighbors[i].lock() == nullptr) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void Chunk::generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]) {
@@ -454,7 +462,7 @@ ChunkPosition Chunk::position() {
     return {cx, cz};
 }
 
-void Chunk::set_nolock(int x, int y, int z, Block block) {
+void Chunk::set_nolock(int x, int y, int z, const Block& block) {
     if (x < 0 || y < 0 || z < 0 || x > CHUNK_SIZE - 1 || y > CHUNK_HEIGHT - 1 || z > CHUNK_SIZE - 1) {
         if (x < 0) {
             Chunk::blocks_to_set[{cx - 1, cz}].push_back({{x + CHUNK_SIZE, y, z}, block});
@@ -479,6 +487,30 @@ void Chunk::set_nolock(int x, int y, int z, Block block) {
 
         EventManager::fire(EventChunkRedraw{cx, cz});
     }
+}
+
+void Chunk::set_unchecked(int x, int y, int z, const Block& block) {
+    blocks[BP(x, y, z)] = block;
+}
+void Chunk::set_unchecked(int x, int y, int z, Material material) {
+    blocks[BP(x, y, z)] = Block(material);
+}
+
+void Chunk::fill_unchecked(int x1, int y1, int z1, int x2, int y2, int z2, const Block& block) {
+    if (x1 == x2 && z1 == z2) {
+        for (int y = y1; y <= y2; y++) {
+            blocks[BP(x1, y, z1)] = block;
+        }
+    }
+
+    for (int x = x1; x <= x2; x++) {
+        for (int y = y1; y <= y2; y++) {
+            for (int z = z1; z <= z2; z++) {}
+        }
+    }
+}
+void Chunk::fill_unchecked(int x1, int y1, int z1, int x2, int y2, int z2, Material material) {
+    fill_unchecked(x1, y1, z1, x2, y2, z1, Block(material));
 }
 
 int Chunk::highest_block(int x, int z) {

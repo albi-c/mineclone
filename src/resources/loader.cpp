@@ -10,11 +10,11 @@ std::string ResourceLoader::string(const std::string& name) {
 }
 
 std::shared_ptr<Texture> ResourceLoader::texture(const std::string& name) {
-    return std::make_shared<Texture>(new Texture("res/textures/" + name + ".png"));
+    return std::make_shared<Texture>("res/textures/" + name + ".png");
 }
 std::shared_ptr<TextureArray> ResourceLoader::texture_array(const std::string& name, bool names_to_uppercase) {
     std::ifstream am("res/textures/" + name + "/texture_array.txt");
-    auto tex_arr = std::make_shared<TextureArray>(new TextureArray());
+    auto tex_arr = std::make_shared<TextureArray>();
     std::string line;
     while (am >> line) {
         if (!line.empty()) {

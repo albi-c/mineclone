@@ -31,6 +31,8 @@
 #include "game/scene/scene.hpp"
 #include "graphics/gui/imgui.hpp"
 
+#define FPS_HISTORY_LENGTH 100
+
 namespace game {
     struct SceneGameData {
         Player player;
@@ -42,7 +44,14 @@ namespace game {
 
         std::map<std::string, std::shared_ptr<Mesh>> gui_meshes;
 
-        SceneGameData() {}
+        int fps_history_ptr = 0;
+        int* fps_history = new int[FPS_HISTORY_LENGTH]();
+
+        inline SceneGameData() {}
+
+        inline ~SceneGameData() {
+            delete[] fps_history;
+        }
     };
 
     struct SceneGameResources {
