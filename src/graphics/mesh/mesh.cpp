@@ -89,16 +89,16 @@ void Mesh::rebuild(const MeshData& data) {
     glBufferData(GL_ARRAY_BUFFER, data.data.size() * sizeof(float), data.data.data(), GL_STATIC_DRAW);
 
     int stride = 0;
-    for (auto& size : data.part_sizes) {
-        stride += size;
+    for (auto& part : data.parts) {
+        stride += part.size;
     }
 
     int i = 0, cs = 0;
-    for (auto& size : data.part_sizes) {
-        glVertexAttribPointer(i, size, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)((long)(cs*sizeof(float))));
+    for (auto& part : data.parts) {
+        glVertexAttribPointer(i, part.size, part.type, GL_FALSE, stride * sizeof(float), (void*)((long)(cs*sizeof(float))));
         glEnableVertexAttribArray(i);
 
-        cs += size;
+        cs += part.size;
         i++;
     }
 

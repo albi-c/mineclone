@@ -1,8 +1,11 @@
 #include "chunk.hpp"
+#include "graphics/mesh/mesh.hpp"
 #include "material.hpp"
 #include "util/time.hpp"
+#include <cstdint>
 #include <cstdlib>
 #include <math.h>
+#include <memory>
 
 // xyz to block index
 #define BP(x, y, z) ((x) | ((z) << 4) | ((y) << 8))
@@ -412,7 +415,13 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
         }
     }
 
-    return std::make_shared<MeshData>(std::vector{3, 3, 3, 1}, vertices);
+    return std::make_shared<MeshData>(std::vector{
+        MeshDataPart(3),
+        MeshDataPart(3),
+        MeshDataPart(3),
+        MeshDataPart(1)
+    }, vertices);
+    // return std::make_shared<MeshData>(std::vector{MeshDataPart(4, GL_UNSIGNED_INT)}, vertices);
 }
 
 bool Chunk::has_neighbor(ChunkNeighbor neighbor) {

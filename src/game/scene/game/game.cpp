@@ -173,7 +173,10 @@ namespace game {
 
         d.gui_meshes["crosshair"] = std::make_shared<Mesh>(
             MeshData(
-                {2, 2},
+                {
+                    MeshDataPart(2),
+                    MeshDataPart(2)
+                },
                 {
                     hw - CROSSHAIR_SIZE, hh - CROSSHAIR_SIZE,  0.0f, 0.0f,
                     hw - CROSSHAIR_SIZE, hh + CROSSHAIR_SIZE,  0.0f, 1.0f,

@@ -10,15 +10,23 @@
 #include "graphics/render/renderable.hpp"
 #include "camera/frustum.hpp"
 
+struct MeshDataPart {
+    const unsigned int size;
+    const GLuint type;
+
+    MeshDataPart(unsigned int size)
+        : size(size), type(GL_FLOAT) {}
+    MeshDataPart(unsigned int size, GLuint type)
+        : size(size), type(type) {}
+};
+
 struct MeshData {
-    std::vector<int> part_sizes;
+    std::vector<MeshDataPart> parts;
     std::vector<float> data;
 
     MeshData() {}
-    MeshData(std::vector<int> part_sizes, std::vector<float> data)
-        : part_sizes(part_sizes), data(data) {}
-    MeshData(MeshData* other)
-        : part_sizes(other->part_sizes), data(other->data) {}
+    MeshData(const std::vector<MeshDataPart>& parts, const std::vector<float>& data)
+        : parts(parts), data(data) {}
 };
 
 class Mesh : public Renderable {
