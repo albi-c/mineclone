@@ -34,7 +34,7 @@ void SceneOptions::render() {
         ImGui::Checkbox("shadows", &shadows);
 
         auto render_distance = Option("render_distance");
-        ImGui::SliderInt("render distance", &render_distance, 4, 16);
+        ImGui::SliderInt("render distance", &render_distance, 4, 32);
 
         auto chunk_updates = Option("chunk_updates");
         ImGui::SliderInt("chunk updates", &chunk_updates, 1, 32);

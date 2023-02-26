@@ -51,6 +51,33 @@ void Shader::uniform(const std::string& name, const glm::mat4& value) {
     glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, &value[0][0]);
 }
 
+void Shader::uniform_b(const std::string& name, int value) {
+    glUniform1i(glGetUniformLocation(program, name.c_str()), value);
+}
+void Shader::uniform_b(const std::string& name, GLuint value) {
+    glUniform1i(glGetUniformLocation(program, name.c_str()), value);
+}
+void Shader::uniform_b(const std::string& name, float value) {
+    glUniform1f(glGetUniformLocation(program, name.c_str()), value);
+}
+void Shader::uniform_b(const std::string& name, double value) {
+    glUniform1f(glGetUniformLocation(program, name.c_str()), (float)value);
+}
+
+void Shader::uniform_b(const std::string& name, const glm::vec2& value) {
+    glUniform2fv(glGetUniformLocation(program, name.c_str()), 1, &value[0]);
+}
+void Shader::uniform_b(const std::string& name, const glm::vec3& value) {
+    glUniform3fv(glGetUniformLocation(program, name.c_str()), 1, &value[0]);
+}
+void Shader::uniform_b(const std::string& name, const glm::vec4& value) {
+    glUniform4fv(glGetUniformLocation(program, name.c_str()), 1, &value[0]);
+}
+
+void Shader::uniform_b(const std::string& name, const glm::mat4& value) {
+    glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, &value[0][0]);
+}
+
 void Shader::init(const std::string& vertex_code, const std::string& fragment_code) {
     GLuint vertex_shader, fragment_shader;
     const char* vertex_code_c = vertex_code.c_str();

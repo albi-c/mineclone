@@ -9,11 +9,7 @@
 
 class Window {
 public:
-    Renderer renderer;
-    Camera camera;
-
     Window();
-    Window(Window* other);
     ~Window();
 
     bool update();

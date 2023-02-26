@@ -40,9 +40,15 @@ public:
         const glm::vec3& translation = glm::vec3(0.0f),
         const frustum::AABB& aabb = frustum::AABB()
     );
+    Mesh(
+        const std::vector<MeshDataPart>& parts,
+        std::shared_ptr<Shader> shader,
+        const std::map<std::string, std::shared_ptr<Texture>>& textures,
+        size_t value_size,
+        const glm::vec3& translation = glm::vec3(0.0f),
+        const frustum::AABB& aabb = frustum::AABB()
+    );
     ~Mesh();
-
-    Mesh& operator=(const Mesh& other);
 
     void render(const RenderData& data) override;
     void render_shadows(const RenderData& data) override;
@@ -64,6 +70,10 @@ private:
     int vertices;
     glm::vec3 translation_;
     frustum::AABB aabb;
+    int cs = 0;
+
+    template <class T>
+    void set_data(const MeshData<T>& data, bool bound);
 };
 
 template <class T>
@@ -76,30 +86,19 @@ inline Mesh::Mesh(
     )
     : shader(shader), textures(textures), translation_(translation), aabb(aabb) {
 
-    rebuild(data);
-}
-
-template <class T>
-inline void Mesh::rebuild(const MeshData<T>& data) {
-    if (buffers_initialized) {
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-    }
-
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, data.data.size() * sizeof(T), data.data.data(), GL_STATIC_DRAW);
 
     int stride = 0;
     for (auto& part : data.parts) {
         stride += part.size;
     }
 
-    int i = 0, cs = 0;
+    int i = 0;
     for (auto& part : data.parts) {
         glVertexAttribPointer(i, part.size, part.type, GL_FALSE, stride * sizeof(T), (void*)((long)(cs*sizeof(T))));
         glEnableVertexAttribArray(i);
@@ -108,8 +107,59 @@ inline void Mesh::rebuild(const MeshData<T>& data) {
         i++;
     }
 
-    vertices = data.data.size() / cs;
+    glBindVertexArray(0);
+
+    set_data(data, true);
+}
+inline Mesh::Mesh(
+    const std::vector<MeshDataPart>& parts,
+    std::shared_ptr<Shader> shader,
+    const std::map<std::string, std::shared_ptr<Texture>>& textures,
+    size_t value_size,
+    const glm::vec3& translation,
+    const frustum::AABB& aabb
+) {
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    int stride = 0;
+    for (auto& part : parts) {
+        stride += part.size;
+    }
+
+    int i = 0;
+    for (auto& part : parts) {
+        glVertexAttribPointer(i, part.size, part.type, GL_FALSE, stride * value_size, (void*)((long)(cs * value_size)));
+        glEnableVertexAttribArray(i);
+
+        cs += part.size;
+        i++;
+    }
+
+    vertices = 0;
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+template <class T>
+inline void Mesh::rebuild(const MeshData<T>& data) {
+    set_data(data, false);
+}
+
+template <class T>
+inline void Mesh::set_data(const MeshData<T>& data, bool bound) {
+    if (!bound) {
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    }
+
+    glBufferData(GL_ARRAY_BUFFER, data.data.size() * sizeof(T), data.data.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+
+    vertices = data.data.size() / cs;
 }

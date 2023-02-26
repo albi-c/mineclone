@@ -25,7 +25,7 @@ void Player::move(char directions, float dt) {
         offset.y -= 1;
     
     pos += offset * dt;
-    Camera::pos = pos;
+    Camera::pos = get_eye_pos();
 }
 void Player::rotate(float x, float y) {
     rot.x += x * 0.1f;
@@ -39,4 +39,8 @@ void Player::rotate(float x, float y) {
     Camera::rot = rot;
     
     Camera::update_vectors();
+}
+
+glm::vec3 Player::get_eye_pos() const {
+    return pos + glm::vec3(0.0f, 1.64f, 0.0f);
 }

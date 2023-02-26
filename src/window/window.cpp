@@ -54,19 +54,6 @@ Window::Window() {
 
     imgui::init(window);
 }
-Window::Window(Window* other) {
-    window = other->window;
-    fullscreen = other->fullscreen;
-    fullscreen_set = other->fullscreen_set;
-    width = other->width;
-    height = other->height;
-    mouseX = other->mouseX;
-    mouseY = other->mouseY;
-    dt = other->dt;
-    last_time = other->last_time;
-    fps_dt = other->fps_dt;
-    fps_last_time = other->fps_last_time;
-}
 Window::~Window() {
     imgui::destroy();
     glfwDestroyWindow(window);

@@ -2,8 +2,9 @@
 #include "camera/frustum.hpp"
 #include "game/options.hpp"
 #include "graphics/gui/imgui.hpp"
-#include "graphics/mesh/mesh.hpp"
+#include "util/thread.hpp"
 #include "util/time.hpp"
+#include "world/chunk.hpp"
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <sstream>
@@ -29,6 +30,26 @@ namespace game {
         d.player.pos = glm::vec3(0.0f, (float)(d.world->highest_block(0, 0) + 2), 0.0f);
 
         d.chunk_mesh_group = std::make_shared<MeshGroup<std::pair<int, int>>>(r.block_shader, r.block_textures_map);
+
+
+        r.block_shader->use();
+
+        Renderer::set_sky_color({0.47, 0.65, 1.0});
+
+        r.block_shader->uniform_b("light.ambient", glm::vec3(0.3f));
+
+        r.block_shader->uniform_b("light.diffuse", glm::vec3(0.7f));
+        r.block_shader->uniform_b("light.diffuse_dir", glm::vec3(1.0f, -1.0f, 1.0f));
+
+        r.block_shader->uniform_b("light.sun", glm::vec3(2.8f, 2.8f, 2.4f));
+
+        r.block_shader->uniform_b("block_properties.plant", (int)MaterialProperty::PLANT);
+        r.block_shader->uniform_b("block_properties.waving", (int)MaterialProperty::WAVING);
+        for (int block = 0; block < Material::_size(); block++) {
+            r.block_shader->uniform_b("block_properties.b[" + std::to_string(block) + "]", MATERIAL_PROPERTIES[block]);
+        }
+
+        set_render_distance(Options::get("render_distance"));
     }
 
     void SceneGame::enable() {
@@ -42,7 +63,7 @@ namespace game {
 
         d.player.update(dt);
 
-        Camera::pos = d.player.pos;
+        Camera::pos = d.player.get_eye_pos();
     }
     void SceneGame::update_worker() {
         d.world->update();
@@ -81,51 +102,37 @@ namespace game {
         static double last_time = 0.0;
 
         double time = glfwGetTime();
-        double fps = 1.0 / (time - last_time);
+        double dt = time - last_time;
+        double fps = 1.0 / dt;
         last_time = time;
-
-        Renderer::set_sky_color({0.47, 0.65, 1.0});
-
-        r.block_shader->uniform("light.ambient", glm::vec3(0.3f));
-
-        r.block_shader->uniform("light.diffuse", glm::vec3(0.7f));
-        r.block_shader->uniform("light.diffuse_dir", glm::vec3(1.0f, -1.0f, 1.0f));
-
-        r.block_shader->uniform("light.sun", glm::vec3(2.8f, 2.8f, 2.4f));
-
-        r.block_shader->uniform("block_properties.plant", (int)MaterialProperty::PLANT);
-        r.block_shader->uniform("block_properties.waving", (int)MaterialProperty::WAVING);
-        for (int block = 0; block < Material::_size(); block++) {
-            r.block_shader->uniform("block_properties.b[" + std::to_string(block) + "]", MATERIAL_PROPERTIES[block]);
-        }
 
         r.block_shader->uniform("time", glfwGetTime());
 
         r.block_shader->uniform("camera_pos", Camera::pos);
 
-        r.block_shader->uniform("fog_start", (float)(Options::get("render_distance") * CHUNK_SIZE - CHUNK_SIZE));
-
-
-        r.block_shader->shadow->uniform("block_properties.plant", (int)MaterialProperty::PLANT);
-        r.block_shader->shadow->uniform("block_properties.waving", (int)MaterialProperty::WAVING);
-        for (int block = 0; block < Material::_size(); block++) {
-            r.block_shader->shadow->uniform("block_properties.b[" + std::to_string(block) + "]", MATERIAL_PROPERTIES[block]);
-        }
-
-        r.block_shader->shadow->uniform("time", glfwGetTime());
+        Timer timer_chunks("Chunks");
 
         handlers.window_resize_event_handler.process();
         handlers.option_change_event_queue.process();
 
-        handlers.chunk_load_event_queue.process(Options::get("chunk_updates"));
+        double chunksStart = glfwGetTime();
+        double threshold = 0.00025 * Options::get("chunk_updates");
+        while (glfwGetTime() - chunksStart < threshold) {
+            Timer timer_upload("Chunk Upload");
+
+            handlers.chunk_load_event_queue.process_one();
+
+            timer_upload.stop();
+        }
         handlers.chunk_unload_event_queue.process();
+
+        timer_chunks.stop();
 
         Renderer::render(d.chunk_mesh_group);
 
         for (auto& [name, mesh] : d.gui_meshes) {
             Renderer::render(mesh, {false, false});
         }
-
         d.fps_history[d.fps_history_ptr++] = fps;
         if (d.fps_history_ptr >= FPS_HISTORY_LENGTH) {
             d.fps_history_ptr = 0;
@@ -212,8 +219,10 @@ namespace game {
             EventManager::fire(EventSceneChange{"game:paused"});
     }
     void SceneGame::on_option_change(const EventOptionChange& e) {
-        if (e.name == "render_distance" && d.world)
+        if (e.name == "render_distance" && d.world) {
             d.world->set_render_distance(e.value);
+            set_render_distance(e.value);
+        }
     }
     void SceneGame::on_chunk_load(const EventChunkLoad& e) {
         if (d.world->loaded(e.cx, e.cz)) {
@@ -233,5 +242,9 @@ namespace game {
     }
     void SceneGame::on_chunk_unload(const EventChunkUnload& e) {
         d.chunk_mesh_group->erase({e.cx, e.cz});
+    }
+
+    void SceneGame::set_render_distance(int distance) {
+        r.block_shader->uniform("fog_start", (float) distance * CHUNK_SIZE - CHUNK_SIZE);
     }
 };

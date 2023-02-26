@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <algorithm>
+#include <memory>
+#include <queue>
 #include <set>
 #include <map>
 #include <utility>
@@ -25,6 +27,7 @@
 
 #include "graphics/render/renderer.hpp"
 #include "graphics/mesh/mesh_group.hpp"
+#include "graphics/mesh/mesh.hpp"
 
 #include "game/options.hpp"
 #include "game/event.hpp"
@@ -46,6 +49,8 @@ namespace game {
 
         int fps_history_ptr = 0;
         int* fps_history = new int[FPS_HISTORY_LENGTH]();
+
+        bool workerContextBound = false;
 
         inline SceneGameData() {}
 
@@ -108,16 +113,16 @@ namespace game {
         SceneGame() {}
         SceneGame(SceneGame* other) {}
 
-        void init();
+        void init() override;
 
-        void enable();
+        void enable() override;
 
-        void update(float dt);
-        void update_worker();
-        void update_keyboard(float dt, const bool* pressed);
-        void render();
+        void update(float dt) override;
+        void update_worker() override;
+        void update_keyboard(float dt, const bool* pressed) override;
+        void render() override;
 
-        SceneFlags get_options();
+        SceneFlags get_options() override;
 
     private:
         SceneGameData d;
@@ -132,6 +137,8 @@ namespace game {
         void on_option_change(const EventOptionChange& e);
         void on_chunk_load(const EventChunkLoad& e);
         void on_chunk_unload(const EventChunkUnload& e);
+
+        void set_render_distance(int distance);
     };
 };
 

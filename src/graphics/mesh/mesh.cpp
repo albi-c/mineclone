@@ -5,20 +5,6 @@ Mesh::~Mesh() {
     glDeleteBuffers(1, &VBO);
 }
 
-Mesh& Mesh::operator=(const Mesh& other) {
-    shader = other.shader;
-    VAO = other.VAO;
-    VBO = other.VBO;
-    buffers_initialized = other.buffers_initialized;
-    for (auto& [name, tex] : other.textures) {
-        textures[name] = tex;
-    }
-    vertices = other.vertices;
-    translation_ = other.translation_;
-    aabb = other.aabb;
-    return *this;
-}
-
 void Mesh::render(const RenderData& data) {
     int i = 0;
     for (auto& [name, texture] : textures) {

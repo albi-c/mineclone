@@ -31,6 +31,17 @@ public:
 
     void uniform(const std::string& name, const glm::mat4& value);
 
+    void uniform_b(const std::string& name, int value);
+    void uniform_b(const std::string& name, GLuint value);
+    void uniform_b(const std::string& name, float value);
+    void uniform_b(const std::string& name, double value);
+
+    void uniform_b(const std::string& name, const glm::vec2& value);
+    void uniform_b(const std::string& name, const glm::vec3& value);
+    void uniform_b(const std::string& name, const glm::vec4& value);
+
+    void uniform_b(const std::string& name, const glm::mat4& value);
+
 private:
     GLuint program;
 

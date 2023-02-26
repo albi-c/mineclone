@@ -19,4 +19,6 @@ public:
 
     void move(char directions, float dt);
     void rotate(float x, float y);
+
+    glm::vec3 get_eye_pos() const;
 };

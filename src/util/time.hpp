@@ -26,6 +26,9 @@ public:
         ended = true;
         double endTime = glfwGetTime();
         double time = endTime - startTime;
+
+        mutex.lock();
+
         auto& timeData = times[name];
         timeData.total += time;
         timeData.count++;
@@ -34,16 +37,22 @@ public:
             timeData.above_med++;
         }
 
+        mutex.unlock();
+
         #endif
     }
 
     inline static void end() {
         #if ENABLE_TIMER
 
+        mutex.lock();
+
         for (auto& [name, data] : times) {
             std::cout << "TIMER [" << name << "] | avg: " << (data.total / (double) data.count) << " | total: " <<
                       data.total << " | count: " << data.count << " | max: " << data.max << " | above: " << data.above_med << "\n";
         }
+
+        mutex.unlock();
 
         #endif
     }
