@@ -4,6 +4,7 @@
 #include "util/time.hpp"
 #include <cstdint>
 #include <cstdlib>
+#include <iostream>
 #include <math.h>
 #include <memory>
 
@@ -17,14 +18,6 @@ const static int block_neighbors[6][3] = {
     {1, 0, 0},
     {0, -1, 0},
     {0, 1, 0}
-};
-const static float block_light[6] = {
-    0.95f,
-    0.95f,
-    0.6f,
-    1.0f,
-    0.9f,
-    0.9f
 };
 const static float block_normals[6][3] = {
     {0, 0, -1},
@@ -117,6 +110,90 @@ const std::array<std::array<float, 30>, 4> plant_faces = {{
         -0.5f, -0.5f,  0.5f, 1.0f, 0.0f
     }
 }};
+
+static int block_occluders[6][6][2][3] = {0};
+static bool data_initialized = false;
+
+static void init_data() {
+    if (data_initialized) {
+        return;
+    }
+
+    for (int face = 0; face < 6; face++) {
+        auto& normal = block_normals[face];
+
+        for (int part = 0; part < 6; part++) {
+            int axis = -1;
+            int dir;
+            int o1;
+            int o2;
+            for (int i = 0; i < 3; i++) {
+                if (normal[i] != 0) {
+                    axis = i;
+                    dir = normal[i];
+                    break;
+                }
+            }
+            if (axis < 0 || axis > 2) {
+                std::cerr << "Invalid block normal in occluder generator\n";
+                break;
+            }
+            switch (axis) {
+                case 0:
+                    o1 = 1;
+                    o2 = 2;
+                    break;
+                case 1:
+                    o1 = 0;
+                    o2 = 2;
+                    break;
+                case 2:
+                    o1 = 0;
+                    o2 = 1;
+                    break;
+            }
+
+            switch (part) {
+                case 0:
+                case 4:
+                    block_occluders[face][part][0][axis] = dir;
+                    block_occluders[face][part][0][o1] = 0;
+                    block_occluders[face][part][0][o2] = -1;
+                    block_occluders[face][part][1][axis] = dir;
+                    block_occluders[face][part][1][o1] = -1;
+                    block_occluders[face][part][1][o2] = 0;
+                    break;
+                case 1:
+                case 3:
+                    block_occluders[face][part][0][axis] = dir;
+                    block_occluders[face][part][0][o1] = 0;
+                    block_occluders[face][part][0][o2] = 1;
+                    block_occluders[face][part][1][axis] = dir;
+                    block_occluders[face][part][1][o1] = 1;
+                    block_occluders[face][part][1][o2] = 0;
+                    break;
+                case 2:
+                    block_occluders[face][part][0][axis] = dir;
+                    block_occluders[face][part][0][o1] = 0;
+                    block_occluders[face][part][0][o2] = -1;
+                    block_occluders[face][part][1][axis] = dir;
+                    block_occluders[face][part][1][o1] = -1;
+                    block_occluders[face][part][1][o2] = 0;
+                    break;
+                case 5:
+                    block_occluders[face][part][0][axis] = dir;
+                    block_occluders[face][part][0][o1] = -1;
+                    block_occluders[face][part][0][o2] = 0;
+                    block_occluders[face][part][1][axis] = dir;
+                    block_occluders[face][part][1][o1] = 0;
+                    block_occluders[face][part][1][o2] = -1;
+                    break;
+            }
+        }
+    }
+
+    data_initialized = true;
+}
 
 std::mutex Chunk::blocks_to_set_mutex;
 std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> Chunk::blocks_to_set;
@@ -331,21 +408,22 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
 
                 if (block == Material::AIR)
                     continue;
+
+                #define PART_SIZE 11
                 
                 if (block.plant()) {
-                    #define PLANT_PART_SIZE 10
-
                     #define ADD_PLANT_PART(texture, block, data, face, part, x, y, z) \
-                        data[PLANT_PART_SIZE * part + 0] = plant_faces[face][5 * part + 0] + x; \
-                        data[PLANT_PART_SIZE * part + 1] = plant_faces[face][5 * part + 1] + y; \
-                        data[PLANT_PART_SIZE * part + 2] = plant_faces[face][5 * part + 2] + z; \
-                        data[PLANT_PART_SIZE * part + 3] = plant_faces[face][5 * part + 3]; \
-                        data[PLANT_PART_SIZE * part + 4] = plant_faces[face][5 * part + 4]; \
-                        data[PLANT_PART_SIZE * part + 5] = tex.position(block.face_texture(face)); \
-                        data[PLANT_PART_SIZE * part + 6] = plant_normals[face][0]; \
-                        data[PLANT_PART_SIZE * part + 7] = plant_normals[face][1]; \
-                        data[PLANT_PART_SIZE * part + 8] = plant_normals[face][2]; \
-                        data[PLANT_PART_SIZE * part + 9] = (float)block.material
+                        data[PART_SIZE * part + 0] = plant_faces[face][5 * part + 0] + x; \
+                        data[PART_SIZE * part + 1] = plant_faces[face][5 * part + 1] + y; \
+                        data[PART_SIZE * part + 2] = plant_faces[face][5 * part + 2] + z; \
+                        data[PART_SIZE * part + 3] = plant_faces[face][5 * part + 3]; \
+                        data[PART_SIZE * part + 4] = plant_faces[face][5 * part + 4]; \
+                        data[PART_SIZE * part + 5] = tex.position(block.face_texture(face)); \
+                        data[PART_SIZE * part + 6] = plant_normals[face][0]; \
+                        data[PART_SIZE * part + 7] = plant_normals[face][1]; \
+                        data[PART_SIZE * part + 8] = plant_normals[face][2]; \
+                        data[PART_SIZE * part + 9] = (float)block.material; \
+                        data[PART_SIZE * part + 10] = 1.0f
                     
                     #define ADD_PLANT(vertices, texture, block, data, face, x, y, z) \
                         ADD_PLANT_PART(texture, block, data, face, 0, x, y, z); \
@@ -354,9 +432,9 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
                         ADD_PLANT_PART(texture, block, data, face, 3, x, y, z); \
                         ADD_PLANT_PART(texture, block, data, face, 4, x, y, z); \
                         ADD_PLANT_PART(texture, block, data, face, 5, x, y, z); \
-                        vertices.insert(vertices.end(), &data[0], &data[PLANT_PART_SIZE * 6])
+                        vertices.insert(vertices.end(), &data[0], &data[PART_SIZE * 6])
                     
-                    float plant_data[PLANT_PART_SIZE * 6];
+                    float plant_data[PART_SIZE * 6];
 
                     ADD_PLANT(vertices, tex, block, plant_data, 0, x, y, z);
                     ADD_PLANT(vertices, tex, block, plant_data, 1, x, y, z);
@@ -365,31 +443,39 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
 
                     continue;
                 }
-                
-                #define FACE_PART_SIZE 10
 
-                #define ADD_FACE_PART(face, part) \
-                    data[FACE_PART_SIZE * part + 0] = block_faces[face][5 * part + 0] + x; \
-                    data[FACE_PART_SIZE * part + 1] = block_faces[face][5 * part + 1] + y; \
-                    data[FACE_PART_SIZE * part + 2] = block_faces[face][5 * part + 2] + z; \
-                    data[FACE_PART_SIZE * part + 3] = block_faces[face][5 * part + 3]; \
-                    data[FACE_PART_SIZE * part + 4] = block_faces[face][5 * part + 4]; \
-                    data[FACE_PART_SIZE * part + 5] = tex.position(block.face_texture(face)); \
-                    data[FACE_PART_SIZE * part + 6] = block_normals[face][0]; \
-                    data[FACE_PART_SIZE * part + 7] = block_normals[face][1]; \
-                    data[FACE_PART_SIZE * part + 8] = block_normals[face][2]; \
-                    data[FACE_PART_SIZE * part + 9] = (float)block.material
+                #define GET_OFFSET(x, y, z, offset) \
+                    get(x + (offset)[0], y + (offset)[1], z + (offset)[2])
+
+                #define GET_OCCLUSION_CORNER(face, part, corner) \
+                    (GET_OFFSET(x, y, z, block_occluders[face][part][corner]).material != (char) Material::AIR ? 0.1 : 0.25)
+
+                #define GET_OCCLUSION(face, part) \
+                    (GET_OCCLUSION_CORNER(face, part, 0) + GET_OCCLUSION_CORNER(face, part, 1))
+
+                #define ADD_FACE_PART(face, part, occlusion) \
+                    data[PART_SIZE * part + 0] = block_faces[face][5 * part + 0] + x; \
+                    data[PART_SIZE * part + 1] = block_faces[face][5 * part + 1] + y; \
+                    data[PART_SIZE * part + 2] = block_faces[face][5 * part + 2] + z; \
+                    data[PART_SIZE * part + 3] = block_faces[face][5 * part + 3]; \
+                    data[PART_SIZE * part + 4] = block_faces[face][5 * part + 4]; \
+                    data[PART_SIZE * part + 5] = tex.position(block.face_texture(face)); \
+                    data[PART_SIZE * part + 6] = block_normals[face][0]; \
+                    data[PART_SIZE * part + 7] = block_normals[face][1]; \
+                    data[PART_SIZE * part + 8] = block_normals[face][2]; \
+                    data[PART_SIZE * part + 9] = (float)block.material; \
+                    data[PART_SIZE * part + 10] = occlusion
                 
                 #define ADD_FACE(face) \
                     for (int i = 0; i < 6; i++) { \
-                        ADD_FACE_PART(face, i); \
+                        ADD_FACE_PART(face, i, GET_OCCLUSION(face, i)); \
                     } \
-                    vertices.insert(vertices.end(), &data[0], &data[FACE_PART_SIZE * 6])
+                    vertices.insert(vertices.end(), &data[0], &data[PART_SIZE * 6])
                 
                 #define TRANSPARENT_CHECK(xo, yo, zo) \
                     (block.transparent() ? get(x + xo, y + yo, z + zo) != block : get(x + xo, y + yo, z + zo).transparent())
 
-                float data[FACE_PART_SIZE * 6];
+                float data[PART_SIZE * 6];
 
                 if (TRANSPARENT_CHECK(-1, 0, 0)) {
                     ADD_FACE(2);
@@ -419,6 +505,7 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
         MeshDataPart(3),
         MeshDataPart(3),
         MeshDataPart(3),
+        MeshDataPart(1),
         MeshDataPart(1)
     }, vertices);
 }
@@ -523,4 +610,8 @@ int Chunk::highest_block(int x, int z) {
             return y;
     }
     return CHUNK_HEIGHT - 1;
+}
+
+void Chunk::init() {
+    init_data();
 }

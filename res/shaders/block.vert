@@ -3,11 +3,13 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aTex;
 layout (location = 2) in vec3 aNormal;
 layout (location = 3) in float aBlock;
+layout (location = 4) in float aOcclusion;
 
 out vec3 TexCoord;
 out vec3 Normal;
 out vec3 FragPos;
 out vec4 ShadowCoord;
+out float Occlusion;
 
 uniform mat4 transform;
 uniform mat4 model;
@@ -70,4 +72,5 @@ void main() {
 
     TexCoord = aTex;
     Normal = aNormal;
+    Occlusion = aOcclusion;
 }

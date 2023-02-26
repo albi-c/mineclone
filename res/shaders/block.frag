@@ -3,6 +3,7 @@ in vec3 TexCoord;
 in vec3 Normal;
 in vec3 FragPos;
 in vec4 ShadowCoord;
+in float Occlusion;
 
 out vec4 FragColor;
 
@@ -38,7 +39,7 @@ void main() {
     if (fog > 0.8)
         discard;
     
-    vec3 color = color_a.rgb;
+    vec3 color = color_a.rgb * Occlusion;
 
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(light.diffuse_pos - FragPos);
