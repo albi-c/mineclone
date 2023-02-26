@@ -152,6 +152,7 @@ namespace game {
 
             std::stringstream debug_text;
 
+            debug_text << "Pos: " << (int)(d.player.pos.x) << ", " << (int)(d.player.pos.y) << ", " << (int)(d.player.pos.z) << "\n";
             debug_text << "FPS: " << average_fps << "\n";
             debug_text << "Loaded chunks: " << d.chunk_mesh_group->num_meshes() << "\n";
             debug_text << "Generate queue: " << d.world->queued_chunks_generate() << "\n";
@@ -172,7 +173,7 @@ namespace game {
         float hh = e.height / 2.0f;
 
         d.gui_meshes["crosshair"] = std::make_shared<Mesh>(
-            MeshData(
+            MeshData<float>(
                 {
                     MeshDataPart(2),
                     MeshDataPart(2)

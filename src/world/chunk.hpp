@@ -41,6 +41,8 @@ struct ChunkPosition {
 
 class Chunk {
 public:
+    using MeshType = float;
+
     Chunk();
     Chunk(int seed, int cx, int cz);
     ~Chunk();
@@ -82,7 +84,7 @@ public:
 
     void update();
 
-    std::shared_ptr<MeshData> mesh(const TextureArray& tex);
+    std::shared_ptr<MeshData<MeshType>> mesh(const TextureArray& tex);
 
     bool has_neighbor(ChunkNeighbor neighbor);
     std::shared_ptr<Chunk> get_neighbor(ChunkNeighbor neighbor);
@@ -92,6 +94,8 @@ public:
     ChunkPosition position();
 
     int highest_block(int x, int z);
+
+    static void init();
 
 private:
     int cx, cz;

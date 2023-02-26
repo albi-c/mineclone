@@ -318,7 +318,7 @@ void Chunk::update() {
     blocks_to_set_mutex.unlock();
 }
 
-std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
+std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) {
     Timer timer("Chunk Meshing");
 
     std::vector<float> vertices;
@@ -415,13 +415,12 @@ std::shared_ptr<MeshData> Chunk::mesh(const TextureArray& tex) {
         }
     }
 
-    return std::make_shared<MeshData>(std::vector{
+    return std::make_shared<MeshData<Chunk::MeshType>>(std::vector{
         MeshDataPart(3),
         MeshDataPart(3),
         MeshDataPart(3),
         MeshDataPart(1)
     }, vertices);
-    // return std::make_shared<MeshData>(std::vector{MeshDataPart(4, GL_UNSIGNED_INT)}, vertices);
 }
 
 bool Chunk::has_neighbor(ChunkNeighbor neighbor) {

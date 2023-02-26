@@ -65,6 +65,8 @@ void TextureArray::generate() {
     glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_SRGB8_ALPHA8, width, height, n_textures, 0, GL_RGBA, GL_UNSIGNED_BYTE, idata);
 
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+
+    delete[] idata;
 }
 
 int TextureArray::position(const std::string& name) const {

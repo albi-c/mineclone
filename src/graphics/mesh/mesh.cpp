@@ -1,15 +1,8 @@
 #include "mesh.hpp"
 
-Mesh::Mesh(
-        const MeshData& data,
-        std::shared_ptr<Shader> shader,
-        const std::map<std::string, std::shared_ptr<Texture>>& textures,
-        const glm::vec3& translation,
-        const frustum::AABB& aabb
-    )
-    : shader(shader), textures(textures), translation_(translation), aabb(aabb) {
-
-    rebuild(data);
+Mesh::~Mesh() {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
 }
 
 Mesh& Mesh::operator=(const Mesh& other) {
@@ -72,38 +65,4 @@ glm::vec3 Mesh::translation() const {
 
 bool Mesh::in_frustum(const frustum::Frustum& frustum) {
     return aabb.in_frustum(frustum);
-}
-
-void Mesh::rebuild(const MeshData& data) {
-    if (buffers_initialized) {
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-    }
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, data.data.size() * sizeof(float), data.data.data(), GL_STATIC_DRAW);
-
-    int stride = 0;
-    for (auto& part : data.parts) {
-        stride += part.size;
-    }
-
-    int i = 0, cs = 0;
-    for (auto& part : data.parts) {
-        glVertexAttribPointer(i, part.size, part.type, GL_FALSE, stride * sizeof(float), (void*)((long)(cs*sizeof(float))));
-        glEnableVertexAttribArray(i);
-
-        cs += part.size;
-        i++;
-    }
-
-    vertices = data.data.size() / cs;
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
 }

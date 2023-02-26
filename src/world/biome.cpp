@@ -1,4 +1,5 @@
 #include "biome.hpp"
+#include <algorithm>
 
 const Biome BiomeTable::table[BIOME_TABLE_SIZE][BIOME_TABLE_SIZE] = {
     {Biome::MOUNTAINS, Biome::MOUNTAINS, Biome::MOUNTAINS, Biome::MOUNTAINS, Biome::MOUNTAINS, Biome::MOUNTAINS, Biome::SNOWY_PLAINS, Biome::SNOWY_PLAINS},
@@ -12,5 +13,6 @@ const Biome BiomeTable::table[BIOME_TABLE_SIZE][BIOME_TABLE_SIZE] = {
 };
 
 Biome BiomeTable::get(float temperature, float humidity) {
-    return table[(int)(temperature * BIOME_TABLE_SIZE - 1)][(int)(humidity * BIOME_TABLE_SIZE - 1)];
+    return table[std::clamp((int)(temperature * BIOME_TABLE_SIZE - 1), 0, BIOME_TABLE_SIZE - 1)]
+                [std::clamp((int)(humidity * BIOME_TABLE_SIZE - 1), 0, BIOME_TABLE_SIZE - 1)];
 }
