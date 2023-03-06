@@ -1,5 +1,7 @@
 #include "chunk.hpp"
+#include "block.hpp"
 #include "graphics/mesh/mesh.hpp"
+#include "graphics/textures/texture_array.hpp"
 #include "material.hpp"
 #include "util/time.hpp"
 #include <cstdint>
@@ -193,6 +195,38 @@ static void init_data() {
     }
 
     data_initialized = true;
+}
+
+static float block_textures[Material::_size()][6] = {0};
+static bool block_textures_initialized = false;
+static bool block_textures_initializing = false;
+
+static void init_block_textures(const TextureArray& tex) {
+    if (block_textures_initialized) {
+        return;
+    } else {
+        if (block_textures_initializing) {
+            while (block_textures_initializing);
+            return;
+        }
+    }
+
+    block_textures_initializing = true;
+
+    for (size_t mat = 0; mat < Material::_size(); mat++) {
+        if (mat == Material::AIR) {
+            continue;
+        }
+
+        Block block(Material::_from_index(mat));
+
+        for (int face = 0; face < 6; face++) {
+            block_textures[mat][face] = tex.position(block.face_texture(face));
+        }
+    }
+
+    block_textures_initialized = true;
+    block_textures_initializing = false;
 }
 
 std::mutex Chunk::blocks_to_set_mutex;
@@ -398,6 +432,8 @@ void Chunk::update() {
 std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) {
     Timer timer("Chunk Meshing");
 
+    init_block_textures(tex);
+
     std::vector<float> vertices;
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
@@ -408,9 +444,9 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
 
                 if (block == Material::AIR)
                     continue;
-
-                #define PART_SIZE 11
                 
+                #define PART_SIZE 11
+
                 if (block.plant()) {
                     #define ADD_PLANT_PART(texture, block, data, face, part, x, y, z) \
                         data[PART_SIZE * part + 0] = plant_faces[face][5 * part + 0] + x; \
@@ -418,13 +454,13 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
                         data[PART_SIZE * part + 2] = plant_faces[face][5 * part + 2] + z; \
                         data[PART_SIZE * part + 3] = plant_faces[face][5 * part + 3]; \
                         data[PART_SIZE * part + 4] = plant_faces[face][5 * part + 4]; \
-                        data[PART_SIZE * part + 5] = tex.position(block.face_texture(face)); \
+                        data[PART_SIZE * part + 5] = block_textures[block.material][face]; \
                         data[PART_SIZE * part + 6] = plant_normals[face][0]; \
                         data[PART_SIZE * part + 7] = plant_normals[face][1]; \
                         data[PART_SIZE * part + 8] = plant_normals[face][2]; \
                         data[PART_SIZE * part + 9] = (float)block.material; \
                         data[PART_SIZE * part + 10] = 1.0f
-                    
+                
                     #define ADD_PLANT(vertices, texture, block, data, face, x, y, z) \
                         ADD_PLANT_PART(texture, block, data, face, 0, x, y, z); \
                         ADD_PLANT_PART(texture, block, data, face, 1, x, y, z); \
@@ -433,7 +469,7 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
                         ADD_PLANT_PART(texture, block, data, face, 4, x, y, z); \
                         ADD_PLANT_PART(texture, block, data, face, 5, x, y, z); \
                         vertices.insert(vertices.end(), &data[0], &data[PART_SIZE * 6])
-                    
+                
                     float plant_data[PART_SIZE * 6];
 
                     ADD_PLANT(vertices, tex, block, plant_data, 0, x, y, z);
@@ -443,9 +479,6 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
 
                     continue;
                 }
-
-                #define GET_OFFSET(x, y, z, offset) \
-                    get(x + (offset)[0], y + (offset)[1], z + (offset)[2])
 
                 #define GET_OCCLUSION_CORNER(face, part, corner) \
                     (GET_OFFSET(x, y, z, block_occluders[face][part][corner]).material != (char) Material::AIR ? 0.1 : 0.25)
@@ -459,7 +492,7 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
                     data[PART_SIZE * part + 2] = block_faces[face][5 * part + 2] + z; \
                     data[PART_SIZE * part + 3] = block_faces[face][5 * part + 3]; \
                     data[PART_SIZE * part + 4] = block_faces[face][5 * part + 4]; \
-                    data[PART_SIZE * part + 5] = tex.position(block.face_texture(face)); \
+                    data[PART_SIZE * part + 5] = block_textures[block.material][face]; \
                     data[PART_SIZE * part + 6] = block_normals[face][0]; \
                     data[PART_SIZE * part + 7] = block_normals[face][1]; \
                     data[PART_SIZE * part + 8] = block_normals[face][2]; \
@@ -472,30 +505,66 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
                     } \
                     vertices.insert(vertices.end(), &data[0], &data[PART_SIZE * 6])
                 
+                #define GET_OFFSET(x, y, z, offset) \
+                    GET_BLOCK(x + (offset)[0], y + (offset)[1], z + (offset)[2])
+                    
                 #define TRANSPARENT_CHECK(xo, yo, zo) \
-                    (block.transparent() ? get(x + xo, y + yo, z + zo) != block : get(x + xo, y + yo, z + zo).transparent())
+                    (block.transparent() ? GET_BLOCK(x + xo, y + yo, z + zo) != block : GET_BLOCK(x + xo, y + yo, z + zo).transparent())
+                
+                if (x > 0 && y > 0 && z > 0 && x < CHUNK_SIZE - 1 && y < CHUNK_HEIGHT - 1 && z < CHUNK_SIZE - 1) {
+                    #define GET_BLOCK(x, y, z) \
+                        blocks[BP((x), (y), (z))]
 
-                float data[PART_SIZE * 6];
+                    float data[PART_SIZE * 6];
 
-                if (TRANSPARENT_CHECK(-1, 0, 0)) {
-                    ADD_FACE(2);
-                }
-                if (TRANSPARENT_CHECK(1, 0, 0)) {
-                    ADD_FACE(3);
-                }
+                    if (TRANSPARENT_CHECK(-1, 0, 0)) {
+                        ADD_FACE(2);
+                    }
+                    if (TRANSPARENT_CHECK(1, 0, 0)) {
+                        ADD_FACE(3);
+                    }
 
-                if (TRANSPARENT_CHECK(0, 0, -1)) {
-                    ADD_FACE(0);
-                }
-                if (TRANSPARENT_CHECK(0, 0, 1)) {
-                    ADD_FACE(1);
-                }
+                    if (TRANSPARENT_CHECK(0, 0, -1)) {
+                        ADD_FACE(0);
+                    }
+                    if (TRANSPARENT_CHECK(0, 0, 1)) {
+                        ADD_FACE(1);
+                    }
 
-                if (y <= 0 || TRANSPARENT_CHECK(0, -1, 0)) {
-                    ADD_FACE(4);
-                }
-                if (y + 2 > CHUNK_HEIGHT || TRANSPARENT_CHECK(0, 1, 0)) {
-                    ADD_FACE(5);
+                    if (y <= 0 || TRANSPARENT_CHECK(0, -1, 0)) {
+                        ADD_FACE(4);
+                    }
+                    if (y + 2 > CHUNK_HEIGHT || TRANSPARENT_CHECK(0, 1, 0)) {
+                        ADD_FACE(5);
+                    }
+
+                    #undef GET_BLOCK
+                } else {
+                    #define GET_BLOCK(x, y, z) \
+                        get((x), (y), (z))
+
+                    float data[PART_SIZE * 6];
+
+                    if (TRANSPARENT_CHECK(-1, 0, 0)) {
+                        ADD_FACE(2);
+                    }
+                    if (TRANSPARENT_CHECK(1, 0, 0)) {
+                        ADD_FACE(3);
+                    }
+
+                    if (TRANSPARENT_CHECK(0, 0, -1)) {
+                        ADD_FACE(0);
+                    }
+                    if (TRANSPARENT_CHECK(0, 0, 1)) {
+                        ADD_FACE(1);
+                    }
+
+                    if (y <= 0 || TRANSPARENT_CHECK(0, -1, 0)) {
+                        ADD_FACE(4);
+                    }
+                    if (y + 2 > CHUNK_HEIGHT || TRANSPARENT_CHECK(0, 1, 0)) {
+                        ADD_FACE(5);
+                    }
                 }
             }
         }
