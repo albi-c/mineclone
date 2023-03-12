@@ -106,9 +106,9 @@ namespace game {
         double fps = 1.0 / dt;
         last_time = time;
 
-        r.block_shader->uniform("time", glfwGetTime());
-
-        r.block_shader->uniform("camera_pos", Camera::pos);
+        r.block_shader->use();
+        r.block_shader->uniform_b("time", glfwGetTime());
+        r.block_shader->uniform_b("camera_pos", Camera::pos);
 
         Timer timer_chunks("Chunks");
 

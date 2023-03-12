@@ -6,36 +6,36 @@ Mesh::~Mesh() {
 }
 
 void Mesh::render(const RenderData& data) {
+    shader->use();
+
     int i = 0;
     for (auto& [name, texture] : textures) {
         texture->bind(i);
-        shader->uniform(name, i);
+        shader->uniform_b(name, i);
         i++;
     }
 
-    shader->uniform("transform", data.transform);
-    shader->uniform("model", data.model);
-    shader->uniform("shadow_transform", data.shadow_transform);
-    shader->uniform("ortho", data.ortho);
-    shader->uniform("shadowMap", data.shadow_map);
-    shader->uniform("shadowMapEnabled", data.shadow_map_enabled);
-
-    shader->use();
+    shader->uniform_b("transform", data.transform);
+    shader->uniform_b("model", data.model);
+    shader->uniform_b("shadow_transform", data.shadow_transform);
+    shader->uniform_b("ortho", data.ortho);
+    shader->uniform_b("shadowMap", data.shadow_map);
+    shader->uniform_b("shadowMapEnabled", data.shadow_map_enabled);
 
     render_basic();
 }
 void Mesh::render_shadows(const RenderData& data) {
+    shader->shadow->use();
+
     int i = 0;
     for (auto& [name, texture] : textures) {
         texture->bind(i);
-        shader->shadow->uniform(name, i);
+        shader->shadow->uniform_b(name, i);
         i++;
     }
 
-    shader->shadow->uniform("transform", data.transform);
-    shader->shadow->uniform("model", data.model);
-
-    shader->shadow->use();
+    shader->shadow->uniform_b("transform", data.transform);
+    shader->shadow->uniform_b("model", data.model);
     
     render_basic();
 }
