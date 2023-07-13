@@ -1,6 +1,6 @@
-#include "window.hpp"
+#include "window/window.hpp"
 
-#include "gl_debug.inl"
+#include "window/gl_debug.inl"
 
 Window::Window() {
     Camera::init(45.0f);

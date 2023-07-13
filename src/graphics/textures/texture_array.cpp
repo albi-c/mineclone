@@ -1,4 +1,4 @@
-#include "texture_array.hpp"
+#include "graphics/textures/texture_array.hpp"
 
 static unsigned char* load_texture_data(const std::string& filename, int& width, int& height, int& n_channels) {
     stbi_set_flip_vertically_on_load(true);

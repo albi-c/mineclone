@@ -1,6 +1,6 @@
 #pragma once
 
-#include "texture.hpp"
+#include "graphics/textures/texture.hpp"
 
 class TextureArray : public Texture {
 public:

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "scene.hpp"
+#include "game/scene/scene.hpp"
 #include "game/event.hpp"
 #include "game/options.hpp"
 #include "graphics/gui/imgui.hpp"

@@ -5,7 +5,7 @@
 #include <utility>
 
 #include "lib/opengl.hpp"
-#include "renderable.hpp"
+#include "graphics/render/renderable.hpp"
 #include "camera/camera.hpp"
 #include "window/event.hpp"
 #include "game/event.hpp"

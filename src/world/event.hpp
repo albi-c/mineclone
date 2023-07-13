@@ -1,6 +1,6 @@
 #include <memory>
 
-#include "chunk.hpp"
+#include "world/chunk.hpp"
 #include "event/event.hpp"
 #include "graphics/mesh/mesh.hpp"
 

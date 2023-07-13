@@ -1,4 +1,4 @@
-#include "mesh.hpp"
+#include "graphics/mesh/mesh.hpp"
 
 Mesh::~Mesh() {
     glDeleteVertexArrays(1, &VAO);

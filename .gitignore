@@ -4,3 +4,4 @@ mineclone
 build/
 res/textures/minecraft/*.png
 imgui.ini
+bazel-*

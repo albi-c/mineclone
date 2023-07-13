@@ -1,4 +1,4 @@
-#include "biome.hpp"
+#include "world/biome.hpp"
 #include <algorithm>
 
 const Biome BiomeTable::table[BIOME_TABLE_SIZE][BIOME_TABLE_SIZE] = {

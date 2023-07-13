@@ -1,5 +1,5 @@
-#include "chunk.hpp"
-#include "block.hpp"
+#include "world/chunk.hpp"
+#include "world/block.hpp"
 #include "graphics/mesh/mesh.hpp"
 #include "graphics/textures/texture_array.hpp"
 #include "material.hpp"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "event.hpp"
+#include "window/event.hpp"
 #include "camera/camera.hpp"
 #include "lib/opengl.hpp"
 #include "graphics/render/renderer.hpp"

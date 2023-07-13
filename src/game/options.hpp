@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-#include "event.hpp"
+#include "game/event.hpp"
 
 class Options {
 public:

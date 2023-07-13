@@ -1,4 +1,4 @@
-#include "material.hpp"
+#include "world/material.hpp"
 
 unsigned char MATERIAL_PROPERTIES[Material::_size()];
 

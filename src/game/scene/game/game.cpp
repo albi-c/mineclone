@@ -1,4 +1,4 @@
-#include "game.hpp"
+#include "game/scene/game/game.hpp"
 #include "camera/frustum.hpp"
 #include "game/options.hpp"
 #include "graphics/gui/imgui.hpp"

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "lib/opengl.hpp"
+
 namespace frustum {
     struct Plane {
         glm::vec3 normal;

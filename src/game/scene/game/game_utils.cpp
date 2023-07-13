@@ -1,4 +1,4 @@
-#include "game.hpp"
+#include "game/scene/game/game.hpp"
 
 namespace game {
     void SceneGameHandlers::listen() {

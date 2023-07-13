@@ -1,4 +1,4 @@
-#include "player.hpp"
+#include "entity/player.hpp"
 
 void Player::render() {
     //

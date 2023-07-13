@@ -18,7 +18,7 @@
 #include "resources/loader.hpp"
 #include "world/world.hpp"
 
-#include "event.hpp"
+#include "game/event.hpp"
 
 #include "task/task.hpp"
 

@@ -3,7 +3,7 @@
 #include <string>
 
 #include "lib/opengl.hpp"
-#include "shader.hpp"
+#include "graphics/shaders/shader.hpp"
 
 enum class UniformType {
     INT, UINT, FLOAT, DOUBLE, VEC2, VEC3, VEC4, MAT4

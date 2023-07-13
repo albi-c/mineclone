@@ -1,4 +1,4 @@
-#include "entity.hpp"
+#include "entity/entity.hpp"
 
 void Entity::move(const glm::vec3& motion) {
     pos += motion;

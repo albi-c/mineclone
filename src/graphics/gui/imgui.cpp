@@ -1,4 +1,4 @@
-#include "imgui.hpp"
+#include "graphics/gui/imgui.hpp"
 
 namespace imgui {
     void init(GLFWwindow* window) {

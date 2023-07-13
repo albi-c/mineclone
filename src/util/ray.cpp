@@ -1,5 +1,4 @@
-#include "ray.hpp"
-
+#include "util/ray.hpp"
 
 Ray::Ray(const glm::vec3& pos, const glm::vec3& dir)
     : pos(pos), dir(glm::normalize(dir)), dist(0.0f) {}

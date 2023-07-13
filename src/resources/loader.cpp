@@ -1,4 +1,4 @@
-#include "loader.hpp"
+#include "resources/loader.hpp"
 
 std::vector<unsigned char> ResourceLoader::vector(const std::string& name) {
     std::ifstream input("res/" + name);

@@ -6,9 +6,9 @@
 #include <set>
 #include <mutex>
 
-#include "chunk.hpp"
-#include "block.hpp"
-#include "event.hpp"
+#include "world/chunk.hpp"
+#include "world/block.hpp"
+#include "world/event.hpp"
 #include "util/world.hpp"
 #include "task/task.hpp"
 #include "util/ray.hpp"

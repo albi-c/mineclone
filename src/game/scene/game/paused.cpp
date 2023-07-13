@@ -1,4 +1,4 @@
-#include "paused.hpp"
+#include "game/scene/game/paused.hpp"
 
 namespace game {
     void ScenePaused::init() {

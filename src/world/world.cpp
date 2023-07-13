@@ -1,5 +1,5 @@
-#include "world.hpp"
-#include "chunk.hpp"
+#include "world/world.hpp"
+#include "world/chunk.hpp"
 #include "event/event.hpp"
 #include "graphics/textures/texture_array.hpp"
 #include "util/thread.hpp"

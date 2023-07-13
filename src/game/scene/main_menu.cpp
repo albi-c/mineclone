@@ -1,4 +1,4 @@
-#include "main_menu.hpp"
+#include "game/scene/main_menu.hpp"
 
 void SceneMainMenu::render() {
     imgui::frame_start();

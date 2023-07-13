@@ -1,4 +1,4 @@
-#include "util.hpp"
+#include "util/util.hpp"
 
 void raiseError(const std::string& message) {
     std::cerr << "Error: " << message << std::endl;

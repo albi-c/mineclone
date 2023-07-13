@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lib/opengl.hpp"
-#include "frustum.hpp"
+#include "camera/frustum.hpp"
 #include "window/event.hpp"
 
 enum class CameraMoveDirection {

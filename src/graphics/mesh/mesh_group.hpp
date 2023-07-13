@@ -3,7 +3,7 @@
 #include <map>
 #include <memory>
 
-#include "mesh.hpp"
+#include "graphics/mesh/mesh.hpp"
 #include "graphics/shaders/shader.hpp"
 #include "graphics/textures/texture.hpp"
 #include "graphics/render/renderable.hpp"

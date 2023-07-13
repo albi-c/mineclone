@@ -1,4 +1,4 @@
-#include "camera.hpp"
+#include "camera/camera.hpp"
 
 void CameraHandlers::framebuffer_resize_event_handler(const EventFramebufferResize& e) {
     Camera::resize(e.width, e.height);

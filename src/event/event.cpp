@@ -1,4 +1,4 @@
-#include "event.hpp"
+#include "event/event.hpp"
 
 static std::map<std::size_t, std::vector<std::function<void(const Event&)>>> EventManager_handlers;
 static std::map<std::size_t, std::mutex> EventManager_mutexes;
