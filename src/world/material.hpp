@@ -3,9 +3,9 @@
 #include <unordered_set>
 
 #ifndef BETTER_ENUMS_MACRO_FILE
-#define BETTER_ENUMS_MACRO_FILE "lib/enum_macros.h"
+#define BETTER_ENUMS_MACRO_FILE "enum_macros.h"
 #endif
-#include "lib/enum.h"
+#include "enum.h"
 
 BETTER_ENUM(Material, unsigned char,
     AIR = 0,

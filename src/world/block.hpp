@@ -1,7 +1,7 @@
 #pragma once
 
 #include "world/material.hpp"
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 
 struct BlockPosition {
     int x, y, z;

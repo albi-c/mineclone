@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 #include "graphics/shaders/shader.hpp"
 
 enum class UniformType {

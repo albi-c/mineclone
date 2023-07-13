@@ -3,7 +3,7 @@
 #include <utility>
 #include <vector>
 
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 
 namespace wu {
     inline std::pair<int, int> chunk_pos(int x, int z) {

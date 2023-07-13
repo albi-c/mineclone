@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 #include "camera/frustum.hpp"
 #include "window/event.hpp"
 

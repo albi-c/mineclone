@@ -1,26 +1,23 @@
 cc_binary(
     name = "mineclone",
     srcs = ["main.cpp"],
+    data = ["//res:resources"],
+    linkopts = [
+        "-lGL", "-lglfw", "-ldl", "-lGLEW", "-pthread", "-lm", "-lstdc++", "-lfreetype", "-lX11"
+    ],
     deps = [
-        ":game",
-        "//lib:libs"
+        ":game"
     ]
 )
 
 cc_library(
     name = "game",
     srcs = glob(["**/*.cpp"], exclude = ["main.cpp"]),
-    hdrs = glob(["**/*.hpp"]),
+    hdrs = glob(["**/*.hpp", "**/*.inl"]),
     includes = ["../lib", "../lib/imgui", "../src"],
-    copts = ["-I."]
+    copts = ["-I."],
+    deps = [
+        "//lib:libs",
+        "//libs:static_libs"
+    ]
 )
-
-# cc_binary(
-#     name = "mineclone",
-#     srcs = glob(["**/*.cpp"]),
-#     includes = [".", "lib", "src", "lib/imgui"],
-#     copts = ["-I.", "-Isrc", "-I./src"],
-#     deps = [
-#         "//lib:libs"
-#     ]
-# )

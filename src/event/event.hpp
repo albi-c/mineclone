@@ -7,7 +7,7 @@
 #include <queue>
 #include <functional>
 
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 
 struct Event {
     virtual ~Event() {}

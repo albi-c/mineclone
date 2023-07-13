@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 #include "graphics/shaders/shader.hpp"
 #include "graphics/textures/texture.hpp"
 #include "graphics/render/renderable.hpp"

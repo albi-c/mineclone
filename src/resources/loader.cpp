@@ -2,6 +2,9 @@
 
 std::vector<unsigned char> ResourceLoader::vector(const std::string& name) {
     std::ifstream input("res/" + name);
+    if (!input.good()) {
+        throw std::runtime_error("file not found: " + name);
+    }
     return std::vector<unsigned char>(std::istreambuf_iterator<char>(input), {});
 }
 std::string ResourceLoader::string(const std::string& name) {

@@ -7,8 +7,8 @@
 #include <utility>
 #include <cstring>
 
-#include "lib/opengl.hpp"
-#include "lib/stb_image.h"
+#include "opengl.hpp"
+#include "stb_image.h"
 
 class Texture {
 public:

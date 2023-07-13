@@ -3,7 +3,7 @@
 #include <map>
 #include <vector>
 
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 #include "camera/frustum.hpp"
 #include "graphics/shaders/uniform.hpp"
 

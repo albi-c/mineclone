@@ -15,7 +15,7 @@
 #include "world/biome.hpp"
 #include "event/event.hpp"
 #include "graphics/mesh/mesh.hpp"
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 #include "graphics/textures/texture_array.hpp"
 #include "util/thread.hpp"
 #include "FastNoise/FastNoise.h"

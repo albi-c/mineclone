@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 
 class Entity {
 public:

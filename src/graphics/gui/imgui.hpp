@@ -1,10 +1,10 @@
 #pragma once
 
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 
-#include "lib/imgui/imgui.h"
-#include "lib/imgui/backends/imgui_impl_glfw.h"
-#include "lib/imgui/backends/imgui_impl_opengl3.h"
+#include "imgui/imgui.h"
+#include "imgui/backends/imgui_impl_glfw.h"
+#include "imgui/backends/imgui_impl_opengl3.h"
 
 #define IMGUI_NUM_FONT_SIZES 16
 

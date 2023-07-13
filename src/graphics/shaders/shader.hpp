@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 
 enum class BuiltinShader {
     BLOCK, DEPTH, GUI

@@ -2,7 +2,7 @@
 
 #include "window/event.hpp"
 #include "camera/camera.hpp"
-#include "lib/opengl.hpp"
+#include "opengl.hpp"
 #include "graphics/render/renderer.hpp"
 #include "event/event.hpp"
 #include "graphics/gui/imgui.hpp"
