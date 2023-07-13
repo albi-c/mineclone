@@ -41,10 +41,12 @@ public:
     }
 
     inline void render(const RenderData& data) override {
+        shader->use();
+
         int i = 0;
         for (auto& [name, texture] : textures) {
             texture->bind(i);
-            shader->uniform(name, i);
+            shader->uniform_b(name, i);
             i++;
         }
 
@@ -55,35 +57,33 @@ public:
             0.5, 0.5, 0.5, 1.0
         );
 
-        shader->uniform("ortho", data.ortho);
-        shader->uniform("shadowMap", data.shadow_map);
-        shader->uniform("shadowMapEnabled", data.shadow_map_enabled);
-
-        shader->use();
+        shader->uniform_b("ortho", data.ortho);
+        shader->uniform_b("shadowMap", data.shadow_map);
+        shader->uniform_b("shadowMapEnabled", data.shadow_map_enabled);
 
         for (auto& [id, mesh] : meshes) {
             if (mesh->in_frustum(frustum)) {
-                shader->uniform("transform", glm::translate(data.transform, mesh->translation()));
-                shader->uniform("model", glm::translate(data.model, mesh->translation()));
-                shader->uniform("shadow_transform", bias_matrix * glm::translate(data.shadow_transform, mesh->translation()));
+                shader->uniform_b("transform", glm::translate(data.transform, mesh->translation()));
+                shader->uniform_b("model", glm::translate(data.model, mesh->translation()));
+                shader->uniform_b("shadow_transform", bias_matrix * glm::translate(data.shadow_transform, mesh->translation()));
 
                 mesh->render_basic();
             }
         }
     }
     inline void render_shadows(const RenderData& data) override {
+        shader->shadow->use();
+
         int i = 0;
         for (auto& [name, texture] : textures) {
             texture->bind(i);
-            shader->shadow->uniform(name, i);
+            shader->shadow->uniform_b(name, i);
             i++;
         }
 
-        shader->shadow->use();
-
         for (auto& [id, mesh] : meshes) {
-            shader->shadow->uniform("transform", glm::translate(data.transform, mesh->translation()));
-            shader->shadow->uniform("model", glm::translate(data.model, mesh->translation()));
+            shader->shadow->uniform_b("transform", glm::translate(data.transform, mesh->translation()));
+            shader->shadow->uniform_b("model", glm::translate(data.model, mesh->translation()));
             mesh->render_basic();
         }
     }
