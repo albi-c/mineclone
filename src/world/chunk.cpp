@@ -1,4 +1,7 @@
 #include "world/chunk.hpp"
+#include "FastNoise/Generators/Fractal.h"
+#include "FastNoise/Generators/Perlin.h"
+#include "FastNoise/Generators/Simplex.h"
 #include "world/block.hpp"
 #include "graphics/mesh/mesh.hpp"
 #include "graphics/textures/texture_array.hpp"
@@ -235,7 +238,7 @@ std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> Chun
 Chunk::Chunk()
     : blocks(NULL) {}
 Chunk::Chunk(int seed, int cx, int cz)
-    : seed(seed), cx(cx), cz(cz), blocks(new Block[CHUNK_LENGTH]()) {
+    : cx(cx), cz(cz), seed(seed), blocks(new Block[CHUNK_LENGTH]()) {
     
     generate();
 }
@@ -341,16 +344,23 @@ void Chunk::generate() {
 
     auto heightmap_r1 = new float[CHUNK_SIZE][CHUNK_SIZE];
     auto heightmap_r2 = new float[CHUNK_SIZE][CHUNK_SIZE];
+    auto heightmap_scale = new float[CHUNK_SIZE][CHUNK_SIZE];
 
-    FastNoise::SmartNode<> height_generator = FastNoise::NewFromEncodedNodeTree("IQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/DwADAAAAAAAAQP//AQAAAAAAPwAAAAAAARwAAQcAAAAAoEA=");
+    // FastNoise::SmartNode<> height_generator = FastNoise::NewFromEncodedNodeTree("IQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/DwADAAAAAAAAQP//AQAAAAAAPwAAAAAAARwAAQcAAAAAoEA=");
+    
+    auto height_generator_simplex = FastNoise::New<FastNoise::Simplex>();
+    auto height_generator = FastNoise::New<FastNoise::FractalFBm>();
+    height_generator->SetSource(height_generator_simplex);
+    height_generator->SetOctaveCount(4);
 
     height_generator->GenUniformGrid2D(&heightmap_r1[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.005f, seed);
     height_generator->GenUniformGrid2D(&heightmap_r2[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001f, seed);
+    height_generator_simplex->GenUniformGrid2D(&heightmap_scale[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.004f, seed);
 
     auto heightmap = new float[CHUNK_SIZE][CHUNK_SIZE];
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            heightmap[x][z] = heightmap_r1[z][x] * 1.0f + heightmap_r2[z][x] * 1.5f;
+            heightmap[x][z] = heightmap_r1[z][x] * 0.25f + heightmap_r2[z][x] * 0.75f;
         }
     }
 
@@ -359,7 +369,7 @@ void Chunk::generate() {
     
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            int stone_h = 80 + heightmap[x][z] * 10;
+            int stone_h = 80 + heightmap[x][z] * 50 * heightmap_scale[z][x];
 
             fill_unchecked(x, 0, z, x, stone_h, z, Material::STONE);
 
@@ -385,7 +395,7 @@ void Chunk::generate() {
                     fill_unchecked(x, stone_h + 7, z, x, treeh, z, Material::LOG);
                 }
             } else if (biome == (Biome)Biome::MOUNTAINS) {
-                int height = std::clamp(std::pow(std::max(heightmap[x][z], 0.0f) * 10, 2.0f), 6.0f, 100.0f);
+                int height = 6;
                 if (height < 70)
                     fill_unchecked(x, stone_h, z, x, stone_h + height, z, Material::STONE);
                 else {
@@ -416,6 +426,7 @@ void Chunk::generate() {
     delete[] heightmap;
     delete[] heightmap_r1;
     delete[] heightmap_r2;
+    delete[] heightmap_scale;
 }
 
 void Chunk::update() {
@@ -479,9 +490,9 @@ std::shared_ptr<MeshData<Chunk::MeshType>> Chunk::mesh(const TextureArray& tex) 
 
                     continue;
                 }
-
+                
                 #define GET_OCCLUSION_CORNER(face, part, corner) \
-                    (GET_OFFSET(x, y, z, block_occluders[face][part][corner]).material != (char) Material::AIR ? 0.1 : 0.25)
+                    (GET_OFFSET(x, y, z, block_occluders[face][part][corner]).transparent() ? 0.25 : 0.1)
 
                 #define GET_OCCLUSION(face, part) \
                     (GET_OCCLUSION_CORNER(face, part, 0) + GET_OCCLUSION_CORNER(face, part, 1))
