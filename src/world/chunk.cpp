@@ -235,16 +235,11 @@ static void init_block_textures(const TextureArray& tex) {
 std::mutex Chunk::blocks_to_set_mutex;
 std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> Chunk::blocks_to_set;
 
-Chunk::Chunk()
-    : blocks(NULL) {}
-Chunk::Chunk(int seed, int cx, int cz)
-    : cx(cx), cz(cz), seed(seed), blocks(new Block[CHUNK_LENGTH]()) {
-    
-    generate();
-}
+Chunk::Chunk(int cx, int cz, Block* blocks)
+    : cx(cx), cz(cz), blocks(blocks) {}
 
 Chunk::~Chunk() {
-    if (blocks != NULL)
+    if (blocks != nullptr)
         delete[] blocks;
 }
 
@@ -329,104 +324,6 @@ void Chunk::fill(int x1, int y1, int z1, int x2, int y2, int z2, const Block& bl
 }
 void Chunk::fill(const BlockPosition& pos1, const BlockPosition& pos2, const Block& block) {
     fill(pos1.x, pos1.y, pos2.x, pos2.x, pos2.y, pos2.z, block);
-}
-
-void Chunk::generate() {
-    Timer timer("Chunk Generation");
-
-    #define DEFAULT_BIOME {Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS, Biome::PLAINS}
-    #define DEFAULT_BIOME_ROW DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME, DEFAULT_BIOME
-    Biome biomes[CHUNK_SIZE][CHUNK_SIZE] = {
-        DEFAULT_BIOME_ROW, DEFAULT_BIOME_ROW
-    };
-
-    generate_biomes(biomes);
-
-    auto heightmap_r1 = new float[CHUNK_SIZE][CHUNK_SIZE];
-    auto heightmap_r2 = new float[CHUNK_SIZE][CHUNK_SIZE];
-    auto heightmap_scale = new float[CHUNK_SIZE][CHUNK_SIZE];
-
-    // FastNoise::SmartNode<> height_generator = FastNoise::NewFromEncodedNodeTree("IQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/DwADAAAAAAAAQP//AQAAAAAAPwAAAAAAARwAAQcAAAAAoEA=");
-    
-    auto height_generator_simplex = FastNoise::New<FastNoise::Simplex>();
-    auto height_generator = FastNoise::New<FastNoise::FractalFBm>();
-    height_generator->SetSource(height_generator_simplex);
-    height_generator->SetOctaveCount(4);
-
-    height_generator->GenUniformGrid2D(&heightmap_r1[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.005f, seed);
-    height_generator->GenUniformGrid2D(&heightmap_r2[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001f, seed);
-    height_generator_simplex->GenUniformGrid2D(&heightmap_scale[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.004f, seed);
-
-    auto heightmap = new float[CHUNK_SIZE][CHUNK_SIZE];
-    for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-            heightmap[x][z] = heightmap_r1[z][x] * 0.25f + heightmap_r2[z][x] * 0.75f;
-        }
-    }
-
-    struct drand48_data rand_data;
-    srand48_r(seed * cx + cz, &rand_data);
-    
-    for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-            int stone_h = 80 + heightmap[x][z] * 50 * heightmap_scale[z][x];
-
-            fill_unchecked(x, 0, z, x, stone_h, z, Material::STONE);
-
-            double random;
-
-            Biome biome = biomes[x][z];
-            if (biome == (Biome)Biome::PLAINS || biome == (Biome)Biome::FOREST) {
-                fill_unchecked(x, stone_h+1, z, x, stone_h+5, z, Material::DIRT);
-                set_unchecked(x, stone_h+6, z, Material::GRASS_BLOCK);
-                
-                drand48_r(&rand_data, &random);
-                if (random >= 0.995f) {
-                    set_unchecked(x, stone_h+7, z, Material::FLOWER);
-                }
-                drand48_r(&rand_data, &random);
-                if (random >= 0.98f) {
-                    set_unchecked(x, stone_h+7, z, Material::GRASS);
-                }
-                drand48_r(&rand_data, &random);
-                if (biomes[x][z] == (Biome)Biome::FOREST && random > 0.98f) {
-                    int treeh = stone_h + 7 + glm::linearRand<int>(3, 6);
-                    fill(x-2, stone_h+10, z-2, x+2, treeh+1, z+2, Material::LEAVES);
-                    fill_unchecked(x, stone_h + 7, z, x, treeh, z, Material::LOG);
-                }
-            } else if (biome == (Biome)Biome::MOUNTAINS) {
-                int height = 6;
-                if (height < 70)
-                    fill_unchecked(x, stone_h, z, x, stone_h + height, z, Material::STONE);
-                else {
-                    fill_unchecked(x, stone_h, z, x, stone_h + height, z, Material::STONE);
-                    fill_unchecked(x, stone_h + 70 - heightmap[x][z] * 2, z, x, stone_h + height, z, Material::SNOW);
-                }
-            } else if (biome == (Biome)Biome::SNOWY_PLAINS) {
-                fill_unchecked(x, stone_h+1, z, x, stone_h+5, z, Material::DIRT);
-                set_unchecked(x, stone_h+6, z, Material::SNOW);
-
-                drand48_r(&rand_data, &random);
-                if (random >= 0.995f) {
-                    set_unchecked(x, stone_h+7, z, Material::DEAD_BUSH);
-                }
-            } else if (biome == (Biome)Biome::DESERT) {
-                fill_unchecked(x, stone_h+1, z, x, stone_h+6, z, Material::SAND);
-
-                drand48_r(&rand_data, &random);
-                if (random >= 0.99f) {
-                    set_unchecked(x, stone_h+7, z, Material::DEAD_BUSH);
-                }
-            }
-
-            set(x, 0, z, Material::BEDROCK);
-        }
-    }
-
-    delete[] heightmap;
-    delete[] heightmap_r1;
-    delete[] heightmap_r2;
-    delete[] heightmap_scale;
 }
 
 void Chunk::update() {
@@ -608,25 +505,6 @@ bool Chunk::has_all_neighbors() {
     }
 
     return true;
-}
-
-void Chunk::generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]) {
-    FastNoise::SmartNode<> temp_generator = FastNoise::NewFromEncodedNodeTree("GgABDQADAAAAAAAAQCEADQADAAAAAAAAQAgAAAAAAD8BBwAJAAEaAAAAAIA/AQgAAAAAAD8AAAAAAAAAAAA/");
-
-    auto temp_map = new float[CHUNK_SIZE][CHUNK_SIZE];
-    temp_generator->GenUniformGrid2D(&temp_map[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001, seed);
-
-    auto hum_map = new float[CHUNK_SIZE][CHUNK_SIZE];
-    temp_generator->GenUniformGrid2D(&hum_map[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001, seed + 5);
-
-    for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-            output[x][z] = BiomeTable::get((temp_map[z][x] + 1.0f) / 2.0f, (hum_map[z][x] + 1.0f) / 2.0f);
-        }
-    }
-
-    delete[] temp_map;
-    delete[] hum_map;
 }
 
 ChunkPosition Chunk::position() {

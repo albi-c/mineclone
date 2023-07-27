@@ -20,6 +20,7 @@
 #include "util/ray.hpp"
 #include "util/string.hpp"
 
+#include "world/generation/generator.hpp"
 #include "world/world.hpp"
 #include "world/material.hpp"
 
@@ -40,6 +41,7 @@ namespace game {
     struct SceneGameData {
         Player player;
 
+        std::shared_ptr<WorldGenerator> generator;
         std::shared_ptr<World> world;
         int world_seed;
 
@@ -111,7 +113,6 @@ namespace game {
     class SceneGame : public Scene {
     public:
         SceneGame() {}
-        SceneGame(SceneGame* other) {}
 
         void init() override;
 

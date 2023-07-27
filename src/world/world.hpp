@@ -9,6 +9,7 @@
 #include "world/chunk.hpp"
 #include "world/block.hpp"
 #include "world/event.hpp"
+#include "world/generation/generator.hpp"
 #include "util/world.hpp"
 #include "task/task.hpp"
 #include "util/ray.hpp"
@@ -25,7 +26,7 @@ struct WorldHandlers {
 
 class World {
 public:
-    World(int seed, std::shared_ptr<TextureArray> texture_array, unsigned int render_distance = 1, int x = 0, int z = 0);
+    World(int seed, std::shared_ptr<TextureArray> texture_array, std::shared_ptr<WorldGenerator> generator, unsigned int render_distance = 1, int x = 0, int z = 0);
 
     void update();
     void update_loaded();
@@ -123,6 +124,8 @@ private:
     int x, z;
 
     std::shared_ptr<TextureArray> texture_array;
+
+    std::shared_ptr<WorldGenerator> generator;
 
     unsigned int render_distance = 1;
 

@@ -5,6 +5,8 @@
 #include "util/thread.hpp"
 #include "util/time.hpp"
 #include "world/chunk.hpp"
+#include "world/generation/old_generator.hpp"
+
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <sstream>
@@ -21,7 +23,9 @@ namespace game {
 
         d.world_seed = glm::linearRand(-(1<<16), 1>>16);
 
-        d.world = std::make_shared<World>(d.world_seed, r.block_textures, Options::get("render_distance"));
+        d.generator = std::make_shared<OldWorldGenerator>(d.world_seed);
+
+        d.world = std::make_shared<World>(d.world_seed, r.block_textures, d.generator, Options::get("render_distance"));
 
         d.world->update_loaded();
 
@@ -138,7 +142,7 @@ namespace game {
             d.fps_history_ptr = 0;
         }
 
-        int average_fps;
+        int average_fps = 0;
         for (int i = 0; i < FPS_HISTORY_LENGTH; i++) {
             average_fps += d.fps_history[i];
         }

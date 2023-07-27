@@ -43,8 +43,7 @@ class Chunk {
 public:
     using MeshType = float;
 
-    Chunk();
-    Chunk(int seed, int cx, int cz);
+    Chunk(int cx, int cz, Block* blocks);
     ~Chunk();
 
     Block get(int x, int y, int z);
@@ -80,8 +79,6 @@ public:
         fill(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, Block(mat));
     }
 
-    void generate();
-
     void update();
 
     std::shared_ptr<MeshData<MeshType>> mesh(const TextureArray& tex);
@@ -99,7 +96,6 @@ public:
 
 private:
     int cx, cz;
-    int seed;
 
     // XZY order
     Block* blocks;
@@ -108,8 +104,6 @@ private:
 
     static std::mutex blocks_to_set_mutex;
     static std::map<std::pair<int, int>, std::vector<std::pair<BlockPosition, Block>>> blocks_to_set;
-
-    void generate_biomes(Biome output[CHUNK_SIZE][CHUNK_SIZE]);
 
     void redraw();
 

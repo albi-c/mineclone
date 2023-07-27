@@ -10,8 +10,8 @@ void WorldHandlers::chunk_redraw_event_handler(const EventChunkRedraw& e) {
     }
 }
 
-World::World(int seed, std::shared_ptr<TextureArray> texture_array, unsigned int render_distance, int x, int z)
-    : seed(seed), texture_array(texture_array), render_distance(render_distance), x(x), z(z) {
+World::World(int seed, std::shared_ptr<TextureArray> texture_array, std::shared_ptr<WorldGenerator> generator, unsigned int render_distance, int x, int z)
+    : seed(seed), texture_array(texture_array), render_distance(render_distance), generator(generator), x(x), z(z) {
     
     WorldHandlers::world = this;
     EventManager::listen(handlers.chunk_redraw_event_queue);
@@ -81,7 +81,7 @@ void World::generate(const TextureArray& texture_array) {
 
         required_chunks_mutex.unlock();
 
-        auto chunk = std::make_shared<Chunk>(seed, pos.first, pos.second);
+        auto chunk = generator->generate({pos.first, pos.second});
 
         tu::mutex_lock_timeout_exc(chunks_mutex);
         chunks[pos] = chunk;
