@@ -9,7 +9,7 @@
 
 #define BIOME_TABLE_SIZE 8
 
-BETTER_ENUM(Biome, int,
+BETTER_ENUM(Biome, unsigned char,
     PLAINS = 0,
     FOREST,
     MOUNTAINS,

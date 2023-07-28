@@ -1,4 +1,5 @@
 #include "world/generation/old_generator.hpp"
+#include "FastNoise/Generators/Simplex.h"
 #include "util/time.hpp"
 #include "world/chunk.hpp"
 #include "world/material.hpp"
@@ -23,8 +24,6 @@ std::shared_ptr<Chunk> OldWorldGenerator::generate(glm::ivec2 pos) {
     auto heightmap_r2 = new float[CHUNK_SIZE][CHUNK_SIZE];
     auto heightmap_scale = new float[CHUNK_SIZE][CHUNK_SIZE];
 
-    // FastNoise::SmartNode<> height_generator = FastNoise::NewFromEncodedNodeTree("IQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/DwADAAAAAAAAQP//AQAAAAAAPwAAAAAAARwAAQcAAAAAoEA=");
-    
     auto height_generator_simplex = FastNoise::New<FastNoise::Simplex>();
     auto height_generator = FastNoise::New<FastNoise::FractalFBm>();
     height_generator->SetSource(height_generator_simplex);
@@ -112,7 +111,7 @@ std::shared_ptr<Chunk> OldWorldGenerator::generate(glm::ivec2 pos) {
 }
 
 void OldWorldGenerator::generate_biomes(Biome* biomes, int cx, int cz) {
-    FastNoise::SmartNode<> temp_generator = FastNoise::NewFromEncodedNodeTree("GgABDQADAAAAAAAAQCEADQADAAAAAAAAQAgAAAAAAD8BBwAJAAEaAAAAAIA/AQgAAAAAAD8AAAAAAAAAAAA/");
+    auto temp_generator = FastNoise::New<FastNoise::Simplex>();
 
     auto temp_map = new float[CHUNK_SIZE][CHUNK_SIZE];
     temp_generator->GenUniformGrid2D(&temp_map[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001, seed);
