@@ -17,6 +17,13 @@ public:
 protected:
     int seed;
 
+    template <class T>
+    inline float* generate_noise(const T& source, glm::uvec2 pos, float frequency = 0.001f, int seed_offset = 0) {
+        float* data = new float[CHUNK_SIZE * CHUNK_SIZE];
+        source->GenUniformGrid2D(data, pos.x * CHUNK_SIZE, pos.y * CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE, frequency, seed + seed_offset);
+        return data;
+    }
+
     static inline size_t get_index(unsigned int x, unsigned int z) {
         return x + z * CHUNK_SIZE;
     }

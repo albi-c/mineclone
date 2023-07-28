@@ -11,47 +11,45 @@ OldWorldGenerator::OldWorldGenerator(int seed)
 std::shared_ptr<Chunk> OldWorldGenerator::generate(glm::ivec2 pos) {
     Timer timer("Chunk Generation [old_generator]");
 
-    int cx = pos.x;
-    int cz = pos.y;
+    int i;
 
     Block* blocks = new Block[CHUNK_LENGTH];
 
     Biome* biomes = (Biome*) malloc(sizeof(Biome) * CHUNK_SIZE * CHUNK_SIZE);
 
-    generate_biomes(biomes, cx, cz);
-
-    auto heightmap_r1 = new float[CHUNK_SIZE][CHUNK_SIZE];
-    auto heightmap_r2 = new float[CHUNK_SIZE][CHUNK_SIZE];
-    auto heightmap_scale = new float[CHUNK_SIZE][CHUNK_SIZE];
+    generate_biomes(biomes, pos);
 
     auto height_generator_simplex = FastNoise::New<FastNoise::Simplex>();
     auto height_generator = FastNoise::New<FastNoise::FractalFBm>();
     height_generator->SetSource(height_generator_simplex);
     height_generator->SetOctaveCount(4);
 
-    height_generator->GenUniformGrid2D(&heightmap_r1[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.005f, seed);
-    height_generator->GenUniformGrid2D(&heightmap_r2[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001f, seed);
-    height_generator_simplex->GenUniformGrid2D(&heightmap_scale[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.004f, seed);
+    auto heightmap_r1 = generate_noise(height_generator, pos, 0.005f);
+    auto heightmap_r2 = generate_noise(height_generator, pos, 0.001f, 1);
+    auto heightmap_scale = generate_noise(height_generator_simplex, pos, 0.004f, 2);
 
-    auto heightmap = new float[CHUNK_SIZE][CHUNK_SIZE];
-    for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-            heightmap[x][z] = heightmap_r1[z][x] * 0.25f + heightmap_r2[z][x] * 0.75f;
+    auto heightmap = new float[CHUNK_SIZE * CHUNK_SIZE];
+    i = 0;
+    for (int z = 0; z < CHUNK_SIZE; z++) {
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            heightmap[i] = heightmap_r1[i] * 0.25f + heightmap_r2[i] * 0.75f;
+            i++;
         }
     }
 
     struct drand48_data rand_data;
-    srand48_r(seed * cx + cz, &rand_data);
+    srand48_r(seed * pos.x + pos.y, &rand_data);
     
-    for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-            int stone_h = 80 + heightmap[x][z] * 50 * heightmap_scale[z][x];
+    i = 0;
+    for (int z = 0; z < CHUNK_SIZE; z++) {
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            int stone_h = 80 + heightmap[i] * 50 * heightmap_scale[i];
 
             fill_col(blocks, {x, z}, {0, stone_h}, Material::STONE);
 
             double random;
 
-            Biome biome = biomes[get_index(x, z)];
+            Biome biome = biomes[i];
             if (biome == (Biome)Biome::PLAINS || biome == (Biome)Biome::FOREST) {
                 fill_col(blocks, {x, z}, {stone_h + 1, stone_h + 5}, Material::DIRT);
                 set(blocks, {x, stone_h + 6, z}, Material::GRASS_BLOCK);
@@ -73,12 +71,8 @@ std::shared_ptr<Chunk> OldWorldGenerator::generate(glm::ivec2 pos) {
                 }
             } else if (biome == (Biome)Biome::MOUNTAINS) {
                 int height = 6;
-                if (height < 70)
-                    fill_col(blocks, {x, z}, {stone_h, stone_h + height}, Material::STONE);
-                else {
-                    fill_col(blocks, {x, z}, {stone_h, stone_h + height}, Material::STONE);
-                    fill_col(blocks, {x, z}, {stone_h + 70 - heightmap[x][z] * 2, stone_h + height}, Material::SNOW);
-                }
+                fill_col(blocks, {x, z}, {stone_h, stone_h + height}, Material::STONE);
+                // TODO: snow caps
             } else if (biome == (Biome)Biome::SNOWY_PLAINS) {
                 fill_col(blocks, {x, z}, {stone_h + 1, stone_h + 5}, Material::DIRT);
                 set(blocks, {x, stone_h + 6, z}, Material::SNOW);
@@ -97,6 +91,8 @@ std::shared_ptr<Chunk> OldWorldGenerator::generate(glm::ivec2 pos) {
             }
 
             set(blocks, {x, 0, z}, Material::BEDROCK);
+
+            i++;
         }
     }
 
@@ -107,21 +103,20 @@ std::shared_ptr<Chunk> OldWorldGenerator::generate(glm::ivec2 pos) {
 
     free(biomes);
 
-    return std::make_shared<Chunk>(cx, cz, blocks);
+    return std::make_shared<Chunk>(pos.x, pos.y, blocks);
 }
 
-void OldWorldGenerator::generate_biomes(Biome* biomes, int cx, int cz) {
-    auto temp_generator = FastNoise::New<FastNoise::Simplex>();
+void OldWorldGenerator::generate_biomes(Biome* biomes, glm::ivec2 pos) {
+    auto noise = FastNoise::New<FastNoise::Simplex>();
 
-    auto temp_map = new float[CHUNK_SIZE][CHUNK_SIZE];
-    temp_generator->GenUniformGrid2D(&temp_map[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001, seed);
+    auto temp_map = generate_noise(noise, pos);
+    auto hum_map = generate_noise(noise, pos, 0.001f, 3);
 
-    auto hum_map = new float[CHUNK_SIZE][CHUNK_SIZE];
-    temp_generator->GenUniformGrid2D(&hum_map[0][0], cx * CHUNK_SIZE + CHUNK_SIZE / 2, cz * CHUNK_SIZE + CHUNK_SIZE / 2, CHUNK_SIZE, CHUNK_SIZE, 0.001, seed + 5);
-
-    for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-            biomes[get_index(x, z)] = BiomeTable::get((temp_map[z][x] + 1.0f) / 2.0f, (hum_map[z][x] + 1.0f) / 2.0f);
+    int i = 0;
+    for (int z = 0; z < CHUNK_SIZE; z++) {
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            biomes[i] = BiomeTable::get((temp_map[i] + 1.0f) / 2.0f, (hum_map[i] + 1.0f) / 2.0f);
+            i++;
         }
     }
 

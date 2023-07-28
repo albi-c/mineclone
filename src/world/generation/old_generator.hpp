@@ -9,5 +9,5 @@ public:
     std::shared_ptr<Chunk> generate(glm::ivec2 pos) override;
 
 private:
-    void generate_biomes(Biome* biomes, int cx, int cz);
+    void generate_biomes(Biome* biomes, glm::ivec2 pos);
 };
