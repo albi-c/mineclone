@@ -3,7 +3,7 @@ cc_binary(
     srcs = ["main.cpp"],
     data = ["//res:resources"],
     linkopts = [
-        "-lGL", "-lglfw", "-ldl", "-lGLEW", "-pthread", "-lm", "-lstdc++", "-lfreetype", "-lX11"
+        "-lGL", "-pthread", "-lX11"
     ],
     deps = [
         ":game"
